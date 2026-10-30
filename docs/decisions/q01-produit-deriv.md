@@ -31,6 +31,10 @@ Quel produit Deriv utiliser : contrats via l'API avec mise en dollars, ou MT5 av
 
 - Règles internes qui en découlent : s'abonner aux flux plutôt qu'interroger en boucle ; une seule connexion par compte ; plafond interne de 120 appels par minute et par compte pour proposal, proposal_open_contract, buy et sell (valeur prudente, à ajuster après mesure) ; attente avant nouvel essai après un rejet.
 
+## Précisions de l'étape 2.1
+
+Détails, corrections et contrat retenu (multiplicateurs, hypothèse de travail) : [deriv.md](deriv.md). Le jeton OAuth dure 30 jours dans l'exemple actuel et n'a pas de jeton de renouvellement.
+
 ## Reste à faire
 
 - Points listés dans [verifications-etape-2-1.md](verifications-etape-2-1.md).

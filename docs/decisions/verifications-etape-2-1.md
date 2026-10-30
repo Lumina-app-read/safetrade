@@ -1,14 +1,24 @@
 # Vérifications à faire à l'étape 2.1
 
-- **Statut :** non confirmé à ce jour
+- **Statut :** en grande partie vérifié le 31 octobre 2026 ; le reste exige un compte démo
 - **Date :** 30 octobre 2026
 
-Points de la documentation officielle Deriv qui restent à vérifier, sur un compte démo :
+Vérifié à l'étape 2.1 (détails : [deriv.md](deriv.md)) :
 
-- [ ] Disponibilité de l'or et du Bitcoin dans la liste des actifs d'un compte (appel `active_symbols`). Chaque actif n'accepte que certains types de contrats.
-- [ ] Types de contrats autorisant la vente anticipée et les ordres limites pour chaque actif retenu (appel `contracts_for`).
-- [ ] Étendues (scopes) exactes des jetons PAT et OAuth (une page officielle cite par exemple `trade` et `account_manage`).
-- [ ] Durée de vie des jetons OAuth et du jeton de renouvellement.
-- [ ] Champs exacts du prix d'achat et du prix de rachat, pour le calcul du spread et du gain net (voir [q01](q01-produit-deriv.md)).
+- [x] Bitcoin disponible (`cryBTCUSD`, ouvert). Or disponible (`frxXAUUSD`), fermé pendant la mesure du samedi.
+- [x] Multiplicateurs disponibles sur synthétiques, Bitcoin et or ; ordres limites acceptés (`stop_loss`, `take_profit`) sur V75 et Bitcoin.
+- [x] Portées OAuth : `trade`, `account_manage`, `application_read`, `payment`.
+- [x] Durée du jeton OAuth : lire `expires_in` (30 jours dans l'exemple) ; aucun jeton de renouvellement.
+- [x] Champs de prix : `buy_price`, `bid_price`, `profit`, `sell_price`.
+
+Reste à vérifier sur un compte démo (étapes 2.3 et 3.4) :
+
+- [ ] Portées exactes d'un PAT.
+- [ ] Portée nécessaire pour lister les comptes, avec `trade` seul.
+- [ ] `bid_price` inclut-il déjà la commission ? Valeur de `profit` juste après l'achat.
+- [ ] `sell` juste après l'ouverture : délai éventuel, `is_valid_to_sell`.
+- [ ] Glissement réel du stop loss par rapport au montant demandé.
+- [ ] Bornes de `validation_params` sur l'or, marché ouvert.
+- [ ] Limites de connexions WebSocket simultanées et code d'erreur de dépassement.
 
 Source : [section 21](../spec/21-decisions.md), parties « À vérifier à l'étape 2.1 » et « Conséquences sur le cahier des charges ».
