@@ -91,4 +91,33 @@ Directive du propriétaire du 30 octobre 2026, qui remplace la validation après
 
 ## Commandes
 
-À compléter à l'étape 1.1, quand le dépôt aura un backend, un front-end et Docker Compose : lancement, tests, lint et vérification de types.
+Environnement complet (PostgreSQL, Redis, backend, front-end), depuis la racine :
+
+```bash
+cp infra/.env.example infra/.env   # une seule fois, puis changer le mot de passe
+docker compose -f infra/docker-compose.yml --env-file infra/.env up -d --build --wait
+curl http://127.0.0.1:8000/health
+docker compose -f infra/docker-compose.yml --env-file infra/.env down
+```
+
+Ports hôte : API 8000, front-end 3000, PostgreSQL 15432, Redis 16379 (6379 est pris par Memurai sur le poste de développement).
+
+Backend (`backend/`, Python 3.11 ou plus) :
+
+```bash
+python -m venv .venv && .venv/Scripts/python -m pip install -e ".[dev]"   # bin/ sous Linux
+.venv/Scripts/ruff check . && .venv/Scripts/ruff format --check .        # lint et format
+.venv/Scripts/mypy app tests                                             # types (strict)
+.venv/Scripts/pytest                                                     # tests
+.venv/Scripts/uvicorn app.main:app --reload                              # lancement local
+```
+
+Front-end (`frontend/`, Node 20, Next.js 16 : lire `node_modules/next/dist/docs/` avant d'utiliser une API) :
+
+```bash
+npm ci
+npm run lint && npm run typecheck && npm test && npm run build
+npm run dev
+```
+
+La CI (`.github/workflows/ci.yml`) exécute exactement ces contrôles, puis démarre la stack Compose et interroge `/health`.
