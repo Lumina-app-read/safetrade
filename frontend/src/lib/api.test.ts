@@ -48,7 +48,8 @@ describe("codes d'erreur de l'API", () => {
 
 describe("emojis (section 15)", () => {
   it("un seul emoji dans l'interface : la salutation du tableau de bord", () => {
-    const emoji = /\p{Extended_Pictographic}/u;
+    // ©, ® et ™ sont des pictogrammes Unicode mais s'affichent comme du texte.
+    const emoji = /(?![©®™])\p{Extended_Pictographic}/u;
     const files = [...walk(SRC, ".tsx"), ...walk(join(SRC, "messages"), ".json")].filter((f) =>
       emoji.test(readFileSync(f, "utf8")),
     );
