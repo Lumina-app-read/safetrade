@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: cp infra/.env.example infra/.env
       - run: docker compose -f infra/docker-compose.yml --env-file infra/.env up -d --build --wait
-      - run: curl --fail --silent http://127.0.0.1:8000/health
-      - run: curl --fail --silent --output /dev/null http://127.0.0.1:3000/
+      - run: curl --fail --silent http://127.0.0.1:18000/health
+      - run: curl --fail --silent --output /dev/null http://127.0.0.1:13000/
       - if: always()
         run: docker compose -f infra/docker-compose.yml --env-file infra/.env down -v

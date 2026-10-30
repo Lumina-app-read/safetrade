@@ -1,6 +1,6 @@
 # Q9. Codes couleur
 
-- **Statut :** à confirmer (à l'étape 0.4)
+- **Statut :** remplacé par [q13-identite-visuelle.md](q13-identite-visuelle.md) (identité rouge et anthracite, 30 octobre 2026)
 - **Date :** 30 octobre 2026
 
 ## Question

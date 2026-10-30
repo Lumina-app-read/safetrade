@@ -13,10 +13,12 @@ Statuts : **décidé**, **à confirmer**, **hypothèse**.
 | 6 | [Positions à l'expiration](q06-positions-expiration.md) | Décidé | — |
 | 7 | [Commissions d'affiliation](q07-affiliation.md) | Décidé (valeurs fictives) | — |
 | 8 | [Module IA](q08-ia.md) | À confirmer (budget) | 6.1 |
-| 9 | [Codes couleur](q09-couleurs.md) | À confirmer (étape 0.4) | — |
+| 9 | [Codes couleur](q09-couleurs.md) | Remplacé par la note 13 | — |
 | 10 | [Troisième langue](q10-troisieme-langue.md) | Décidé | — |
 | 11 | [Application mobile](q11-mobile.md) | Décidé | — |
 | 12 | [Hébergement](q12-hebergement.md) | Hypothèse | 7.1 |
+| 13 | [Identité visuelle rouge et anthracite](q13-identite-visuelle.md) | Décidé (codes exacts en hypothèse) | — |
+| 14 | [Isolation Docker SafeTrade V2](q14-isolation-docker.md) | Décidé | — |
 
 Vérifications encore ouvertes : [verifications-etape-2-1.md](verifications-etape-2-1.md).
 

@@ -47,8 +47,21 @@ Le backend est la seule source de vérité. Le front-end envoie des demandes et 
 - **Couleurs uniquement via les variables de thème** (jetons de design) ; aucune couleur en dur dans un composant.
 - Thèmes clair, sombre et automatique (défaut) sur toutes les pages, sans flash au chargement ; contraste WCAG AA (4,5 : 1).
 - Grille de 8 px, cartes à 24 px de marge interne, coins de 8 à 12 px, bordures 1 px, ombres légères ou absentes.
-- Une seule couleur d'accent (bleu) ; vert et rouge réservés aux gains et pertes, toujours avec un signe ou une icône.
 - Responsive : chaque écran est utilisable sur téléphone.
+
+### Identité visuelle : rouge et anthracite (règle permanente, remplace le bleu de la section 15)
+
+- La couleur principale est le **rouge de l'identité SafeTrade**, associé à l'**anthracite**, dans les thèmes clair et sombre. Jamais de nouvelle identité bleue, jamais de rouge sang, jamais de changement de teinte sans raison documentée.
+- Valeurs retenues, mesurées sur le logo `docs/brand/logo-safetrade-source.png` (**hypothèse**, pas de charte officielle) : rouge `#D6041D`, anthracite `#202329`. Tableau complet des jetons et contrastes : `docs/decisions/q13-identite-visuelle.md`.
+- Le rouge de marque est le même remplissage dans les deux thèmes ; seul le texte rouge du thème sombre utilise la variante claire `#FF3B4E`.
+- Rouge de marque et pertes sont proches : une perte est **toujours** affichée avec son signe « - » et une icône, et utilise le rouge de perte (`#B91C1C` en clair), jamais l'accent.
+
+## Docker : isolation absolue (règle permanente)
+
+- **Ne jamais supprimer, réinitialiser, renommer ni modifier** un conteneur, une base, un volume, un réseau ou une image qui n'appartient pas à SafeTrade V2 (MUYUEXCHANGE, MUYUSTORE, ancien SafeTrade `safetrade-api` et `safetrade-pg`, ou tout autre projet). Aucun `docker system prune`, `docker volume prune` ni commande globale.
+- Tout ce que crée SafeTrade V2 est préfixé `safetradev2` : projet Compose, base `safetradev2`, conteneurs `safetradev2-postgres`, `safetradev2-redis`, `safetradev2-backend` et `safetradev2-frontend`, réseau `safetradev2-network`, volumes `safetradev2-postgres-data` et `safetradev2-redis-data`.
+- Avant de choisir ou de changer un port hôte : vérifier `netstat -ano | findstr LISTENING` et les ports réservés par **tous** les conteneurs, même arrêtés (`docker ps -a`). Entre conteneurs, toujours les ports standard des services.
+- Détails et relevé des ports : `docs/decisions/q14-isolation-docker.md`.
 
 ## Traduction
 
@@ -96,11 +109,11 @@ Environnement complet (PostgreSQL, Redis, backend, front-end), depuis la racine 
 ```bash
 cp infra/.env.example infra/.env   # une seule fois, puis changer le mot de passe
 docker compose -f infra/docker-compose.yml --env-file infra/.env up -d --build --wait
-curl http://127.0.0.1:8000/health
-docker compose -f infra/docker-compose.yml --env-file infra/.env down
+curl http://127.0.0.1:18000/health
+docker compose -f infra/docker-compose.yml --env-file infra/.env down   # jamais -v sans raison
 ```
 
-Ports hôte : API 8000, front-end 3000, PostgreSQL 15432, Redis 16379 (6379 est pris par Memurai sur le poste de développement).
+Ports hôte : API 18000, front-end 13000, PostgreSQL 15432, Redis 16379 (voir « Docker : isolation absolue »).
 
 Backend (`backend/`, Python 3.11 ou plus) :
 

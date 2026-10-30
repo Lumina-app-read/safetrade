@@ -11,46 +11,49 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* Jetons de design. Fonds et remplissages : codes de la section 15.
-   Couleurs de texte ajustées pour le contraste AA (voir docs/maquettes/README.md). */
+/* Jetons de design : identité rouge et anthracite (docs/decisions/q13-identite-visuelle.md).
+   Rouge #D6041D et anthracite #202329 mesurés sur le logo (hypothèse, pas de charte officielle). */
 :root {
-  --accent: #1F6FDB; --accent-hover: #1A5CB8; --accent-soft: #E8F1FD; --accent-soft-text: #1A5CB8;
+  --accent: #D6041D; --accent-hover: #B80318; --accent-soft: #FDE8EA; --accent-soft-text: #B80318;
   --on-accent: #FFFFFF;
-  --page: #F6F7F9; --card: #FFFFFF; --border: #E5E7EB;
-  --text: #0F172A; --muted: #5E6B80;
+  --anthracite: #202329; --on-anthracite: #FFFFFF;
+  --page: #F5F6F7; --card: #FFFFFF; --border: #E4E6E9;
+  --text: #15191C; --muted: #5C636E;
   --gain: #16A34A; --gain-text: #15803D; --gain-soft: #DCFCE7;
-  --loss: #DC2626; --loss-text: #DC2626; --loss-soft: #FEE2E2;
+  --loss: #B91C1C; --loss-text: #B91C1C; --loss-soft: #FEE2E2;
   --warn: #D97706; --warn-text: #B45309; --warn-soft: #FEF3C7;
-  --primary: #111827; --on-primary: #FFFFFF;
-  --banner-ring: rgba(255,255,255,.14);
+  --primary: #202329; --on-primary: #FFFFFF;
+  --banner-ring: rgba(214,4,29,.35);
   --shadow: 0 1px 2px rgba(15,23,42,.04);
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --accent: #5B9DF0; --accent-hover: #7AB1F4; --accent-soft: #16263F; --accent-soft-text: #5B9DF0;
-    --on-accent: #0B1220;
-    --page: #0B1220; --card: #111A2B; --border: #1F2A3D;
-    --text: #E6EAF2; --muted: #94A3B8;
+    --accent: #D6041D; --accent-hover: #B80318; --accent-soft: #3A1418; --accent-soft-text: #FF5A69;
+    --on-accent: #FFFFFF;
+    --anthracite: #202329; --on-anthracite: #FFFFFF;
+    --page: #111316; --card: #1A1D21; --border: #2A2F36;
+    --text: #ECEEF1; --muted: #9AA1AC;
     --gain: #34D399; --gain-text: #34D399; --gain-soft: #0F2E26;
     --loss: #F87171; --loss-text: #F87171; --loss-soft: #3A1A1F;
     --warn: #FBBF24; --warn-text: #FBBF24; --warn-soft: #33270C;
-    --primary: #E6EAF2; --on-primary: #0B1220;
-    --banner-ring: rgba(11,18,32,.12);
+    --primary: #ECEEF1; --on-primary: #15191C;
+    --banner-ring: rgba(214,4,29,.35);
     --shadow: none;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --accent: #5B9DF0; --accent-hover: #7AB1F4; --accent-soft: #16263F; --accent-soft-text: #5B9DF0;
-  --on-accent: #0B1220;
-  --page: #0B1220; --card: #111A2B; --border: #1F2A3D;
-  --text: #E6EAF2; --muted: #94A3B8;
+  --accent: #D6041D; --accent-hover: #B80318; --accent-soft: #3A1418; --accent-soft-text: #FF5A69;
+  --on-accent: #FFFFFF;
+  --anthracite: #202329; --on-anthracite: #FFFFFF;
+  --page: #111316; --card: #1A1D21; --border: #2A2F36;
+  --text: #ECEEF1; --muted: #9AA1AC;
   --gain: #34D399; --gain-text: #34D399; --gain-soft: #0F2E26;
   --loss: #F87171; --loss-text: #F87171; --loss-soft: #3A1A1F;
   --warn: #FBBF24; --warn-text: #FBBF24; --warn-soft: #33270C;
-  --primary: #E6EAF2; --on-primary: #0B1220;
-  --banner-ring: rgba(11,18,32,.12);
+  --primary: #ECEEF1; --on-primary: #15191C;
+  --banner-ring: rgba(214,4,29,.35);
   --shadow: none;
   color-scheme: dark;
 }
@@ -91,7 +94,8 @@ table svg.i, .pill svg.i { width: 16px; height: 16px; }
 .pill.gain { background: var(--gain-soft); color: var(--gain-text); }
 .pill.loss { background: var(--loss-soft); color: var(--loss-text); }
 .pill.warn { background: var(--warn-soft); color: var(--warn-text); }
-.pill.info { background: var(--accent-soft); color: var(--accent-soft-text); }
+/* États neutres (bot en analyse, position ouverte) : jamais en rouge, pour ne pas se lire comme une perte. */
+.pill.info { background: var(--card); color: var(--text); border: 1px solid var(--border); }
 .pill.neutral { background: var(--page); color: var(--muted); border: 1px solid var(--border); }
 .mode-demo { background: var(--warn-soft); color: var(--warn-text); border: 1px solid var(--warn); }
 
@@ -113,7 +117,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 32px 24px 96px; }
 .btn-danger { background: var(--card); border-color: var(--loss); color: var(--loss-text); }
 .btn[disabled] { opacity: .55; cursor: progress; }
 
-.banner { position: relative; overflow: hidden; border-radius: 12px; background: var(--accent); color: var(--on-accent); padding: 32px; min-height: 240px; display: flex; flex-direction: column; justify-content: space-between; }
+.banner { position: relative; overflow: hidden; border-radius: 12px; background: var(--anthracite); color: var(--on-anthracite); border: 1px solid var(--border); padding: 32px; min-height: 240px; display: flex; flex-direction: column; justify-content: space-between; }
 .banner::before, .banner::after { content: ""; position: absolute; border-radius: 50%; border: 40px solid var(--banner-ring); }
 .banner::before { width: 320px; height: 320px; right: -100px; top: -120px; }
 .banner::after { width: 200px; height: 200px; right: 80px; bottom: -130px; }
@@ -341,9 +345,9 @@ function chart() {
   const xy = pts.map((p, i) => `${(i / (pts.length - 1) * W).toFixed(1)},${(H - 16 - (p - min) / (max - min) * (H - 32)).toFixed(1)}`);
   const grid = [0.25, 0.5, 0.75].map(f => `<line x1="0" x2="${W}" y1="${H * f}" y2="${H * f}" stroke="var(--border)" stroke-dasharray="4 4"/>`).join('');
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="280" preserveAspectRatio="none" role="img" aria-label="Volatility 75 Index">
-    <defs><linearGradient id="fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".18"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+    <defs><linearGradient id="fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--text)" stop-opacity=".10"/><stop offset="1" stop-color="var(--text)" stop-opacity="0"/></linearGradient></defs>
     ${grid}<polygon points="0,${H} ${xy.join(' ')} ${W},${H}" fill="url(#fill)"/>
-    <polyline points="${xy.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+    <polyline points="${xy.join(' ')}" fill="none" stroke="var(--text)" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>`;
 }
 
 function field(k, val, unit) {
