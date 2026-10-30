@@ -2,8 +2,8 @@ import { ChartLine, Lock, ShieldCheck, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Logo } from "@/components/brand/logo";
-import { LanguageSwitch } from "@/components/language-switch";
-import { ThemeSwitch } from "@/components/theme-switch";
+import { LanguageSelect } from "@/components/language-select";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { Locale } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import type { Messages } from "@/i18n/messages";
@@ -62,8 +62,8 @@ export function AuthShell({ locale, messages, children }: { locale: Locale; mess
             <Logo />
           </a>
           <div className="flex items-center gap-2">
-            <ThemeSwitch labels={messages.theme} />
-            <LanguageSwitch current={locale} label={messages.language.label} names={messages.language.names} />
+            <ThemeToggle labels={messages.theme} />
+            <LanguageSelect current={locale} labels={messages.language} />
           </div>
         </header>
         <div className="flex flex-1 flex-col px-5 pt-8 pb-6 sm:px-8 lg:justify-center lg:pt-0">

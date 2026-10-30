@@ -1,10 +1,11 @@
 "use client";
 
-import { ChartLine, CreditCard, History, LayoutDashboard, Menu, ShieldCheck, type LucideIcon } from "lucide-react";
+import { ChartLine, CreditCard, History, LayoutDashboard, Menu, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 
-import { LanguageSwitch } from "@/components/language-switch";
-import { ThemeSwitch } from "@/components/theme-switch";
+import { Logo } from "@/components/brand/logo";
+import { LanguageSelect } from "@/components/language-select";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/messages";
 import { cn } from "@/lib/cn";
@@ -30,12 +31,9 @@ export function TopBar({ locale, messages, current }: { locale: Locale; messages
         >
           <Menu size={20} strokeWidth={1.5} aria-hidden />
         </button>
-        <div className="flex items-center gap-2 text-h3 font-medium">
-          <span className="grid size-8 place-items-center rounded-lg bg-accent text-on-accent">
-            <ShieldCheck size={20} strokeWidth={1.5} aria-hidden />
-          </span>
-          <span className="max-sm:hidden">SafeTrade</span>
-        </div>
+        <a href={`/${locale}`}>
+          <Logo compact />
+        </a>
         <nav
           className={cn(
             "mx-auto gap-1 lg:flex",
@@ -57,8 +55,8 @@ export function TopBar({ locale, messages, current }: { locale: Locale; messages
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
-          <ThemeSwitch labels={messages.theme} />
-          <LanguageSwitch current={locale} label={messages.language.label} names={messages.language.names} />
+          <ThemeToggle labels={messages.theme} />
+          <LanguageSelect current={locale} labels={messages.language} />
           <span className="grid size-8 place-items-center rounded-full bg-accent-soft text-label font-medium text-accent-text">
             CM
           </span>

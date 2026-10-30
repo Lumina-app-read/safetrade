@@ -23,10 +23,25 @@ export function applyTheme(next: Theme): void {
   }
 }
 
+const DARK_QUERY = "(prefers-color-scheme: dark)";
+
+/** Thème réellement affiché : « auto » est résolu avec la préférence du système. */
+export function readEffectiveTheme(): "light" | "dark" {
+  const theme = readTheme();
+  if (theme !== "auto") return theme;
+  return window.matchMedia(DARK_QUERY).matches ? "dark" : "light";
+}
+
+/** Prévient d'un changement de choix (attribut data-theme) ou du thème du système. */
 export function subscribeTheme(onChange: () => void): () => void {
   const observer = new MutationObserver(onChange);
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-  return () => observer.disconnect();
+  const media = window.matchMedia(DARK_QUERY);
+  media.addEventListener("change", onChange);
+  return () => {
+    observer.disconnect();
+    media.removeEventListener("change", onChange);
+  };
 }
 
 /**

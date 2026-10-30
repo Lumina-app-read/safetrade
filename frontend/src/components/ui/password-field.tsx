@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, LockKeyhole } from "lucide-react";
 import { useState, type ComponentProps } from "react";
 
 import { Field } from "./field";
@@ -15,6 +15,7 @@ export function PasswordField({ showLabel, hideLabel, ...rest }: Props) {
   const Icon = visible ? EyeOff : Eye;
   return (
     <Field
+      icon={LockKeyhole}
       {...rest}
       type={visible ? "text" : "password"}
       end={

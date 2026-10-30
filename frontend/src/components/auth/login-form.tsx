@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
@@ -44,6 +44,8 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
       {error && <Alert tone={error.code === "auth.email_not_verified" ? "info" : "error"}>{errorMessage(messages, error)}</Alert>}
       <Field
         label={t.email}
+        icon={Mail}
+        placeholder={t.emailPlaceholder}
         name="email"
         type="email"
         required
@@ -55,6 +57,7 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
       />
       <PasswordField
         label={t.password}
+        placeholder={t.passwordPlaceholder}
         name="password"
         required
         autoComplete="current-password"

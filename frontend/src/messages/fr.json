@@ -10,7 +10,8 @@
     "names": {
       "fr": "Français",
       "en": "English"
-    }
+    },
+    "menu": "Choisir la langue"
   },
   "nav": {
     "menu": "Menu",
@@ -20,9 +21,8 @@
     "subscription": "Abonnement"
   },
   "theme": {
-    "light": "Thème clair",
-    "dark": "Thème sombre",
-    "auto": "Thème automatique"
+    "switchToDark": "Passer au thème sombre",
+    "switchToLight": "Passer au thème clair"
   },
   "demo": {
     "title": "Composants de base",
@@ -81,7 +81,9 @@
       "submit": "Se connecter",
       "submitting": "Connexion en cours",
       "noAccount": "Pas encore de compte ?",
-      "createAccount": "Créer un compte"
+      "createAccount": "Créer un compte",
+      "emailPlaceholder": "vous@exemple.com",
+      "passwordPlaceholder": "Votre mot de passe"
     },
     "register": {
       "title": "Créer un compte",
@@ -98,7 +100,10 @@
       "signIn": "Se connecter",
       "successTitle": "Vérifiez votre boîte de réception",
       "successBody": "Si l'adresse {email} peut être utilisée, un lien de confirmation vient de lui être envoyé. Il expire dans 24 heures.",
-      "backToLogin": "Aller à la connexion"
+      "backToLogin": "Aller à la connexion",
+      "firstNamePlaceholder": "Votre prénom",
+      "emailPlaceholder": "vous@exemple.com",
+      "passwordPlaceholder": "10 caractères minimum"
     },
     "verify": {
       "title": "Confirmer votre adresse",

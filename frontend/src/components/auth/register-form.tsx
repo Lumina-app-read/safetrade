@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, Circle, MailCheck } from "lucide-react";
+import { ArrowRight, Check, Circle, Mail, MailCheck, UserRound } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import { Alert } from "@/components/ui/alert";
@@ -68,6 +68,8 @@ export function RegisterForm({ locale, messages }: { locale: Locale; messages: M
       {error && <Alert tone="error">{errorMessage(messages, error)}</Alert>}
       <Field
         label={t.firstName}
+        icon={UserRound}
+        placeholder={t.firstNamePlaceholder}
         name="first_name"
         required
         maxLength={100}
@@ -77,6 +79,8 @@ export function RegisterForm({ locale, messages }: { locale: Locale; messages: M
       />
       <Field
         label={t.email}
+        icon={Mail}
+        placeholder={t.emailPlaceholder}
         name="email"
         type="email"
         required
@@ -88,6 +92,7 @@ export function RegisterForm({ locale, messages }: { locale: Locale; messages: M
       />
       <PasswordField
         label={t.password}
+        placeholder={t.passwordPlaceholder}
         name="password"
         required
         minLength={10}

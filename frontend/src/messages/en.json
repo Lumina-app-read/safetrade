@@ -10,7 +10,8 @@
     "names": {
       "fr": "Français",
       "en": "English"
-    }
+    },
+    "menu": "Choose language"
   },
   "nav": {
     "menu": "Menu",
@@ -20,9 +21,8 @@
     "subscription": "Subscription"
   },
   "theme": {
-    "light": "Light theme",
-    "dark": "Dark theme",
-    "auto": "Automatic theme"
+    "switchToDark": "Switch to dark theme",
+    "switchToLight": "Switch to light theme"
   },
   "demo": {
     "title": "Base components",
@@ -81,7 +81,9 @@
       "submit": "Sign in",
       "submitting": "Signing in",
       "noAccount": "No account yet?",
-      "createAccount": "Create an account"
+      "createAccount": "Create an account",
+      "emailPlaceholder": "you@example.com",
+      "passwordPlaceholder": "Your password"
     },
     "register": {
       "title": "Create an account",
@@ -98,7 +100,10 @@
       "signIn": "Sign in",
       "successTitle": "Check your inbox",
       "successBody": "If the address {email} can be used, a confirmation link has just been sent to it. It expires in 24 hours.",
-      "backToLogin": "Go to sign in"
+      "backToLogin": "Go to sign in",
+      "firstNamePlaceholder": "Your first name",
+      "emailPlaceholder": "you@example.com",
+      "passwordPlaceholder": "At least 10 characters"
     },
     "verify": {
       "title": "Confirm your address",
