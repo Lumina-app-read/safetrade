@@ -25,6 +25,9 @@ Le backend est la seule source de vérité. Le front-end envoie des demandes et 
 
 - [ ] Toute entrée est revalidée côté serveur (schémas Pydantic stricts) ; requêtes SQL paramétrées uniquement.
 - [ ] Contrôle d'accès vérifié à chaque requête ; un client ne voit que ses propres données ; rôles administrateur au moindre privilège.
+  - Mise en œuvre : `backend/app/authz.py`. Routes privées : dépendance `CurrentSession`. Administration : routeur `/admin` protégé au niveau du routeur (`require_admin` : rôle administrateur **et** double authentification), puis `require_permission(...)` par route. Rôles et permissions : `ROLE_PERMISSIONS`.
+  - `tests/test_authz.py` parcourt toutes les routes (schéma OpenAPI) : une route non listée dans `PUBLIC_ROUTES` doit refuser l'accès sans session, toute route `/admin` doit refuser un client.
+  - Créer un administrateur : `docker exec -it safetradev2-backend python -m app.cli create-admin --email ... --role super_admin` (mot de passe demandé de façon masquée).
 - [ ] Mots de passe hachés en Argon2id ; politique de mot de passe robuste.
 - [ ] TOTP proposé aux clients, obligatoire pour les administrateurs et pour activer le compte réel.
 - [ ] Sessions courtes avec renouvellement ; cookies HttpOnly, Secure, SameSite ; sessions actives listées et révocables.

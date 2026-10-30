@@ -150,7 +150,9 @@
     "mfa_invalid_code": "Incorrect or already used code. Enter the current code from your app.",
     "mfa_challenge_invalid": "This sign-in step has expired. Please sign in again.",
     "sessions_not_found": "This session no longer exists.",
-    "sessions_use_logout": "To close the current session, use sign out."
+    "sessions_use_logout": "To close the current session, use sign out.",
+    "authz_forbidden": "You do not have access to this feature.",
+    "authz_mfa_required": "Enable two-factor authentication to access administration."
   },
   "fields": {
     "required": "This field is required.",

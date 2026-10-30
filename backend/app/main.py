@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from redis import Redis
 from sqlalchemy.orm import sessionmaker
 
+from app.admin.router import router as admin_router
 from app.auth.mailer import LogMailer, Mailer
 from app.auth.rate_limit import FailureCounter, MemoryFailureCounter, RedisFailureCounter
 from app.auth.router import router as auth_router
@@ -56,6 +57,7 @@ def create_app(
 
     install_error_handlers(app)
     app.include_router(auth_router)
+    app.include_router(admin_router)
 
     @app.get("/health", response_model=Health, tags=["system"])
     def health() -> Health:

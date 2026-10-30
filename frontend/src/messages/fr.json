@@ -150,7 +150,9 @@
     "mfa_invalid_code": "Code incorrect ou déjà utilisé. Saisissez le code actuel de votre application.",
     "mfa_challenge_invalid": "Cette étape de connexion a expiré. Reconnectez-vous.",
     "sessions_not_found": "Cette session n'existe plus.",
-    "sessions_use_logout": "Pour fermer la session en cours, utilisez la déconnexion."
+    "sessions_use_logout": "Pour fermer la session en cours, utilisez la déconnexion.",
+    "authz_forbidden": "Vous n'avez pas accès à cette fonction.",
+    "authz_mfa_required": "Activez la double authentification pour accéder à l'administration."
   },
   "fields": {
     "required": "Ce champ est obligatoire.",

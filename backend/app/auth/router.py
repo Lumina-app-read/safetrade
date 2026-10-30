@@ -7,14 +7,12 @@ from pydantic import BaseModel, EmailStr, Field
 from app.auth import mfa, service
 from app.auth.mailer import Mailer
 from app.auth.rate_limit import FailureCounter
+from app.authz import SESSION_COOKIE, CurrentSession
 from app.config import Settings
-from app.db.models import Session
 from app.deps import AppSettings, Db, check_origin, client_ip, get_failures, get_mailer
 from app.errors import ApiError
 
 router = APIRouter(prefix="/auth", tags=["auth"], dependencies=[Depends(check_origin)])
-
-SESSION_COOKIE = "st_session"
 
 
 class RegisterIn(BaseModel):
@@ -46,16 +44,6 @@ class CodeIn(BaseModel):
 class MfaDisableIn(BaseModel):
     password: str = Field(max_length=256)
     code: str = Field(min_length=6, max_length=20)
-
-
-def current_session(
-    db: Db, settings: AppSettings, token: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None
-) -> Session:
-    _, session = service.authenticate(db, settings, token)
-    return session
-
-
-CurrentSession = Annotated[Session, Depends(current_session)]
 
 
 def set_session_cookie(response: Response, settings: Settings, token: str, max_age: int) -> None:
