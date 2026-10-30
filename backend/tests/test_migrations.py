@@ -17,7 +17,14 @@ from tests.conftest import database_url_for_tests, recreate_database, requires_d
 
 pytestmark = requires_db
 
-TABLES = {"users", "sessions", "audit_log", "email_verification_tokens"}
+TABLES = {
+    "users",
+    "sessions",
+    "audit_log",
+    "email_verification_tokens",
+    "mfa_challenges",
+    "recovery_codes",
+}
 
 
 @pytest.fixture(scope="module")

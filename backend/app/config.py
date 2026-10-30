@@ -30,6 +30,13 @@ class Settings(BaseSettings):
     session_cookie_secure: bool = True
     email_verification_hours: int = 24
 
+    # Clé AES-256 (32 octets en base64) des secrets au repos : secret TOTP, puis token Deriv.
+    # Génération : python -c "import base64,os;print(base64.b64encode(os.urandom(32)).decode())"
+    encryption_key: SecretStr | None = None
+    # Connexion en deux temps : durée de validité du défi et essais de code autorisés.
+    mfa_challenge_minutes: int = 5
+    mfa_max_attempts: int = 5
+
     # Protection contre le brute force (fenêtre glissante de 15 minutes).
     login_max_failures_per_email: int = 5
     login_max_failures_per_ip: int = 20

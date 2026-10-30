@@ -41,6 +41,8 @@ def create_app(
             raise RuntimeError("Aucun fournisseur d'e-mails configuré.")
         mailer = LogMailer()
     app.state.mailer = mailer
+    if settings.encryption_key is None and settings.environment not in ("development", "test"):
+        raise RuntimeError("SAFETRADE_ENCRYPTION_KEY est obligatoire hors développement.")
     if failures is None:
         if not settings.redis_url and settings.environment not in ("development", "test"):
             # Compteurs en mémoire = limite contournable avec plusieurs instances.

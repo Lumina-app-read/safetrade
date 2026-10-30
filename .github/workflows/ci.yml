@@ -64,6 +64,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: cp infra/.env.example infra/.env
+      - run: echo "SAFETRADE_ENCRYPTION_KEY=$(python3 -c 'import base64,os;print(base64.b64encode(os.urandom(32)).decode())')" >> infra/.env
       - run: docker compose -f infra/docker-compose.yml --env-file infra/.env up -d --build --wait
       - run: curl --fail --silent http://127.0.0.1:18000/health
       - run: curl --fail --silent --output /dev/null http://127.0.0.1:13000/

@@ -131,7 +131,13 @@
     "auth_not_authenticated": "Votre session a expiré. Reconnectez-vous.",
     "validation_invalid": "Vérifiez les champs indiqués.",
     "network_unavailable": "Connexion au serveur impossible. Vérifiez votre réseau et réessayez.",
-    "unknown": "Une erreur inattendue est survenue. Réessayez."
+    "unknown": "Une erreur inattendue est survenue. Réessayez.",
+    "mfa_not_configured": "La double authentification n'est pas configurée.",
+    "mfa_already_enabled": "La double authentification est déjà activée.",
+    "mfa_invalid_code": "Code incorrect ou déjà utilisé. Saisissez le code actuel de votre application.",
+    "mfa_challenge_invalid": "Cette étape de connexion a expiré. Reconnectez-vous.",
+    "sessions_not_found": "Cette session n'existe plus.",
+    "sessions_use_logout": "Pour fermer la session en cours, utilisez la déconnexion."
   },
   "fields": {
     "required": "Ce champ est obligatoire.",

@@ -131,7 +131,13 @@
     "auth_not_authenticated": "Your session has expired. Please sign in again.",
     "validation_invalid": "Check the highlighted fields.",
     "network_unavailable": "Cannot reach the server. Check your connection and try again.",
-    "unknown": "An unexpected error occurred. Please try again."
+    "unknown": "An unexpected error occurred. Please try again.",
+    "mfa_not_configured": "Two-factor authentication is not set up.",
+    "mfa_already_enabled": "Two-factor authentication is already enabled.",
+    "mfa_invalid_code": "Incorrect or already used code. Enter the current code from your app.",
+    "mfa_challenge_invalid": "This sign-in step has expired. Please sign in again.",
+    "sessions_not_found": "This session no longer exists.",
+    "sessions_use_logout": "To close the current session, use sign out."
   },
   "fields": {
     "required": "This field is required.",

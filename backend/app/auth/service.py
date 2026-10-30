@@ -13,7 +13,7 @@ from app.auth import security
 from app.auth.mailer import Mailer, render
 from app.auth.rate_limit import FailureCounter
 from app.config import Settings
-from app.db.models import EmailVerificationToken, Session, User, UserStatus
+from app.db.models import EmailVerificationToken, MfaChallenge, Session, User, UserStatus
 from app.errors import ApiError
 
 
@@ -147,6 +147,13 @@ class NewSession:
     expires_at: datetime
 
 
+@dataclass(frozen=True)
+class MfaPending:
+    """Mot de passe vérifié ; jeton de défi à présenter avec le code de double authentification."""
+
+    challenge: str
+
+
 def login(
     db: DbSession,
     failures: FailureCounter,
@@ -156,7 +163,7 @@ def login(
     password: str,
     ip: str | None,
     user_agent: str | None,
-) -> NewSession:
+) -> "NewSession | MfaPending":
     # Empreinte de l'e-mail dans les clés Redis : aucune donnée personnelle en clair.
     email_digest = hashlib.sha256(_normalize(email).encode()).hexdigest()[:32]
     email_key, ip_key = f"login:email:{email_digest}", f"login:ip:{ip or 'unknown'}"
@@ -207,9 +214,37 @@ def login(
     failures.reset(email_key)
     if security.needs_rehash(user.password_hash):
         user.password_hash = security.hash_password(password)
+
+    if user.totp_enabled_at is not None:
+        # Mot de passe correct, mais la session n'est ouverte qu'après le second facteur.
+        challenge = security.new_token()
+        db.add(
+            MfaChallenge(
+                user_id=user.id,
+                token_hash=security.token_hash(challenge),
+                expires_at=_now() + timedelta(minutes=settings.mfa_challenge_minutes),
+            )
+        )
+        audit.record(
+            db,
+            "auth.login",
+            "success",
+            actor_user_id=user.id,
+            ip_address=ip,
+            details={"step": "password", "mfa": "required"},
+        )
+        db.commit()
+        return MfaPending(challenge=challenge)
+
+    audit.record(db, "auth.login", "success", actor_user_id=user.id, ip_address=ip)
+    return open_session(db, settings, user, ip, user_agent)
+
+
+def open_session(
+    db: DbSession, settings: Settings, user: User, ip: str | None, user_agent: str | None
+) -> NewSession:
     token = security.new_token()
-    now = _now()
-    expires_at = now + timedelta(hours=settings.session_absolute_hours)
+    expires_at = _now() + timedelta(hours=settings.session_absolute_hours)
     db.add(
         Session(
             user_id=user.id,
@@ -219,7 +254,6 @@ def login(
             user_agent=(user_agent or "")[:512] or None,
         )
     )
-    audit.record(db, "auth.login", "success", actor_user_id=user.id, ip_address=ip)
     db.commit()
     return NewSession(token=token, user=user, expires_at=expires_at)
 
@@ -270,4 +304,5 @@ def user_view(user: User) -> dict[str, str | uuid.UUID | bool]:
         "locale": user.locale,
         "theme": user.theme,
         "email_verified": user.email_verified_at is not None,
+        "mfa_enabled": user.totp_enabled_at is not None,
     }

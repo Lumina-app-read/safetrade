@@ -1,13 +1,16 @@
+import uuid
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Cookie, Depends, Request, Response, status
 from pydantic import BaseModel, EmailStr, Field
 
-from app.auth import service
+from app.auth import mfa, service
 from app.auth.mailer import Mailer
 from app.auth.rate_limit import FailureCounter
 from app.config import Settings
+from app.db.models import Session
 from app.deps import AppSettings, Db, check_origin, client_ip, get_failures, get_mailer
+from app.errors import ApiError
 
 router = APIRouter(prefix="/auth", tags=["auth"], dependencies=[Depends(check_origin)])
 
@@ -28,6 +31,31 @@ class VerifyIn(BaseModel):
 class LoginIn(BaseModel):
     email: EmailStr = Field(max_length=320)
     password: str = Field(max_length=256)
+
+
+class MfaLoginIn(BaseModel):
+    challenge: str = Field(min_length=20, max_length=100)
+    # Code TOTP à 6 chiffres ou code de secours « ABCD-EFGH ».
+    code: str = Field(min_length=6, max_length=20)
+
+
+class CodeIn(BaseModel):
+    code: str = Field(min_length=6, max_length=20)
+
+
+class MfaDisableIn(BaseModel):
+    password: str = Field(max_length=256)
+    code: str = Field(min_length=6, max_length=20)
+
+
+def current_session(
+    db: Db, settings: AppSettings, token: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None
+) -> Session:
+    _, session = service.authenticate(db, settings, token)
+    return session
+
+
+CurrentSession = Annotated[Session, Depends(current_session)]
 
 
 def set_session_cookie(response: Response, settings: Settings, token: str, max_age: int) -> None:
@@ -79,7 +107,7 @@ def login(
     settings: AppSettings,
     failures: Annotated[FailureCounter, Depends(get_failures)],
 ) -> dict[str, object]:
-    new = service.login(
+    result = service.login(
         db,
         failures,
         settings,
@@ -88,8 +116,69 @@ def login(
         ip=client_ip(request),
         user_agent=request.headers.get("user-agent"),
     )
+    if isinstance(result, service.MfaPending):
+        # Aucune session tant que le second facteur n'est pas fourni (POST /auth/login/mfa).
+        return {"mfa_required": True, "challenge": result.challenge}
+    set_session_cookie(response, settings, result.token, settings.session_absolute_hours * 3600)
+    return {"user": service.user_view(result.user)}
+
+
+@router.post("/login/mfa")
+def login_mfa(
+    body: MfaLoginIn, request: Request, response: Response, db: Db, settings: AppSettings
+) -> dict[str, object]:
+    new = mfa.complete_login(
+        db,
+        settings,
+        challenge=body.challenge,
+        code=body.code,
+        ip=client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
     set_session_cookie(response, settings, new.token, settings.session_absolute_hours * 3600)
     return {"user": service.user_view(new.user)}
+
+
+@router.post("/mfa/setup")
+def mfa_setup(
+    request: Request, db: Db, settings: AppSettings, session: CurrentSession
+) -> dict[str, str]:
+    info = mfa.setup(db, settings, session.user, client_ip(request))
+    # Le secret n'est montré que pendant la configuration ; il n'est plus jamais renvoyé ensuite.
+    return {"secret": info.secret, "otpauth_uri": info.uri, "qr_svg": info.qr_svg}
+
+
+@router.post("/mfa/enable")
+def mfa_enable(
+    body: CodeIn, request: Request, db: Db, settings: AppSettings, session: CurrentSession
+) -> dict[str, list[str]]:
+    return {"recovery_codes": mfa.enable(db, settings, session.user, body.code, client_ip(request))}
+
+
+@router.post("/mfa/disable", status_code=status.HTTP_204_NO_CONTENT)
+def mfa_disable(
+    body: MfaDisableIn, request: Request, db: Db, settings: AppSettings, session: CurrentSession
+) -> None:
+    mfa.disable(db, settings, session.user, body.password, body.code, client_ip(request))
+
+
+@router.get("/sessions")
+def sessions(db: Db, session: CurrentSession) -> dict[str, object]:
+    return {"sessions": mfa.list_sessions(db, session.user, session)}
+
+
+@router.delete("/sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+def revoke_session(
+    session_id: uuid.UUID, request: Request, db: Db, session: CurrentSession
+) -> None:
+    if session_id == session.id:
+        raise ApiError(400, "sessions.use_logout")
+    mfa.revoke_session(db, session.user, session_id, client_ip(request))
+
+
+@router.post("/sessions/revoke-others")
+def revoke_others(request: Request, db: Db, session: CurrentSession) -> dict[str, int]:
+    return {"revoked": mfa.revoke_other_sessions(db, session.user, session, client_ip(request))}
 
 
 @router.get("/me")

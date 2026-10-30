@@ -73,6 +73,11 @@ class User(Base):
     theme: Mapped[str] = mapped_column(String(5), default="auto", server_default="auto")
     # Fuseau du client : la « journée » des limites de risque se calcule dans ce fuseau (section 7).
     time_zone: Mapped[str] = mapped_column(String(64), default="UTC", server_default="UTC")
+    # Double authentification : secret chiffré (AES-256-GCM, app/crypto.py), activée ou non,
+    # et dernier pas de temps accepté (un même code ne sert jamais deux fois).
+    totp_secret_encrypted: Mapped[str | None] = mapped_column(Text)
+    totp_enabled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    totp_last_step: Mapped[int | None] = mapped_column(BigInteger)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -144,4 +149,33 @@ class EmailVerificationToken(Base):
     token_hash: Mapped[bytes] = mapped_column(LargeBinary(32), unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class MfaChallenge(Base):
+    """Connexion en attente du code de double authentification (mot de passe déjà vérifié)."""
+
+    __tablename__ = "mfa_challenges"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    token_hash: Mapped[bytes] = mapped_column(LargeBinary(32), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    attempts: Mapped[int] = mapped_column(default=0, server_default="0")
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class RecoveryCode(Base):
+    """Code de secours de la double authentification : empreinte SHA-256, usage unique."""
+
+    __tablename__ = "recovery_codes"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    code_hash: Mapped[bytes] = mapped_column(LargeBinary(32))
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
