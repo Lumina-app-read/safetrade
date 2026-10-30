@@ -59,5 +59,83 @@
     "h3": "Subtitle, 18 px",
     "body": "Body text, 14 px. Hierarchy comes from size, spacing and colour, never from a weight above 500.",
     "small": "Small text, hints and timestamps, 12 px."
+  },
+  "auth": {
+    "panelEyebrow": "Semi-automated execution platform",
+    "panelTitle": "Disciplined execution, with limits nothing can bypass.",
+    "panelPoint1": "Risk limits enforced on the server, never bypassable",
+    "panelPoint2": "Continuous analysis of Deriv markets, demo first",
+    "panelPoint3": "Your funds stay at Deriv: SafeTrade never touches them",
+    "demoData": "Demo data",
+    "demoSession": "Demo session",
+    "demoResult": "Result",
+    "demoProtection": "Stop loss active",
+    "riskNote": "Trading involves a risk of capital loss. No profit is guaranteed.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Access your SafeTrade workspace.",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in",
+      "noAccount": "No account yet?",
+      "createAccount": "Create an account"
+    },
+    "register": {
+      "title": "Create an account",
+      "subtitle": "Three-day trial on a demo account, no payment method needed.",
+      "firstName": "First name",
+      "email": "Email address",
+      "password": "Password",
+      "ruleLength": "At least 10 characters",
+      "ruleVariety": "At least 4 different characters",
+      "consent": "By creating an account, you acknowledge that trading involves a risk of capital loss.",
+      "submit": "Create my account",
+      "submitting": "Creating your account",
+      "haveAccount": "Already registered?",
+      "signIn": "Sign in",
+      "successTitle": "Check your inbox",
+      "successBody": "If the address {email} can be used, a confirmation link has just been sent to it. It expires in 24 hours.",
+      "backToLogin": "Go to sign in"
+    },
+    "verify": {
+      "title": "Confirm your address",
+      "body": "Confirm your email address to activate your SafeTrade account.",
+      "submit": "Confirm my address",
+      "submitting": "Confirming",
+      "successTitle": "Address confirmed",
+      "successBody": "Your account is active. You can now sign in.",
+      "goLogin": "Sign in",
+      "missingTitle": "Incomplete link",
+      "missingBody": "This link has no confirmation code. Open the link you received by email.",
+      "registerAgain": "Create an account"
+    }
+  },
+  "errors": {
+    "auth_invalid_credentials": "Incorrect email address or password.",
+    "auth_email_not_verified": "Please confirm your email address using the link you received.",
+    "auth_account_suspended": "This account is suspended. Contact support.",
+    "auth_too_many_attempts": "Too many attempts. Try again in {minutes} minutes.",
+    "auth_password_too_short": "The password must be at least 10 characters long.",
+    "auth_password_too_long": "The password must not exceed 128 characters.",
+    "auth_password_too_weak": "This password is too simple. Use more varied characters.",
+    "auth_verification_invalid": "This confirmation link is invalid, already used or expired.",
+    "auth_origin_forbidden": "Request refused for security reasons. Reload the page.",
+    "auth_not_authenticated": "Your session has expired. Please sign in again.",
+    "validation_invalid": "Check the highlighted fields.",
+    "network_unavailable": "Cannot reach the server. Check your connection and try again.",
+    "unknown": "An unexpected error occurred. Please try again."
+  },
+  "fields": {
+    "required": "This field is required.",
+    "emailInvalid": "Enter a valid email address."
+  },
+  "dashboard": {
+    "greeting": "Hello, {name}",
+    "subtitle": "Your workspace is ready. The full dashboard arrives in step 1.8.",
+    "logout": "Sign out",
+    "loading": "Loading your workspace"
   }
 }

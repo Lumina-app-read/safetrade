@@ -6,6 +6,9 @@ RUN npm ci --no-audit --no-fund
 FROM node:20-alpine AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+# Adresse interne de l'API, figée dans les réécritures /api au moment du build.
+ARG API_INTERNAL_URL=http://backend:8000
+ENV API_INTERNAL_URL=$API_INTERNAL_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

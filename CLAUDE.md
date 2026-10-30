@@ -163,4 +163,6 @@ npm run lint && npm run typecheck && npm test && npm run build
 npm run dev
 ```
 
+Le front-end appelle l'API uniquement via `src/lib/api.ts`, sous `/api/...` sur sa propre origine (réécriture Next.js vers `API_INTERNAL_URL`, figée au build) : cookie de session HttpOnly limité au domaine du site, pas de CORS. Les codes d'erreur sont traduits par `errorMessage()` ; un test vérifie que chaque code du backend a sa traduction.
+
 La CI (`.github/workflows/ci.yml`) exécute exactement ces contrôles, puis démarre la stack Compose et interroge `/health`.

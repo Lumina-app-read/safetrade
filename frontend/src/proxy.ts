@@ -19,6 +19,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Ni les fichiers internes de Next.js, ni les fichiers statiques (favicon.ico...).
-  matcher: ["/((?!_next|.*\\..*).*)"],
+  // Ni les fichiers internes de Next.js, ni l'API (/api/), ni les fichiers statiques.
+  matcher: ["/((?!_next|api/|.*\\..*).*)"],
 };

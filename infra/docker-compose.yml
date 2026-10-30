@@ -54,7 +54,11 @@ services:
       # Développement local en HTTP uniquement : cookie de session sans l'attribut Secure.
       SAFETRADE_SESSION_COOKIE_SECURE: "false"
       SAFETRADE_PUBLIC_APP_URL: http://127.0.0.1:${WEB_HOST_PORT}
-      SAFETRADE_ALLOWED_ORIGINS: '["http://127.0.0.1:${WEB_HOST_PORT}","http://localhost:${WEB_HOST_PORT}"]'
+      SAFETRADE_ALLOWED_ORIGINS: '["http://127.0.0.1:${WEB_HOST_PORT}","http://localhost:${WEB_HOST_PORT}","http://localhost:13001"]'
+      # Adresse IP réelle du visiteur transmise par X-Forwarded-For via la réécriture /api
+      # du front-end. Développement : réseau Docker interne ; en production, limiter à
+      # l'adresse du reverse proxy.
+      FORWARDED_ALLOW_IPS: "*"
     ports:
       - "127.0.0.1:${API_HOST_PORT:?}:8000"
     networks: [safetradev2]
@@ -65,7 +69,10 @@ services:
         condition: service_healthy
 
   frontend:
-    build: ../frontend
+    build:
+      context: ../frontend
+      args:
+        API_INTERNAL_URL: http://backend:8000
     image: safetradev2-frontend:dev
     container_name: safetradev2-frontend
     ports:

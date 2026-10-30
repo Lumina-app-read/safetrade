@@ -28,6 +28,8 @@
   --primary: #202329;
   --on-primary: #ffffff;
   --brand-ring: rgb(214 4 29 / 0.35);
+  /* Vert lisible sur les surfaces anthracite (panneaux de marque), identique dans les deux thèmes. */
+  --gain-on-dark: #34d399;
   --shadow: 0 1px 2px rgb(21 25 28 / 0.04);
   color-scheme: light;
 }
@@ -120,6 +122,7 @@
   --color-primary: var(--primary);
   --color-on-primary: var(--on-primary);
   --color-brand-ring: var(--brand-ring);
+  --color-gain-on-dark: var(--gain-on-dark);
 
   --font-*: initial;
   --font-sans: var(--font-jakarta), system-ui, sans-serif;
@@ -145,6 +148,49 @@
   --text-kpi--line-height: 1.2;
 
   --shadow-card: var(--shadow);
+
+  /* Champs : 16 px minimum sur mobile, sinon iOS zoome à la saisie. */
+  --text-input: 16px;
+  --text-input--line-height: 1.4;
+
+  /* Animations discrètes ; toutes neutralisées par prefers-reduced-motion (plus bas). */
+  --animate-rise: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-fade: fade 0.4s ease-out both;
+  --animate-draw: draw 1.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes draw {
+    from {
+      stroke-dashoffset: var(--path-length, 1000);
+    }
+  }
+  @keyframes pulse-dot {
+    50% {
+      opacity: 0.35;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 body {

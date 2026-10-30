@@ -59,5 +59,83 @@
     "h3": "Sous-titre, 18 px",
     "body": "Texte courant, 14 px. La hiérarchie vient de la taille, de l'espacement et de la couleur, jamais d'une graisse supérieure à 500.",
     "small": "Petit texte, aides et horodatages, 12 px."
+  },
+  "auth": {
+    "panelEyebrow": "Plateforme d'exécution semi-automatique",
+    "panelTitle": "Une exécution disciplinée, des limites que rien ne contourne.",
+    "panelPoint1": "Limites de risque appliquées côté serveur, jamais contournables",
+    "panelPoint2": "Analyse continue des marchés Deriv, en démo d'abord",
+    "panelPoint3": "Vos fonds restent chez Deriv : SafeTrade n'y touche jamais",
+    "demoData": "Données de démonstration",
+    "demoSession": "Session de démonstration",
+    "demoResult": "Résultat",
+    "demoProtection": "Stop loss actif",
+    "riskNote": "Le trading comporte un risque de perte en capital. Aucun gain n'est garanti.",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
+    "login": {
+      "title": "Connexion",
+      "subtitle": "Accédez à votre espace SafeTrade.",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "submit": "Se connecter",
+      "submitting": "Connexion en cours",
+      "noAccount": "Pas encore de compte ?",
+      "createAccount": "Créer un compte"
+    },
+    "register": {
+      "title": "Créer un compte",
+      "subtitle": "Trois jours d'essai, en compte démo, sans moyen de paiement.",
+      "firstName": "Prénom",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "ruleLength": "Au moins 10 caractères",
+      "ruleVariety": "Au moins 4 caractères différents",
+      "consent": "En créant un compte, vous reconnaissez que le trading comporte un risque de perte en capital.",
+      "submit": "Créer mon compte",
+      "submitting": "Création en cours",
+      "haveAccount": "Déjà inscrit ?",
+      "signIn": "Se connecter",
+      "successTitle": "Vérifiez votre boîte de réception",
+      "successBody": "Si l'adresse {email} peut être utilisée, un lien de confirmation vient de lui être envoyé. Il expire dans 24 heures.",
+      "backToLogin": "Aller à la connexion"
+    },
+    "verify": {
+      "title": "Confirmer votre adresse",
+      "body": "Confirmez votre adresse e-mail pour activer votre compte SafeTrade.",
+      "submit": "Confirmer mon adresse",
+      "submitting": "Confirmation en cours",
+      "successTitle": "Adresse confirmée",
+      "successBody": "Votre compte est activé. Vous pouvez maintenant vous connecter.",
+      "goLogin": "Se connecter",
+      "missingTitle": "Lien incomplet",
+      "missingBody": "Ce lien ne contient pas de code de confirmation. Ouvrez le lien reçu par e-mail.",
+      "registerAgain": "Créer un compte"
+    }
+  },
+  "errors": {
+    "auth_invalid_credentials": "Adresse e-mail ou mot de passe incorrect.",
+    "auth_email_not_verified": "Confirmez d'abord votre adresse e-mail grâce au lien reçu.",
+    "auth_account_suspended": "Ce compte est suspendu. Contactez le support.",
+    "auth_too_many_attempts": "Trop de tentatives. Réessayez dans {minutes} minutes.",
+    "auth_password_too_short": "Le mot de passe doit contenir au moins 10 caractères.",
+    "auth_password_too_long": "Le mot de passe ne doit pas dépasser 128 caractères.",
+    "auth_password_too_weak": "Ce mot de passe est trop simple. Variez davantage les caractères.",
+    "auth_verification_invalid": "Ce lien de confirmation est invalide, déjà utilisé ou expiré.",
+    "auth_origin_forbidden": "Requête refusée pour des raisons de sécurité. Rechargez la page.",
+    "auth_not_authenticated": "Votre session a expiré. Reconnectez-vous.",
+    "validation_invalid": "Vérifiez les champs indiqués.",
+    "network_unavailable": "Connexion au serveur impossible. Vérifiez votre réseau et réessayez.",
+    "unknown": "Une erreur inattendue est survenue. Réessayez."
+  },
+  "fields": {
+    "required": "Ce champ est obligatoire.",
+    "emailInvalid": "Saisissez une adresse e-mail valide."
+  },
+  "dashboard": {
+    "greeting": "Bonjour, {name}",
+    "subtitle": "Votre espace est prêt. Le tableau de bord complet arrive à l'étape 1.8.",
+    "logout": "Se déconnecter",
+    "loading": "Chargement de votre espace"
   }
 }
