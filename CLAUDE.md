@@ -68,6 +68,7 @@ Le backend est la seule source de vérité. Le front-end envoie des demandes et 
 - Aucun texte en dur : toute chaîne visible passe par les fichiers de traduction et existe en **français et en anglais**.
 - Le backend renvoie des codes d'erreur ; le front-end les traduit. E-mails, notifications, reçus, pages légales et explications de l'IA sont aussi traduits.
 - La construction échoue si une clé manque dans une langue.
+- Mise en œuvre (front-end) : toutes les pages sous `src/app/[locale]/` (`/fr`, `/en`) ; textes dans `src/messages/{fr,en}.json` lus par `getMessages(locale)` ; variables `{nom}` via `interpolate` ; nombres, montants et dates uniquement via `formatters(locale)` (`src/i18n/format.ts`), jamais `Intl` directement dans un composant. `src/proxy.ts` redirige les adresses sans langue (cookie `st-locale`, sinon `Accept-Language`). `npm run check:messages` (lancé avant chaque build et en CI) refuse une clé manquante, vide ou des variables différentes.
 
 ## Interdits (section 19, règles 5 à 9)
 

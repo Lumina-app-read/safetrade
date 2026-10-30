@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prebuild": "node scripts/check-messages.mjs",
+    "check:messages": "node scripts/check-messages.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.64.0",

@@ -3,9 +3,11 @@
 import { ChartLine, CreditCard, History, LayoutDashboard, Menu, ShieldCheck, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 
+import { LanguageSwitch } from "@/components/language-switch";
 import { ThemeSwitch } from "@/components/theme-switch";
+import type { Locale } from "@/i18n/config";
+import type { Messages } from "@/i18n/messages";
 import { cn } from "@/lib/cn";
-import type { Messages } from "@/lib/messages";
 
 const NAV: Array<{ key: keyof Omit<Messages["nav"], "menu">; icon: LucideIcon }> = [
   { key: "dashboard", icon: LayoutDashboard },
@@ -14,7 +16,7 @@ const NAV: Array<{ key: keyof Omit<Messages["nav"], "menu">; icon: LucideIcon }>
   { key: "subscription", icon: CreditCard },
 ];
 
-export function TopBar({ messages, current }: { messages: Messages; current?: string }) {
+export function TopBar({ locale, messages, current }: { locale: Locale; messages: Messages; current?: string }) {
   const [open, setOpen] = useState(false);
   return (
     <header className="sticky top-0 z-10 border-b border-line bg-card">
@@ -56,6 +58,7 @@ export function TopBar({ messages, current }: { messages: Messages; current?: st
         </nav>
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
           <ThemeSwitch labels={messages.theme} />
+          <LanguageSwitch current={locale} label={messages.language.label} names={messages.language.names} />
           <span className="grid size-8 place-items-center rounded-full bg-accent-soft text-label font-medium text-accent-text">
             CM
           </span>

@@ -1,4 +1,17 @@
 {
+  "meta": {
+    "description": "SafeTrade : outil d'aide à l'exécution sur Deriv. Le trading comporte un risque de perte en capital."
+  },
+  "home": {
+    "status": "Interface en cours de construction."
+  },
+  "language": {
+    "label": "Langue",
+    "names": {
+      "fr": "Français",
+      "en": "English"
+    }
+  },
   "nav": {
     "menu": "Menu",
     "dashboard": "Tableau de bord",

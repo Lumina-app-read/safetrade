@@ -1,4 +1,17 @@
 {
+  "meta": {
+    "description": "SafeTrade: an execution assistant for Deriv. Trading involves a risk of capital loss."
+  },
+  "home": {
+    "status": "Interface under construction."
+  },
+  "language": {
+    "label": "Language",
+    "names": {
+      "fr": "Français",
+      "en": "English"
+    }
+  },
   "nav": {
     "menu": "Menu",
     "dashboard": "Dashboard",

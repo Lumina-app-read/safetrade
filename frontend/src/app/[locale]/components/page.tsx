@@ -1,4 +1,5 @@
 import { CirclePause, OctagonAlert, Play, Wallet } from "lucide-react";
+import { notFound } from "next/navigation";
 
 import { TopBar } from "@/components/top-bar";
 import { SignedAmount } from "@/components/ui/amount";
@@ -7,14 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Card, SectionTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Table, Td, Th } from "@/components/ui/table";
-import { getMessages } from "@/lib/messages";
+import { isLocale } from "@/i18n/config";
+import { formatters } from "@/i18n/format";
+import { getMessages } from "@/i18n/messages";
 
 // Page de démonstration des composants (étape 1.2). Les montants sont fictifs.
-export default function ComponentsDemo() {
-  const m = getMessages("fr");
+export default async function ComponentsDemo({ params }: PageProps<"/[locale]/components">) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const m = getMessages(locale);
   const t = m.demo;
-  const usd = (n: number) =>
-    new Intl.NumberFormat("fr-FR", { style: "currency", currency: "USD", currencyDisplay: "code" }).format(n);
+  const usd = formatters(locale).money;
   const rows = [
     { asset: "Volatility 75 Index", stake: 1, result: 0.18, tone: "gain" as const, status: t.badgeGain },
     { asset: "Volatility 100 Index", stake: 1, result: -0.5, tone: "loss" as const, status: t.badgeLoss },
@@ -23,7 +27,7 @@ export default function ComponentsDemo() {
 
   return (
     <>
-      <TopBar messages={m} current="dashboard" />
+      <TopBar locale={locale} messages={m} current="dashboard" />
       <main className="mx-auto max-w-[1200px] px-4 pt-8 pb-24 sm:px-6">
         <h1 className="text-h1">{t.title}</h1>
         <p className="text-small text-muted">{t.subtitle}</p>
@@ -96,7 +100,7 @@ export default function ComponentsDemo() {
                   <Td>{r.asset}</Td>
                   <Td numeric>{usd(r.stake)}</Td>
                   <Td numeric>
-                    <SignedAmount value={r.result} formatted={usd(Math.abs(r.result) * Math.sign(r.result))} />
+                    <SignedAmount value={r.result} formatted={usd(r.result)} />
                   </Td>
                   <Td>
                     <Badge tone={r.tone}>{r.status}</Badge>
