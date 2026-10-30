@@ -126,6 +126,19 @@ python -m venv .venv && .venv/Scripts/python -m pip install -e ".[dev]"   # bin/
 .venv/Scripts/uvicorn app.main:app --reload                              # lancement local
 ```
 
+Base de données (variables à exporter, valeurs dans `infra/.env`) :
+
+```bash
+export SAFETRADE_DATABASE_URL=postgresql+psycopg://safetradev2:<mot de passe>@127.0.0.1:15432/safetradev2
+export SAFETRADE_TEST_DATABASE_URL=postgresql+psycopg://safetradev2:<mot de passe>@127.0.0.1:15432/safetradev2_test
+.venv/Scripts/alembic upgrade head        # appliquer ; downgrade -1 pour annuler
+.venv/Scripts/alembic revision --autogenerate -m "résumé" --rev-id 0002   # nouvelle migration, à relire
+```
+
+- Les tests de base de données recréent `safetradev2_test` à chaque exécution (nom obligatoirement en `_test`) ; ils sont ignorés si `SAFETRADE_TEST_DATABASE_URL` est absent, jamais en CI.
+- Chaque migration a une descente testée ; `test_models_match_migrations` échoue si un modèle diverge des migrations.
+- Le conteneur backend applique `alembic upgrade head` à chaque démarrage.
+
 Front-end (`frontend/`, Node 20, Next.js 16 : lire `node_modules/next/dist/docs/` avant d'utiliser une API) :
 
 ```bash
