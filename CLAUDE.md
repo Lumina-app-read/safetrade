@@ -112,6 +112,13 @@ Directive du propriétaire du 30 octobre 2026, qui remplace la validation après
 - Sinon : documenter le point bloquant dans `docs/decisions/`, adopter une hypothèse provisoire sûre, et avancer sur le travail indépendant.
 - Compte rendu concis à chaque jalon : réalisé, fichiers, tests et résultats, commit et branche, blocages, prochaine étape.
 
+## Connexion au broker
+
+- Interface : `backend/app/broker/base.py` ; le moteur ne dépend que de ce contrat. Client Deriv : `app/broker/deriv.py`.
+- Quotas : `app/broker/quotas.py`, REST et WebSocket séparés, par groupe d'appels, partagés entre les bots via Redis (80 % des limites officielles). Les sorties gardent du budget quand les entrées sont plafonnées.
+- `DerivConnection` ne renvoie jamais une requête. Une réponse d'achat perdue lève `OrderOutcomeUnknownError` : lire `statement` avant toute autre tentative.
+- Tests sur `tests/fake_deriv.py`, sans réseau.
+
 ## Git
 
 - Une étape = une branche `step/ID-nom-court` (exemple : `step/1.5-inscription-connexion`), à partir de `main`.
@@ -160,6 +167,7 @@ export SAFETRADE_TEST_DATABASE_URL=postgresql+psycopg://safetradev2:<mot de pass
 .venv/Scripts/alembic revision --autogenerate -m "résumé" --rev-id 0002   # nouvelle migration, à relire
 ```
 
+- Le test des quotas Redis exige `SAFETRADE_TEST_REDIS_URL` (par exemple `redis://127.0.0.1:16379/9`).
 - Les tests de base de données recréent `safetradev2_test` à chaque exécution (nom obligatoirement en `_test`) ; ils sont ignorés si `SAFETRADE_TEST_DATABASE_URL` est absent, jamais en CI.
 - Chaque migration a une descente testée ; `test_models_match_migrations` échoue si un modèle diverge des migrations.
 - Le conteneur backend applique `alembic upgrade head` à chaque démarrage.

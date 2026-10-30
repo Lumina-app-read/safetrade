@@ -21,7 +21,13 @@ jobs:
         ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U safetradev2" --health-interval 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-retries 10
     env:
+      SAFETRADE_TEST_REDIS_URL: redis://127.0.0.1:6379/9
       SAFETRADE_TEST_DATABASE_URL: postgresql+psycopg://safetradev2:ci-only@127.0.0.1:5432/safetradev2_test
     defaults:
       run:
