@@ -1,20 +1,37 @@
-# Secrets
+# Secrets : jamais dans Git (fichiers .env locaux, clés, certificats)
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+secrets/
 
 # Python
 .venv/
 __pycache__/
+*.py[cod]
 *.egg-info/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .coverage
+coverage.xml
 htmlcov/
 
 # Node (frontend/.gitignore complète)
 node_modules/
+coverage/
+
+# Journaux et fichiers temporaires
+*.log
+*.tmp
+tmp/
+
+# Réglages locaux de Claude Code (launch.json reste partagé)
+.claude/settings.local.json
 
 # Éditeurs et système
 .vscode/
