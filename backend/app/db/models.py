@@ -130,3 +130,18 @@ class AuditLog(Base):
     ip_address: Mapped[str | None] = mapped_column(INET)
     # Détails sans secret ni donnée sensible (jamais de jeton, mot de passe ou token Deriv).
     details: Mapped[dict[str, Any]] = mapped_column(JSONB, server_default="{}")
+
+
+class EmailVerificationToken(Base):
+    """Lien de vérification d'e-mail : à usage unique, expirant, stocké sous forme d'empreinte."""
+
+    __tablename__ = "email_verification_tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    token_hash: Mapped[bytes] = mapped_column(LargeBinary(32), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

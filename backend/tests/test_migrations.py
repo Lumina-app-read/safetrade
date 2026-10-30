@@ -1,50 +1,36 @@
 """Migrations sur une vraie base PostgreSQL (base de test dédiée, jamais celle de développement)."""
 
-import os
 import uuid
 from collections.abc import Iterator
-from pathlib import Path
 
 import pytest
 from alembic import command
 from alembic.autogenerate import compare_metadata
 from alembic.config import Config
 from alembic.migration import MigrationContext
-from sqlalchemy import Engine, create_engine, inspect, text
-from sqlalchemy.engine import make_url
+from sqlalchemy import Engine, inspect, text
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
 from app.db.base import Base
+from tests.conftest import alembic_config as make_config
+from tests.conftest import database_url_for_tests, recreate_database, requires_db
 
-TEST_URL = os.environ.get("SAFETRADE_TEST_DATABASE_URL")
-pytestmark = pytest.mark.skipif(TEST_URL is None, reason="SAFETRADE_TEST_DATABASE_URL non défini")
+pytestmark = requires_db
 
-BACKEND = Path(__file__).resolve().parents[1]
-TABLES = {"users", "sessions", "audit_log"}
+TABLES = {"users", "sessions", "audit_log", "email_verification_tokens"}
 
 
 @pytest.fixture(scope="module")
 def engine() -> Iterator[Engine]:
-    assert TEST_URL is not None
-    url = make_url(TEST_URL)
-    assert url.database and url.database.endswith("_test"), "la base de test doit finir par _test"
-    # Base de test recréée à neuf à chaque exécution.
-    admin = create_engine(url.set(database="postgres"), isolation_level="AUTOCOMMIT")
-    with admin.connect() as conn:
-        conn.execute(text(f'DROP DATABASE IF EXISTS "{url.database}" WITH (FORCE)'))
-        conn.execute(text(f'CREATE DATABASE "{url.database}"'))
-    admin.dispose()
-    eng = create_engine(url)
+    # Base propre à ce module : montées et descentes ne gênent pas les autres tests.
+    eng = recreate_database(database_url_for_tests())
     yield eng
     eng.dispose()
 
 
 @pytest.fixture(scope="module")
 def alembic_config(engine: Engine) -> Config:
-    cfg = Config(str(BACKEND / "alembic.ini"))
-    cfg.set_main_option("script_location", str(BACKEND / "migrations"))
-    cfg.attributes["database_url"] = engine.url.render_as_string(hide_password=False)
-    return cfg
+    return make_config(engine)
 
 
 def tables(engine: Engine) -> set[str]:

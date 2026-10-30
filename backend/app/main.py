@@ -1,7 +1,14 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from redis import Redis
+from sqlalchemy.orm import sessionmaker
 
-from app.config import get_settings
+from app.auth.mailer import LogMailer, Mailer
+from app.auth.rate_limit import FailureCounter, MemoryFailureCounter, RedisFailureCounter
+from app.auth.router import router as auth_router
+from app.config import Settings, get_settings
+from app.db.session import get_engine
+from app.errors import install_error_handlers
 
 
 class Health(BaseModel):
@@ -9,9 +16,14 @@ class Health(BaseModel):
     environment: str
 
 
-def create_app() -> FastAPI:
-    settings = get_settings()
-    # Documentation interactive désactivée hors développement.
+def create_app(
+    settings: Settings | None = None,
+    *,
+    session_factory: sessionmaker | None = None,  # type: ignore[type-arg]
+    mailer: Mailer | None = None,
+    failures: FailureCounter | None = None,
+) -> FastAPI:
+    settings = settings or get_settings()
     is_dev = settings.environment == "development"
     app = FastAPI(
         title="SafeTrade API",
@@ -19,6 +31,29 @@ def create_app() -> FastAPI:
         redoc_url=None,
         openapi_url="/openapi.json" if is_dev else None,
     )
+    app.state.settings = settings
+    app.state.session_factory = session_factory or (
+        sessionmaker(get_engine(), expire_on_commit=False) if settings.database_url else None
+    )
+    if mailer is None:
+        if settings.environment not in ("development", "test"):
+            # Aucun fournisseur d'e-mails choisi : jamais d'envoi simulé hors développement.
+            raise RuntimeError("Aucun fournisseur d'e-mails configuré.")
+        mailer = LogMailer()
+    app.state.mailer = mailer
+    if failures is None:
+        if not settings.redis_url and settings.environment not in ("development", "test"):
+            # Compteurs en mémoire = limite contournable avec plusieurs instances.
+            raise RuntimeError("SAFETRADE_REDIS_URL est obligatoire hors développement.")
+        failures = (
+            RedisFailureCounter(Redis.from_url(settings.redis_url.get_secret_value()))
+            if settings.redis_url
+            else MemoryFailureCounter()
+        )
+    app.state.failures = failures
+
+    install_error_handlers(app)
+    app.include_router(auth_router)
 
     @app.get("/health", response_model=Health, tags=["system"])
     def health() -> Health:
