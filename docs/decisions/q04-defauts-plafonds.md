@@ -20,6 +20,8 @@ Mesurées sur l'API Deriv ([deriv.md](deriv.md)), elles priment sur le tableau d
 
 Les bornes réelles se lisent dans `validation_params` de chaque `proposal`.
 
+Le gain net minimal de clôture n'est plus un seuil imposé : voir [q18](q18-sorties-dynamiques.md).
+
 ## Conséquences
 
 - Ces valeurs alimentent le paramétrage initial des étapes 3.2, 3.3, 5.5 et 8.1.

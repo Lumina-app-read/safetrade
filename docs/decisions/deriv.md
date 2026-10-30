@@ -1,6 +1,6 @@
 # Intégration Deriv : note technique (étape 2.1)
 
-- **Statut :** à relire par le propriétaire ; deux points attendent une décision (voir la fin)
+- **Statut :** décisions du propriétaire intégrées (voir la fin) ; vérifications sur compte démo en attente
 - **Date :** 31 octobre 2026
 - **Sources :** documentation officielle consultée ce jour, schémas JSON officiels (`developers.deriv.com/schemas/`), et mesures en lecture seule sur le point WebSocket public, sans compte et sans aucun achat.
 
@@ -13,7 +13,7 @@ Légende : **[doc]** écrit dans la documentation, **[mesuré]** observé sur l'
 | Durée du jeton OAuth | 3 600 s dans l'exemple | 2 592 000 s (30 jours) dans l'exemple actuel. Lire `expires_in`, ne jamais coder la durée en dur [doc] |
 | Jeton de renouvellement | À vérifier | **Il n'existe pas** pour les applications tierces [doc] |
 | Mise minimale (section 7 : 0,35 USD) | 0,35 à 50 | **1,00 USD** en multiplicateurs, maximum 500 [mesuré] |
-| Gain net minimal (section 7 : dès 0,05 USD) | 0,05 à 5 | `take_profit` minimum 0,10 USD chez Deriv ; en dessous, clôture par `sell` du moteur uniquement [mesuré] |
+| Gain net minimal (section 7) | 0,05 à 5 | Plus de seuil fixe ([q18](q18-sorties-dynamiques.md)). `take_profit` minimum 0,10 USD chez Deriv [mesuré] |
 | Calcul du spread | Écart achat et rachat | En multiplicateurs, le coût visible est la **commission** ; voir plus bas |
 
 ## Accès et authentification
@@ -64,9 +64,9 @@ résultat ≈ mise × multiplicateur × variation du cours - commission
 - La position **démarre à -0,03 USD** sur V75 et à -0,09 USD sur Bitcoin.
 - Gain net : champ `profit` de `proposal_open_contract` (`bid_price` moins `buy_price`) [doc]. Que `bid_price` inclue déjà la commission : [à vérifier].
 
-### Point de vigilance sur la stratégie du cahier des charges
+### Rentabilité
 
-Clôturer à +0,10 USD avec un stop loss de 0,50 USD impose un taux de réussite de **83,3 %** rien que pour ne pas perdre (0,50 / (0,50 + 0,10)). C'est de l'arithmétique, indépendante de tout marché. Sur des indices synthétiques, conçus pour être aléatoires, un tel taux n'a rien d'acquis (section 2, point 4). Le backtest de l'étape 3.6 devra le mesurer, commission comprise, avant toute conclusion.
+Les définitions (mise, commission, gain brut, gain net, perte nette) et le calcul des seuils sont fixés dans [q18](q18-sorties-dynamiques.md). Exemple de l'ordre de grandeur : sortir systématiquement à +0,10 USD avec un stop loss de 0,50 USD exigerait 83,3 % de réussite. Le propriétaire a écarté cette logique ; aucune stratégie n'est présentée comme rentable sans backtest solide, frais compris.
 
 ## Exécution des ordres
 
@@ -95,7 +95,11 @@ Tous les bots partagent l'adresse du serveur. Après un redémarrage, 300 bots d
 
 Voir [verifications-etape-2-1.md](verifications-etape-2-1.md).
 
-## Décisions attendues du propriétaire
+## Décisions du propriétaire (31 octobre 2026)
 
-1. **Valider les multiplicateurs** comme contrat de la première version.
-2. **Mise minimale** : relever la plage de la section 7 à 1 USD minimum (déjà appliqué comme hypothèse, Deriv refuse moins). Gain net minimal : garder la clôture par le moteur en dessous de 0,10 USD, ou relever le minimum à 0,10 USD (recommandé : plus simple, et l'ordre reste exécuté chez Deriv même si SafeTrade tombe).
+- Multiplicateurs : contrat retenu pour la première version.
+- Pas d'objectif de gain universel : sorties dynamiques, voir [q18](q18-sorties-dynamiques.md). La section 7 ne fixe plus de gain net de clôture.
+- Achats : uniquement par identifiant de proposition. Après un délai dépassé ou une réponse perdue, lire `statement` avant toute nouvelle tentative.
+- OAuth : utiliser `expires_in` tel que renvoyé, alertes avant expiration, passage automatique en état sûr.
+- Limites : REST et WebSocket distincts, quotas par groupe, centralisés entre les bots, reconnexion progressive avec attente exponentielle et jitter.
+- **Règle absolue : aucun ordre réel, aucun accès à des fonds réels et aucune mise en production sans validation explicite du propriétaire.**

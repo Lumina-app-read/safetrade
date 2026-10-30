@@ -99,6 +99,9 @@ Objectif : un vrai produit SaaS de trading professionnel et international, pas u
 3. Les tests contre Deriv utilisent uniquement un compte démo ; aucun test automatisé n'utilise un compte réel.
 4. Aucun secret (token, clé de paiement, mot de passe) dans le code, les tests ou Git.
 5. Le compte réel reste désactivé par un interrupteur de configuration jusqu'à la phase 8.
+6. **Règle absolue : aucun ordre réel, aucun accès à des fonds réels et aucune mise en production sans validation explicite du propriétaire.**
+7. Achats uniquement par identifiant de proposition, jamais par paramètres. Après un délai dépassé ou une réponse perdue, lire `statement` avant toute nouvelle tentative : un achat n'est jamais renvoyé automatiquement.
+8. Aucune stratégie présentée comme rentable sans backtest et test en avant solides, frais compris. Vocabulaire de calcul et sorties dynamiques : `docs/decisions/q18-sorties-dynamiques.md`.
 
 ## Mode de travail
 

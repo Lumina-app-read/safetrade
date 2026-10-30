@@ -22,6 +22,7 @@ Statuts : **décidé**, **à confirmer**, **hypothèse**.
 | 15 | [Fournisseur d'e-mails](q15-fournisseur-email.md) | À confirmer | 7.1 |
 | 16 | [Adresse IP réelle du visiteur](q16-adresse-ip-client.md) | Décidé (production à l'étape 7.1) | 7.1 |
 | 17 | [Connexion prolongée, mot de passe oublié, Google](q17-connexion-prolongee-google.md) | Décidé (Google plus tard) | — |
+| 18 | [Sorties dynamiques et rentabilité](q18-sorties-dynamiques.md) | Décidé (paramètres par backtest) | 3.6, 3.7 |
 
 Note technique Deriv : [deriv.md](deriv.md). Vérifications encore ouvertes : [verifications-etape-2-1.md](verifications-etape-2-1.md).
 

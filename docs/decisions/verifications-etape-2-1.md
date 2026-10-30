@@ -18,6 +18,11 @@ Reste à vérifier sur un compte démo (étapes 2.3 et 3.4) :
 - [ ] `bid_price` inclut-il déjà la commission ? Valeur de `profit` juste après l'achat.
 - [ ] `sell` juste après l'ouverture : délai éventuel, `is_valid_to_sell`.
 - [ ] Glissement réel du stop loss par rapport au montant demandé.
+- [ ] Fonctionnement réel de `stop_loss` et `take_profit` sur les multiplicateurs.
+- [ ] Leur exécution quand SafeTrade est déconnecté, puis redémarré (réconciliation).
+- [ ] `contract_update` : déplacement du stop loss, et acceptation d'un stop loss en zone de gain.
+- [ ] Existence d'un trailing stop natif ; à défaut, ce qui dépend du moteur ([q18](q18-sorties-dynamiques.md)).
+- [ ] Appariement d'un achat par `statement` après une réponse perdue.
 - [ ] Bornes de `validation_params` sur l'or, marché ouvert.
 - [ ] Limites de connexions WebSocket simultanées et code d'erreur de dépassement.
 
