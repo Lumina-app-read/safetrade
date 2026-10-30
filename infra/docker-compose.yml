@@ -51,6 +51,7 @@ services:
       # Communications internes : ports standard des services.
       SAFETRADE_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       SAFETRADE_REDIS_URL: redis://redis:6379/0
+      SAFETRADE_DERIV_APP_ID: ${SAFETRADE_DERIV_APP_ID:-}
       SAFETRADE_ENCRYPTION_KEY: ${SAFETRADE_ENCRYPTION_KEY:?générer la clé, voir infra/.env.example}
       # Développement local en HTTP uniquement : cookie de session sans l'attribut Secure.
       SAFETRADE_SESSION_COOKIE_SECURE: "false"

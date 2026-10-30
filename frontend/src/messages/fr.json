@@ -149,7 +149,12 @@
     "authz_forbidden": "Vous n'avez pas accès à cette fonction.",
     "authz_mfa_required": "Activez la double authentification pour accéder à l'administration.",
     "auth_risk_not_accepted": "Reconnaissez le risque de perte en capital pour créer votre compte.",
-    "auth_reset_invalid": "Ce lien est invalide, déjà utilisé ou expiré. Demandez-en un nouveau."
+    "auth_reset_invalid": "Ce lien est invalide, déjà utilisé ou expiré. Demandez-en un nouveau.",
+    "deriv_token_invalid": "Ce jeton a été refusé par Deriv. Vérifiez-le ou générez-en un nouveau.",
+    "deriv_unavailable": "Deriv ne répond pas pour le moment. Réessayez dans quelques instants.",
+    "deriv_real_disabled": "Le compte réel n'est pas encore disponible. Utilisez le compte démo.",
+    "deriv_not_connected": "Aucun compte Deriv n'est connecté.",
+    "deriv_account_unknown": "Ce compte n'existe pas sur votre connexion Deriv."
   },
   "fields": {
     "required": "Ce champ est obligatoire.",

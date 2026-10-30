@@ -149,7 +149,12 @@
     "authz_forbidden": "You do not have access to this feature.",
     "authz_mfa_required": "Enable two-factor authentication to access administration.",
     "auth_risk_not_accepted": "Acknowledge the risk of capital loss to create your account.",
-    "auth_reset_invalid": "This link is invalid, already used or expired. Request a new one."
+    "auth_reset_invalid": "This link is invalid, already used or expired. Request a new one.",
+    "deriv_token_invalid": "Deriv refused this token. Check it or generate a new one.",
+    "deriv_unavailable": "Deriv is not responding right now. Try again shortly.",
+    "deriv_real_disabled": "The real account is not available yet. Use the demo account.",
+    "deriv_not_connected": "No Deriv account is connected.",
+    "deriv_account_unknown": "This account does not exist on your Deriv connection."
   },
   "fields": {
     "required": "This field is required.",

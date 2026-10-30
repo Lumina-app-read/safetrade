@@ -1,14 +1,18 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from redis import Redis
+from redis.asyncio import Redis as AsyncRedis
 from sqlalchemy.orm import sessionmaker
 
 from app.admin.router import router as admin_router
 from app.auth.mailer import LogMailer, Mailer
 from app.auth.rate_limit import FailureCounter, MemoryFailureCounter, RedisFailureCounter
 from app.auth.router import router as auth_router
+from app.broker.deriv_rest import DerivRest
+from app.broker.quotas import MemoryQuotaStore, QuotaManager, RedisQuotaStore
 from app.config import Settings, get_settings
 from app.db.session import get_engine
+from app.deriv.router import router as deriv_router
 from app.errors import install_error_handlers
 
 
@@ -23,6 +27,7 @@ def create_app(
     session_factory: sessionmaker | None = None,  # type: ignore[type-arg]
     mailer: Mailer | None = None,
     failures: FailureCounter | None = None,
+    deriv: DerivRest | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
     is_dev = settings.environment == "development"
@@ -54,10 +59,23 @@ def create_app(
             else MemoryFailureCounter()
         )
     app.state.failures = failures
+    if deriv is None and settings.deriv_app_id:
+        store = (
+            RedisQuotaStore(AsyncRedis.from_url(settings.redis_url.get_secret_value()))
+            if settings.redis_url
+            else MemoryQuotaStore()
+        )
+        deriv = DerivRest(
+            settings.deriv_app_id,
+            QuotaManager(store),
+            real_account_enabled=settings.real_account_enabled,
+        )
+    app.state.deriv = deriv
 
     install_error_handlers(app)
     app.include_router(auth_router)
     app.include_router(admin_router)
+    app.include_router(deriv_router)
 
     @app.get("/health", response_model=Health, tags=["system"])
     def health() -> Health:

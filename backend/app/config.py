@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     # SecretStr : l'adresse contient le mot de passe, jamais affichée dans un journal.
     database_url: SecretStr | None = None
     redis_url: SecretStr | None = None
+    # Identifiant de l'application enregistrée chez Deriv (en-tête Deriv-App-ID).
+    deriv_app_id: str | None = None
 
     # Adresse publique du front-end, pour les liens envoyés par e-mail.
     public_app_url: str = "http://127.0.0.1:13000"

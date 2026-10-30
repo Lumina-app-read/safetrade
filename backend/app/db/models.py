@@ -200,3 +200,29 @@ class PasswordResetToken(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class DerivConnectionRecord(Base):
+    """Compte Deriv connecté : un par client. Jeton chiffré, jamais renvoyé au front-end."""
+
+    __tablename__ = "deriv_connections"
+    __table_args__ = (
+        CheckConstraint("auth_method IN ('pat', 'oauth')", name="auth_method"),
+        CheckConstraint("account_kind IN ('demo', 'real')", name="account_kind"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), unique=True
+    )
+    auth_method: Mapped[str] = mapped_column(String(10))
+    token_encrypted: Mapped[str] = mapped_column(Text)
+    # Issue de `expires_in` pour OAuth ; aucune expiration annoncée pour un PAT.
+    token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    account_id: Mapped[str | None] = mapped_column(String(50))
+    account_kind: Mapped[str | None] = mapped_column(String(10))
+    currency: Mapped[str | None] = mapped_column(String(10))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

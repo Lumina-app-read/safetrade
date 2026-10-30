@@ -23,6 +23,9 @@ Légende : **[doc]** écrit dans la documentation, **[mesuré]** observé sur l'
 - OAuth 2.0 avec PKCE : `https://auth.deriv.com/oauth2/auth`, puis `https://auth.deriv.com/oauth2/token` depuis le backend. `state` obligatoire, `code_challenge_method=S256`, adresse de redirection enregistrée à l'identique [doc].
 - Portées disponibles : `trade`, `account_manage`, `application_read`, `payment` [doc]. **SafeTrade demande uniquement `trade`** ; `payment` et `account_manage` ne doivent jamais être demandés.
 - PAT : en-tête `Deriv-App-ID` obligatoire sur REST, sinon erreur 401 [doc]. Portées des PAT non documentées [à vérifier].
+- `GET /trading/v1/options/accounts` et l'OTP exigent seulement la portée `trade` [doc]. Réponse : `data[]` avec `account_id`, `balance`, `currency`, `status`, `account_type` [mesuré sur compte démo].
+- **Un même jeton voit le compte réel et le compte démo** [mesuré]. Le refus du compte réel est donc appliqué dans `DerivRest.otp_url`, unique accès aux connexions authentifiées, et au choix du compte.
+- OAuth : non branché à l'étape 2.3, car il exige une adresse de redirection HTTPS enregistrée, donc un domaine. La colonne `token_expires_at` est prête pour `expires_in`.
 
 ### Conséquence : pas de renouvellement silencieux
 

@@ -25,6 +25,7 @@ TABLES = {
     "mfa_challenges",
     "recovery_codes",
     "password_reset_tokens",
+    "deriv_connections",
 }
 
 

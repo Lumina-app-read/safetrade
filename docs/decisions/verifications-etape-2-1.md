@@ -14,7 +14,7 @@ Vérifié à l'étape 2.1 (détails : [deriv.md](deriv.md)) :
 Reste à vérifier sur un compte démo (étapes 2.3 et 3.4) :
 
 - [ ] Portées exactes d'un PAT.
-- [ ] Portée nécessaire pour lister les comptes, avec `trade` seul.
+- [x] Portée nécessaire pour lister les comptes : `trade` [doc]. Connexion démo, solde et reconnexion avec nouvel OTP vérifiés le 31 octobre 2026.
 - [ ] `bid_price` inclut-il déjà la commission ? Valeur de `profit` juste après l'achat.
 - [ ] `sell` juste après l'ouverture : délai éventuel, `is_valid_to_sell`.
 - [ ] Glissement réel du stop loss par rapport au montant demandé.
