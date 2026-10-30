@@ -1,0 +1,50 @@
+{
+  "nav": {
+    "menu": "Menu",
+    "dashboard": "Dashboard",
+    "trading": "Trading",
+    "history": "History",
+    "subscription": "Subscription"
+  },
+  "theme": {
+    "light": "Light theme",
+    "dark": "Dark theme",
+    "auto": "Automatic theme"
+  },
+  "demo": {
+    "title": "Base components",
+    "subtitle": "Step 1.2 demo page, to check in light and dark themes.",
+    "buttons": "Buttons",
+    "primary": "Main action",
+    "accent": "Start the bot",
+    "ghost": "Pause",
+    "danger": "Emergency stop",
+    "pending": "Waiting for the server",
+    "badges": "Badges",
+    "badgeGain": "Closed in profit",
+    "badgeLoss": "Stop loss",
+    "badgeWarn": "Demo mode",
+    "badgeNeutral": "Analysing",
+    "badgeBrand": "Most popular",
+    "fields": "Fields",
+    "stake": "Stake per trade",
+    "stakeHint": "Between 0.35 and 50 USD.",
+    "stopLoss": "Stop loss per trade",
+    "ofStake": "% of stake",
+    "stopLossError": "Stop loss must be between 10 and 100%.",
+    "cards": "Cards",
+    "balance": "Deriv balance",
+    "today": "Today's result",
+    "table": "Table",
+    "asset": "Asset",
+    "stakeCol": "Stake",
+    "result": "Result",
+    "status": "Status",
+    "typography": "Typography",
+    "h1": "Page title, 28 px",
+    "h2": "Section title, 22 px",
+    "h3": "Subtitle, 18 px",
+    "body": "Body text, 14 px. Hierarchy comes from size, spacing and colour, never from a weight above 500.",
+    "small": "Small text, hints and timestamps, 12 px."
+  }
+}

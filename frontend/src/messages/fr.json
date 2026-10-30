@@ -1,0 +1,50 @@
+{
+  "nav": {
+    "menu": "Menu",
+    "dashboard": "Tableau de bord",
+    "trading": "Trading",
+    "history": "Historique",
+    "subscription": "Abonnement"
+  },
+  "theme": {
+    "light": "Thème clair",
+    "dark": "Thème sombre",
+    "auto": "Thème automatique"
+  },
+  "demo": {
+    "title": "Composants de base",
+    "subtitle": "Page de démonstration de l'étape 1.2, à contrôler en thème clair et sombre.",
+    "buttons": "Boutons",
+    "primary": "Action principale",
+    "accent": "Démarrer le bot",
+    "ghost": "Pause",
+    "danger": "Arrêt d'urgence",
+    "pending": "En attente du serveur",
+    "badges": "Pastilles",
+    "badgeGain": "Clôturée au gain",
+    "badgeLoss": "Stop loss",
+    "badgeWarn": "Mode démo",
+    "badgeNeutral": "En analyse",
+    "badgeBrand": "Le plus choisi",
+    "fields": "Champs",
+    "stake": "Mise par trade",
+    "stakeHint": "Entre 0,35 et 50 USD.",
+    "stopLoss": "Stop loss par trade",
+    "ofStake": "% de la mise",
+    "stopLossError": "Le stop loss doit être compris entre 10 et 100 %.",
+    "cards": "Cartes",
+    "balance": "Solde Deriv",
+    "today": "Résultat du jour",
+    "table": "Tableau",
+    "asset": "Actif",
+    "stakeCol": "Mise",
+    "result": "Résultat",
+    "status": "Statut",
+    "typography": "Typographie",
+    "h1": "Titre de page, 28 px",
+    "h2": "Titre de section, 22 px",
+    "h3": "Sous-titre, 18 px",
+    "body": "Texte courant, 14 px. La hiérarchie vient de la taille, de l'espacement et de la couleur, jamais d'une graisse supérieure à 500.",
+    "small": "Petit texte, aides et horodatages, 12 px."
+  }
+}

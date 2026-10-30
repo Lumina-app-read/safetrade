@@ -1,14 +1,29 @@
 import type { Metadata } from "next";
+import { Plus_Jakarta_Sans } from "next/font/google";
+
+import { DEFAULT_THEME, themeInitScript } from "@/lib/theme";
+
 import "./globals.css";
+
+// Auto-hébergée par next/font : aucune requête vers Google côté navigateur.
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-jakarta",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "SafeTrade",
 };
 
-// Langue, police et thèmes sont mis en place aux étapes 1.2 et 1.3.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="fr">
+    // data-theme est modifié avant l'hydratation par le script ci-dessous.
+    <html lang="fr" data-theme={DEFAULT_THEME} className={jakarta.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>{children}</body>
     </html>
   );
