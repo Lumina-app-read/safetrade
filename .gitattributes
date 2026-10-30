@@ -1,0 +1,5 @@
+# Fins de ligne LF par défaut dans tout le dépôt.
+* text=auto eol=lf
+
+# Cahier des charges : octets conservés tels quels (CRLF d'origine), aucune normalisation.
+docs/spec/** -text
