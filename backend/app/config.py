@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     session_absolute_hours: int = 12
     # Cookie Secure obligatoire, sauf développement local en HTTP (désactivé explicitement).
     session_cookie_secure: bool = True
+    # « Se souvenir de moi » : session plus longue, choisie par l'utilisateur à la connexion.
+    session_remember_days: int = 30
+    session_remember_idle_hours: int = 7 * 24
+    # Mot de passe oublié : durée du lien et nombre d'envois par heure pour une adresse.
+    password_reset_minutes: int = 60
+    password_reset_max_per_hour: int = 3
     email_verification_hours: int = 24
 
     # Clé AES-256 (32 octets en base64) des secrets au repos : secret TOTP, puis token Deriv.

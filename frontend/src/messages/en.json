@@ -47,7 +47,9 @@
       "noAccount": "No account yet?",
       "createAccount": "Create an account",
       "emailPlaceholder": "you@example.com",
-      "passwordPlaceholder": "Your password"
+      "passwordPlaceholder": "Your password",
+      "remember": "Remember me",
+      "forgot": "Forgot password?"
     },
     "register": {
       "title": "Create an account",
@@ -67,7 +69,8 @@
       "backToLogin": "Go to sign in",
       "firstNamePlaceholder": "Your first name",
       "emailPlaceholder": "you@example.com",
-      "passwordPlaceholder": "At least 10 characters"
+      "passwordPlaceholder": "At least 10 characters",
+      "consentRequired": "Tick this box to create your account."
     },
     "verify": {
       "title": "Confirm your address",
@@ -93,6 +96,34 @@
       "recoveryCode": "Recovery code",
       "recoveryPlaceholder": "ABCD-EFGH",
       "back": "Back to sign in"
+    },
+    "or": "or",
+    "google": "Continue with Google",
+    "googleSoon": "Soon",
+    "forgot": {
+      "title": "Forgot password",
+      "subtitle": "Enter your email address and we will send you a link to choose a new one.",
+      "email": "Email address",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Send the link",
+      "submitting": "Sending",
+      "successTitle": "Check your inbox",
+      "successBody": "If an account exists for {email}, a link has just been sent to it. It expires in 60 minutes.",
+      "back": "Back to sign in"
+    },
+    "reset": {
+      "title": "New password",
+      "subtitle": "Choose a password you do not use anywhere else.",
+      "password": "New password",
+      "passwordPlaceholder": "At least 10 characters",
+      "submit": "Change password",
+      "submitting": "Changing",
+      "successTitle": "Password changed",
+      "successBody": "All your devices have been signed out. You can sign in with your new password.",
+      "goLogin": "Sign in",
+      "missingTitle": "Incomplete link",
+      "missingBody": "This link has no code. Open the link you received by email, or request a new one.",
+      "requestNew": "Request a new link"
     }
   },
   "errors": {
@@ -116,7 +147,9 @@
     "sessions_not_found": "This session no longer exists.",
     "sessions_use_logout": "To close the current session, use sign out.",
     "authz_forbidden": "You do not have access to this feature.",
-    "authz_mfa_required": "Enable two-factor authentication to access administration."
+    "authz_mfa_required": "Enable two-factor authentication to access administration.",
+    "auth_risk_not_accepted": "Acknowledge the risk of capital loss to create your account.",
+    "auth_reset_invalid": "This link is invalid, already used or expired. Request a new one."
   },
   "fields": {
     "required": "This field is required.",

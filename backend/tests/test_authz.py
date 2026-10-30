@@ -34,6 +34,8 @@ PUBLIC_ROUTES = {
     ("POST", "/auth/verify-email"),
     ("POST", "/auth/login"),
     ("POST", "/auth/login/mfa"),
+    ("POST", "/auth/password/forgot"),
+    ("POST", "/auth/password/reset"),
 }
 
 
@@ -81,7 +83,10 @@ def api_routes(client: TestClient) -> list[tuple[str, str]]:
 
 def signed_up(client: TestClient, engine: Engine, role: UserRole = UserRole.CLIENT) -> str:
     email = f"authz-{uuid.uuid4().hex[:10]}@example.com"
-    client.post("/auth/register", json={"email": email, "password": PASSWORD, "first_name": "A"})
+    client.post(
+        "/auth/register",
+        json={"email": email, "password": PASSWORD, "first_name": "A", "accept_risk": True},
+    )
     mailer: MemoryMailer = client.app.state.test_mailer  # type: ignore[attr-defined]
     token = re.search(r"token=([\w-]+)", mailer.sent[-1].body)
     assert token

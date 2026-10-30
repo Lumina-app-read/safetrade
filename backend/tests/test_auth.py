@@ -50,7 +50,13 @@ def unique_email() -> str:
 def register(client: TestClient, email: str, password: str = PASSWORD, locale: str = "fr") -> None:
     r = client.post(
         "/auth/register",
-        json={"email": email, "password": password, "first_name": "Clovis", "locale": locale},
+        json={
+            "email": email,
+            "password": password,
+            "first_name": "Clovis",
+            "locale": locale,
+            "accept_risk": True,
+        },
     )
     assert r.status_code == 202, r.text
 
@@ -161,7 +167,13 @@ def test_duplicate_registration_gives_same_answer_and_warns_owner(
 )
 def test_weak_passwords_rejected(client: TestClient, password: str, code: str) -> None:
     r = client.post(
-        "/auth/register", json={"email": unique_email(), "password": password, "first_name": "A"}
+        "/auth/register",
+        json={
+            "email": unique_email(),
+            "password": password,
+            "first_name": "A",
+            "accept_risk": True,
+        },
     )
     assert (r.status_code, r.json()["error"]) == (422, code)
 

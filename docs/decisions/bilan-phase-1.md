@@ -32,5 +32,6 @@ Les sections Trading, Historique et Abonnement sont des états « bientôt dispo
 
 ## Dette connue
 
+- **Tableaux de bord client et administrateur non acceptés par le propriétaire** (31 octobre 2026) : jugés ni professionnels ni responsives. La mesure « aucun débordement » de ce bilan ne prouve pas leur qualité. À refaire avant de les considérer finis, après le backend et le moteur de trading, qui sont prioritaires.
 - En développement, l'adresse IP des visiteurs n'est pas connue : topologie de production à mettre en place à l'étape 7.1 ([q16](q16-adresse-ip-client.md)).
 - Avertissement de dépréciation de Starlette sur `httpx` dans les tests, sans effet.

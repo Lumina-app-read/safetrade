@@ -21,6 +21,7 @@ Statuts : **décidé**, **à confirmer**, **hypothèse**.
 | 14 | [Isolation Docker SafeTrade V2](q14-isolation-docker.md) | Décidé | — |
 | 15 | [Fournisseur d'e-mails](q15-fournisseur-email.md) | À confirmer | 7.1 |
 | 16 | [Adresse IP réelle du visiteur](q16-adresse-ip-client.md) | Décidé (production à l'étape 7.1) | 7.1 |
+| 17 | [Connexion prolongée, mot de passe oublié, Google](q17-connexion-prolongee-google.md) | Décidé (Google plus tard) | — |
 
 Vérifications encore ouvertes : [verifications-etape-2-1.md](verifications-etape-2-1.md).
 

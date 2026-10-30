@@ -6,7 +6,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session as DbSession
 
 from app import audit
@@ -14,7 +14,14 @@ from app.auth import security
 from app.auth.mailer import Mailer, render
 from app.auth.rate_limit import FailureCounter
 from app.config import Settings
-from app.db.models import EmailVerificationToken, MfaChallenge, Session, User, UserStatus
+from app.db.models import (
+    EmailVerificationToken,
+    MfaChallenge,
+    PasswordResetToken,
+    Session,
+    User,
+    UserStatus,
+)
 from app.errors import ApiError
 
 
@@ -24,6 +31,11 @@ def _now() -> datetime:
 
 def _normalize(email: str) -> str:
     return email.strip().lower()
+
+
+def _email_digest(email: str) -> str:
+    """Empreinte de l'e-mail pour les clés Redis : aucune donnée personnelle en clair."""
+    return hashlib.sha256(_normalize(email).encode()).hexdigest()[:32]
 
 
 def _find_user(db: DbSession, email: str) -> User | None:
@@ -51,6 +63,7 @@ def register(
     password: str,
     first_name: str,
     locale: str,
+    accept_risk: bool,
     ip: str | None,
 ) -> None:
     """
@@ -58,6 +71,9 @@ def register(
     Même réponse si l'adresse existe déjà (pas d'énumération des comptes) :
     le titulaire reçoit alors un e-mail d'avertissement.
     """
+    # Reconnaissance du risque exigée ici aussi : le navigateur ne décide jamais seul.
+    if not accept_risk:
+        raise ApiError(422, "auth.risk_not_accepted")
     problem = security.password_problem(password, email)
     if problem:
         raise ApiError(422, problem)
@@ -90,6 +106,7 @@ def register(
         password_hash=security.hash_password(password),
         first_name=first_name.strip(),
         locale=locale,
+        risk_accepted_at=_now(),
     )
     db.add(user)
     db.flush()
@@ -164,10 +181,9 @@ def login(
     password: str,
     ip: str | None,
     user_agent: str | None,
+    remember: bool = False,
 ) -> "NewSession | MfaPending":
-    # Empreinte de l'e-mail dans les clés Redis : aucune donnée personnelle en clair.
-    email_digest = hashlib.sha256(_normalize(email).encode()).hexdigest()[:32]
-    email_key = f"login:email:{email_digest}"
+    email_key = f"login:email:{_email_digest(email)}"
     # Compteur par adresse uniquement pour une adresse publique : une adresse interne
     # (conteneur, proxy) est partagée par tous les visiteurs, la compter permettrait à
     # quiconque de bloquer la connexion de tout le monde (docs/decisions/q16).
@@ -228,6 +244,7 @@ def login(
                 user_id=user.id,
                 token_hash=security.token_hash(challenge),
                 expires_at=_now() + timedelta(minutes=settings.mfa_challenge_minutes),
+                remember=remember,
             )
         )
         audit.record(
@@ -242,19 +259,30 @@ def login(
         return MfaPending(challenge=challenge)
 
     audit.record(db, "auth.login", "success", actor_user_id=user.id, ip_address=ip)
-    return open_session(db, settings, user, ip, user_agent)
+    return open_session(db, settings, user, ip, user_agent, remember)
 
 
 def open_session(
-    db: DbSession, settings: Settings, user: User, ip: str | None, user_agent: str | None
+    db: DbSession,
+    settings: Settings,
+    user: User,
+    ip: str | None,
+    user_agent: str | None,
+    remember: bool = False,
 ) -> NewSession:
     token = security.new_token()
-    expires_at = _now() + timedelta(hours=settings.session_absolute_hours)
+    lifetime = (
+        timedelta(days=settings.session_remember_days)
+        if remember
+        else timedelta(hours=settings.session_absolute_hours)
+    )
+    expires_at = _now() + lifetime
     db.add(
         Session(
             user_id=user.id,
             token_hash=security.token_hash(token),
             expires_at=expires_at,
+            remember=remember,
             ip_address=ip,
             user_agent=(user_agent or "")[:512] or None,
         )
@@ -271,11 +299,16 @@ def authenticate(db: DbSession, settings: Settings, token: str | None) -> tuple[
         select(Session).where(Session.token_hash == security.token_hash(token))
     ).first()
     now = _now()
+    idle = (
+        timedelta(hours=settings.session_remember_idle_hours)
+        if session is not None and session.remember
+        else timedelta(minutes=settings.session_idle_minutes)
+    )
     if (
         session is None
         or session.revoked_at is not None
         or session.expires_at <= now
-        or session.last_seen_at <= now - timedelta(minutes=settings.session_idle_minutes)
+        or session.last_seen_at <= now - idle
     ):
         raise ApiError(401, "auth.not_authenticated")
     user = session.user
@@ -311,3 +344,92 @@ def user_view(user: User) -> dict[str, str | uuid.UUID | bool]:
         "email_verified": user.email_verified_at is not None,
         "mfa_enabled": user.totp_enabled_at is not None,
     }
+
+
+def forgot_password(
+    db: DbSession,
+    mailer: Mailer,
+    failures: FailureCounter,
+    settings: Settings,
+    *,
+    email: str,
+    ip: str | None,
+) -> None:
+    """
+    Envoie un lien de réinitialisation. Aucune réponse ne révèle si l'adresse existe,
+    et le nombre d'envois par heure est limité en silence.
+    """
+    user = _find_user(db, email)
+    key = f"reset:email:{_email_digest(email)}"
+    if user is None or failures.count(key) >= settings.password_reset_max_per_hour:
+        return
+    failures.add(key, 3600)
+    # Un seul lien valide à la fois : les précédents sont annulés.
+    db.execute(
+        update(PasswordResetToken)
+        .where(PasswordResetToken.user_id == user.id, PasswordResetToken.used_at.is_(None))
+        .values(used_at=_now())
+    )
+    token = security.new_token()
+    db.add(
+        PasswordResetToken(
+            user_id=user.id,
+            token_hash=security.token_hash(token),
+            expires_at=_now() + timedelta(minutes=settings.password_reset_minutes),
+        )
+    )
+    audit.record(db, "auth.password_forgot", "success", actor_user_id=user.id, ip_address=ip)
+    db.commit()
+    mailer.send(
+        render(
+            "reset_password",
+            user.locale,
+            user.email,
+            first_name=user.first_name,
+            link=f"{settings.public_app_url}/{user.locale}/reset-password?token={token}",
+            minutes=settings.password_reset_minutes,
+        )
+    )
+
+
+def reset_password(
+    db: DbSession,
+    mailer: Mailer,
+    failures: FailureCounter,
+    *,
+    token: str,
+    password: str,
+    ip: str | None,
+) -> None:
+    """Change le mot de passe et ferme toutes les sessions : un intrus éventuel est expulsé."""
+    record = db.scalars(
+        select(PasswordResetToken)
+        .where(PasswordResetToken.token_hash == security.token_hash(token))
+        .with_for_update()
+    ).first()
+    if record is None or record.used_at is not None or record.expires_at <= _now():
+        raise ApiError(400, "auth.reset_invalid")
+    user = db.get(User, record.user_id)
+    if user is None:  # impossible (clé étrangère en cascade), refus par prudence
+        raise ApiError(400, "auth.reset_invalid")
+    problem = security.password_problem(password, user.email)
+    if problem:
+        raise ApiError(422, problem)
+
+    now = _now()
+    user.password_hash = security.hash_password(password)
+    record.used_at = now
+    db.execute(
+        update(Session)
+        .where(Session.user_id == user.id, Session.revoked_at.is_(None))
+        .values(revoked_at=now)
+    )
+    db.execute(
+        update(MfaChallenge)
+        .where(MfaChallenge.user_id == user.id, MfaChallenge.used_at.is_(None))
+        .values(used_at=now)
+    )
+    audit.record(db, "auth.password_reset", "success", actor_user_id=user.id, ip_address=ip)
+    db.commit()
+    failures.reset(f"login:email:{_email_digest(user.email)}")
+    mailer.send(render("password_changed", user.locale, user.email, first_name=user.first_name))

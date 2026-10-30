@@ -47,7 +47,9 @@
       "noAccount": "Pas encore de compte ?",
       "createAccount": "Créer un compte",
       "emailPlaceholder": "vous@exemple.com",
-      "passwordPlaceholder": "Votre mot de passe"
+      "passwordPlaceholder": "Votre mot de passe",
+      "remember": "Se souvenir de moi",
+      "forgot": "Mot de passe oublié ?"
     },
     "register": {
       "title": "Créer un compte",
@@ -67,7 +69,8 @@
       "backToLogin": "Aller à la connexion",
       "firstNamePlaceholder": "Votre prénom",
       "emailPlaceholder": "vous@exemple.com",
-      "passwordPlaceholder": "10 caractères minimum"
+      "passwordPlaceholder": "10 caractères minimum",
+      "consentRequired": "Cochez cette case pour créer votre compte."
     },
     "verify": {
       "title": "Confirmer votre adresse",
@@ -93,6 +96,34 @@
       "recoveryCode": "Code de secours",
       "recoveryPlaceholder": "ABCD-EFGH",
       "back": "Revenir à la connexion"
+    },
+    "or": "ou",
+    "google": "Continuer avec Google",
+    "googleSoon": "Bientôt",
+    "forgot": {
+      "title": "Mot de passe oublié",
+      "subtitle": "Saisissez votre adresse e-mail : nous vous enverrons un lien pour en choisir un nouveau.",
+      "email": "Adresse e-mail",
+      "emailPlaceholder": "vous@exemple.com",
+      "submit": "Envoyer le lien",
+      "submitting": "Envoi en cours",
+      "successTitle": "Vérifiez votre boîte de réception",
+      "successBody": "Si un compte existe pour {email}, un lien vient de lui être envoyé. Il expire dans 60 minutes.",
+      "back": "Retour à la connexion"
+    },
+    "reset": {
+      "title": "Nouveau mot de passe",
+      "subtitle": "Choisissez un mot de passe que vous n'utilisez nulle part ailleurs.",
+      "password": "Nouveau mot de passe",
+      "passwordPlaceholder": "10 caractères minimum",
+      "submit": "Changer le mot de passe",
+      "submitting": "Modification en cours",
+      "successTitle": "Mot de passe modifié",
+      "successBody": "Tous vos appareils ont été déconnectés. Vous pouvez vous connecter avec votre nouveau mot de passe.",
+      "goLogin": "Se connecter",
+      "missingTitle": "Lien incomplet",
+      "missingBody": "Ce lien ne contient pas de code. Ouvrez le lien reçu par e-mail, ou demandez-en un nouveau.",
+      "requestNew": "Demander un nouveau lien"
     }
   },
   "errors": {
@@ -116,7 +147,9 @@
     "sessions_not_found": "Cette session n'existe plus.",
     "sessions_use_logout": "Pour fermer la session en cours, utilisez la déconnexion.",
     "authz_forbidden": "Vous n'avez pas accès à cette fonction.",
-    "authz_mfa_required": "Activez la double authentification pour accéder à l'administration."
+    "authz_mfa_required": "Activez la double authentification pour accéder à l'administration.",
+    "auth_risk_not_accepted": "Reconnaissez le risque de perte en capital pour créer votre compte.",
+    "auth_reset_invalid": "Ce lien est invalide, déjà utilisé ou expiré. Demandez-en un nouveau."
   },
   "fields": {
     "required": "Ce champ est obligatoire.",

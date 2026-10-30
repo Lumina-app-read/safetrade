@@ -1,38 +1,38 @@
 "use client";
 
-import { ArrowRight, Check, Circle, Mail, MailCheck, UserRound } from "lucide-react";
+import { ArrowRight, Mail, MailCheck, UserRound } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Field } from "@/components/ui/field";
 import { PasswordField } from "@/components/ui/password-field";
 import type { Locale } from "@/i18n/config";
 import { interpolate, type Messages } from "@/i18n/messages";
 import { api, errorMessage } from "@/lib/api";
-import { cn } from "@/lib/cn";
 
-// Règles affichées en direct ; le serveur reste seul juge (mêmes seuils côté backend).
-const RULES = [
-  { key: "ruleLength", test: (p: string) => p.length >= 10 },
-  { key: "ruleVariety", test: (p: string) => new Set(p).size >= 4 },
-] as const;
+import { GoogleButton } from "./google-button";
+import { PasswordRules } from "./password-rules";
 
 export function RegisterForm({ locale, messages }: { locale: Locale; messages: Messages }) {
   const t = messages.auth.register;
   const [password, setPassword] = useState("");
+  const [accepted, setAccepted] = useState(false);
+  const [riskError, setRiskError] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<{ code: string; retryAfter?: number } | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!accepted) return setRiskError(true);
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email")).trim();
     setPending(true);
     setError(null);
     const result = await api("/auth/register", {
-      body: { first_name: String(form.get("first_name")).trim(), email, password, locale },
+      body: { first_name: String(form.get("first_name")).trim(), email, password, locale, accept_risk: accepted },
     });
     setPending(false);
     if (result.ok) setSentTo(email);
@@ -103,26 +103,22 @@ export function RegisterForm({ locale, messages }: { locale: Locale; messages: M
         onChange={(e) => setPassword(e.target.value)}
         showLabel={messages.auth.showPassword}
         hideLabel={messages.auth.hidePassword}
-        hint={
-          <ul className="mt-0.5 flex flex-col gap-1">
-            {RULES.map(({ key, test }) => {
-              const ok = test(password);
-              const Icon = ok ? Check : Circle;
-              return (
-                <li key={key} className={cn("flex items-center gap-2 transition-colors", ok && "text-gain")}>
-                  <Icon size={14} strokeWidth={ok ? 2 : 1.5} aria-hidden />
-                  {t[key]}
-                </li>
-              );
-            })}
-          </ul>
-        }
+        hint={<PasswordRules password={password} labels={t} />}
       />
-      <p className="text-small text-muted">{t.consent}</p>
+      <Checkbox
+        label={t.consent}
+        checked={accepted}
+        onChange={(e) => {
+          setAccepted(e.target.checked);
+          setRiskError(false);
+        }}
+        error={riskError ? t.consentRequired : undefined}
+      />
       <Button type="submit" variant="accent" size="lg" pending={pending} className="w-full">
         {pending ? t.submitting : t.submit}
         {!pending && <ArrowRight size={18} strokeWidth={1.5} aria-hidden />}
       </Button>
+      <GoogleButton messages={messages} />
       <p className="text-center text-muted">
         {t.haveAccount}{" "}
         <a href={`/${locale}/login`} className="font-medium text-accent-text underline-offset-4 hover:underline">

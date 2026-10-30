@@ -1,10 +1,12 @@
 "use client";
 
 import { ArrowLeft, ArrowRight, KeyRound, Mail, ShieldCheck, Smartphone } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { Alert } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { PasswordField } from "@/components/ui/password-field";
@@ -12,6 +14,8 @@ import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/messages";
 import { api, errorMessage } from "@/lib/api";
 import { homePath } from "@/lib/roles";
+
+import { GoogleButton } from "./google-button";
 
 type LoginResult = { user?: { role: string }; mfa_required?: boolean; challenge?: string };
 type ApiErr = { code: string; retryAfter?: number };
@@ -36,7 +40,11 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
     setPending(true);
     setError(null);
     const result = await api<LoginResult>("/auth/login", {
-      body: { email: String(form.get("email")), password: String(form.get("password")) },
+      body: {
+        email: String(form.get("email")),
+        password: String(form.get("password")),
+        remember: form.get("remember") === "on",
+      },
     });
     if (result.ok && result.data.mfa_required && result.data.challenge) {
       setPending(false);
@@ -94,10 +102,17 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
         showLabel={messages.auth.showPassword}
         hideLabel={messages.auth.hidePassword}
       />
+      <div className="-my-1 flex flex-wrap items-center justify-between gap-x-4">
+        <Checkbox name="remember" label={t.remember} />
+        <Link href={`/${locale}/forgot-password`} className={`${linkButton} min-h-11 text-label`}>
+          {t.forgot}
+        </Link>
+      </div>
       <Button type="submit" variant="accent" size="lg" pending={pending} className="mt-1 w-full">
         {pending ? t.submitting : t.submit}
         {!pending && <ArrowRight size={18} strokeWidth={1.5} aria-hidden />}
       </Button>
+      <GoogleButton messages={messages} />
       <p className="text-center text-muted">
         {t.noAccount}{" "}
         <a href={`/${locale}/register`} className={linkButton}>

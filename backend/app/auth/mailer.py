@@ -45,6 +45,36 @@ TEMPLATES: dict[str, dict[str, tuple[str, str]]] = {
             "If this was not you, no action is needed.",
         ),
     },
+    "reset_password": {
+        "fr": (
+            "Réinitialisez votre mot de passe SafeTrade",
+            "Bonjour {first_name},\n\n"
+            "Pour choisir un nouveau mot de passe :\n{link}\n\n"
+            "Ce lien expire dans {minutes} minutes. "
+            "Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.",
+        ),
+        "en": (
+            "Reset your SafeTrade password",
+            "Hello {first_name},\n\n"
+            "To choose a new password:\n{link}\n\n"
+            "This link expires in {minutes} minutes. "
+            "If you did not request this, ignore this message.",
+        ),
+    },
+    "password_changed": {
+        "fr": (
+            "Votre mot de passe SafeTrade a été modifié",
+            "Bonjour {first_name},\n\n"
+            "Votre mot de passe vient d'être modifié et vos appareils ont été déconnectés. "
+            "Si ce n'était pas vous, contactez immédiatement le support.",
+        ),
+        "en": (
+            "Your SafeTrade password was changed",
+            "Hello {first_name},\n\n"
+            "Your password has just been changed and your devices were signed out. "
+            "If this was not you, contact support immediately.",
+        ),
+    },
 }
 
 

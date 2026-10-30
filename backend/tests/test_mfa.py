@@ -56,7 +56,10 @@ def make_client(migrated_engine: Engine) -> Iterator[Callable[[], TestClient]]:
 def signed_up(client: TestClient) -> str:
     """Compte vérifié et connecté ; renvoie l'e-mail."""
     email = f"mfa-{uuid.uuid4().hex[:10]}@example.com"
-    client.post("/auth/register", json={"email": email, "password": PASSWORD, "first_name": "Clo"})
+    client.post(
+        "/auth/register",
+        json={"email": email, "password": PASSWORD, "first_name": "Clo", "accept_risk": True},
+    )
     mailer: MemoryMailer = client.app.state.test_mailer  # type: ignore[attr-defined]
     token = re.search(r"token=([\w-]+)", mailer.sent[-1].body)
     assert token

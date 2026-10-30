@@ -174,7 +174,7 @@ def complete_login(
         ip_address=ip,
         details={"method": method},
     )
-    return open_session(db, settings, user, ip, user_agent)
+    return open_session(db, settings, user, ip, user_agent, record.remember)
 
 
 def list_sessions(db: DbSession, user: User, current: Session) -> list[dict[str, object]]:

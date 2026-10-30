@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC, datetime
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Cookie, Depends, Request, Response, status
@@ -20,6 +21,7 @@ class RegisterIn(BaseModel):
     password: str = Field(max_length=256)
     first_name: str = Field(min_length=1, max_length=100)
     locale: Literal["fr", "en"] = "fr"
+    accept_risk: bool = False
 
 
 class VerifyIn(BaseModel):
@@ -28,6 +30,16 @@ class VerifyIn(BaseModel):
 
 class LoginIn(BaseModel):
     email: EmailStr = Field(max_length=320)
+    password: str = Field(max_length=256)
+    remember: bool = False
+
+
+class ForgotIn(BaseModel):
+    email: EmailStr = Field(max_length=320)
+
+
+class ResetIn(BaseModel):
+    token: str = Field(min_length=20, max_length=100)
     password: str = Field(max_length=256)
 
 
@@ -46,11 +58,11 @@ class MfaDisableIn(BaseModel):
     code: str = Field(min_length=6, max_length=20)
 
 
-def set_session_cookie(response: Response, settings: Settings, token: str, max_age: int) -> None:
+def set_session_cookie(response: Response, settings: Settings, new: service.NewSession) -> None:
     response.set_cookie(
         SESSION_COOKIE,
-        token,
-        max_age=max_age,
+        new.token,
+        max_age=int((new.expires_at - datetime.now(UTC)).total_seconds()),
         httponly=True,
         secure=settings.session_cookie_secure,
         samesite="lax",
@@ -74,6 +86,7 @@ def register(
         password=body.password,
         first_name=body.first_name,
         locale=body.locale,
+        accept_risk=body.accept_risk,
         ip=client_ip(request),
     )
     # Réponse identique que l'adresse soit nouvelle ou déjà inscrite.
@@ -84,6 +97,34 @@ def register(
 def verify_email(body: VerifyIn, request: Request, db: Db) -> dict[str, str]:
     service.verify_email(db, token=body.token, ip=client_ip(request))
     return {"status": "verified"}
+
+
+@router.post("/password/forgot", status_code=status.HTTP_202_ACCEPTED)
+def forgot_password(
+    body: ForgotIn,
+    request: Request,
+    db: Db,
+    settings: AppSettings,
+    mailer: Annotated[Mailer, Depends(get_mailer)],
+    failures: Annotated[FailureCounter, Depends(get_failures)],
+) -> dict[str, str]:
+    service.forgot_password(db, mailer, failures, settings, email=body.email, ip=client_ip(request))
+    # Réponse identique que l'adresse existe ou non.
+    return {"status": "reset_sent"}
+
+
+@router.post("/password/reset")
+def reset_password(
+    body: ResetIn,
+    request: Request,
+    db: Db,
+    mailer: Annotated[Mailer, Depends(get_mailer)],
+    failures: Annotated[FailureCounter, Depends(get_failures)],
+) -> dict[str, str]:
+    service.reset_password(
+        db, mailer, failures, token=body.token, password=body.password, ip=client_ip(request)
+    )
+    return {"status": "password_changed"}
 
 
 @router.post("/login")
@@ -103,11 +144,12 @@ def login(
         password=body.password,
         ip=client_ip(request),
         user_agent=request.headers.get("user-agent"),
+        remember=body.remember,
     )
     if isinstance(result, service.MfaPending):
         # Aucune session tant que le second facteur n'est pas fourni (POST /auth/login/mfa).
         return {"mfa_required": True, "challenge": result.challenge}
-    set_session_cookie(response, settings, result.token, settings.session_absolute_hours * 3600)
+    set_session_cookie(response, settings, result)
     return {"user": service.user_view(result.user)}
 
 
@@ -123,7 +165,7 @@ def login_mfa(
         ip=client_ip(request),
         user_agent=request.headers.get("user-agent"),
     )
-    set_session_cookie(response, settings, new.token, settings.session_absolute_hours * 3600)
+    set_session_cookie(response, settings, new)
     return {"user": service.user_view(new.user)}
 
 

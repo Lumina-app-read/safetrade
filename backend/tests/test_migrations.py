@@ -24,6 +24,7 @@ TABLES = {
     "email_verification_tokens",
     "mfa_challenges",
     "recovery_codes",
+    "password_reset_tokens",
 }
 
 
