@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="fr" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SafeTrade — Maquettes</title>
+<script>
+  // Thème appliqué avant le premier rendu : aucun flash.
+  try { const t = localStorage.getItem('st-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Jetons de design. Fonds et remplissages : codes de la section 15.
+   Couleurs de texte ajustées pour le contraste AA (voir docs/maquettes/README.md). */
+:root {
+  --accent: #1F6FDB; --accent-hover: #1A5CB8; --accent-soft: #E8F1FD; --accent-soft-text: #1A5CB8;
+  --on-accent: #FFFFFF;
+  --page: #F6F7F9; --card: #FFFFFF; --border: #E5E7EB;
+  --text: #0F172A; --muted: #5E6B80;
+  --gain: #16A34A; --gain-text: #15803D; --gain-soft: #DCFCE7;
+  --loss: #DC2626; --loss-text: #DC2626; --loss-soft: #FEE2E2;
+  --warn: #D97706; --warn-text: #B45309; --warn-soft: #FEF3C7;
+  --primary: #111827; --on-primary: #FFFFFF;
+  --banner-ring: rgba(255,255,255,.14);
+  --shadow: 0 1px 2px rgba(15,23,42,.04);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --accent: #5B9DF0; --accent-hover: #7AB1F4; --accent-soft: #16263F; --accent-soft-text: #5B9DF0;
+    --on-accent: #0B1220;
+    --page: #0B1220; --card: #111A2B; --border: #1F2A3D;
+    --text: #E6EAF2; --muted: #94A3B8;
+    --gain: #34D399; --gain-text: #34D399; --gain-soft: #0F2E26;
+    --loss: #F87171; --loss-text: #F87171; --loss-soft: #3A1A1F;
+    --warn: #FBBF24; --warn-text: #FBBF24; --warn-soft: #33270C;
+    --primary: #E6EAF2; --on-primary: #0B1220;
+    --banner-ring: rgba(11,18,32,.12);
+    --shadow: none;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --accent: #5B9DF0; --accent-hover: #7AB1F4; --accent-soft: #16263F; --accent-soft-text: #5B9DF0;
+  --on-accent: #0B1220;
+  --page: #0B1220; --card: #111A2B; --border: #1F2A3D;
+  --text: #E6EAF2; --muted: #94A3B8;
+  --gain: #34D399; --gain-text: #34D399; --gain-soft: #0F2E26;
+  --loss: #F87171; --loss-text: #F87171; --loss-soft: #3A1A1F;
+  --warn: #FBBF24; --warn-text: #FBBF24; --warn-soft: #33270C;
+  --primary: #E6EAF2; --on-primary: #0B1220;
+  --banner-ring: rgba(11,18,32,.12);
+  --shadow: none;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--page); color: var(--text); font: 400 14px/1.5 "Plus Jakarta Sans", system-ui, sans-serif; }
+button, select, input { font: inherit; color: inherit; }
+h1 { font-size: 28px; font-weight: 400; margin: 0; line-height: 1.25; }
+h2 { font-size: 22px; font-weight: 400; margin: 0; }
+h3 { font-size: 18px; font-weight: 500; margin: 0; }
+.small { font-size: 12px; color: var(--muted); }
+.label { font-size: 13px; font-weight: 500; }
+.kpi { font-size: 24px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.section-title { font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 32px 0 12px; }
+svg.i { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+table svg.i, .pill svg.i { width: 16px; height: 16px; }
+
+/* Barre supérieure */
+.topbar { position: sticky; top: 0; z-index: 10; background: var(--card); border-bottom: 1px solid var(--border); }
+.topbar-in { max-width: 1200px; margin: 0 auto; height: 64px; padding: 0 24px; display: flex; align-items: center; gap: 16px; }
+.logo { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 500; }
+.logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; }
+.nav { display: flex; gap: 4px; margin: 0 auto; }
+.nav button { display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 500; }
+.nav button:hover { color: var(--text); background: var(--page); }
+.nav button[aria-current="page"] { color: var(--accent-soft-text); background: var(--accent-soft); }
+.tools { display: flex; align-items: center; gap: 8px; }
+.seg { display: flex; border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
+.seg button { border: 0; background: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; color: var(--muted); display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent-soft-text); }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-soft-text); display: grid; place-items: center; font-size: 13px; font-weight: 500; }
+.burger { display: none; border: 0; background: none; padding: 8px; cursor: pointer; }
+
+/* Pastilles */
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.gain { background: var(--gain-soft); color: var(--gain-text); }
+.pill.loss { background: var(--loss-soft); color: var(--loss-text); }
+.pill.warn { background: var(--warn-soft); color: var(--warn-text); }
+.pill.info { background: var(--accent-soft); color: var(--accent-soft-text); }
+.pill.neutral { background: var(--page); color: var(--muted); border: 1px solid var(--border); }
+.mode-demo { background: var(--warn-soft); color: var(--warn-text); border: 1px solid var(--warn); }
+
+/* Mise en page */
+main { max-width: 1200px; margin: 0 auto; padding: 32px 24px 96px; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: var(--shadow); }
+.grid { display: grid; gap: 16px; }
+.grid > *, .hero > *, .trade > * { min-width: 0; }
+.g2 { grid-template-columns: repeat(2, 1fr); }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.btn-primary { background: var(--primary); color: var(--on-primary); }
+.btn-accent { background: var(--accent); color: var(--on-accent); }
+.btn-accent:hover { background: var(--accent-hover); }
+.btn-ghost { background: var(--card); border-color: var(--border); }
+.btn-danger { background: var(--card); border-color: var(--loss); color: var(--loss-text); }
+.btn[disabled] { opacity: .55; cursor: progress; }
+
+.banner { position: relative; overflow: hidden; border-radius: 12px; background: var(--accent); color: var(--on-accent); padding: 32px; min-height: 240px; display: flex; flex-direction: column; justify-content: space-between; }
+.banner::before, .banner::after { content: ""; position: absolute; border-radius: 50%; border: 40px solid var(--banner-ring); }
+.banner::before { width: 320px; height: 320px; right: -100px; top: -120px; }
+.banner::after { width: 200px; height: 200px; right: 80px; bottom: -130px; }
+.banner > * { position: relative; }
+.banner .muted-on { opacity: .85; font-size: 13px; }
+.stat { display: flex; flex-direction: column; gap: 8px; }
+.stat-top { display: flex; justify-content: space-between; align-items: center; color: var(--muted); }
+.up { color: var(--gain-text); } .down { color: var(--loss-text); }
+.shortcut { display: flex; gap: 16px; align-items: center; }
+.ico-box { width: 40px; height: 40px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-soft-text); display: grid; place-items: center; flex: none; }
+
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-size: 12px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 0 12px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 14px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; margin: 0 -12px; }
+.icon-btn { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 4px; border-radius: 6px; }
+.icon-btn:hover { color: var(--text); background: var(--page); }
+
+.risk { display: flex; gap: 12px; align-items: flex-start; padding: 16px; border-radius: 8px; border: 1px solid var(--warn); background: var(--warn-soft); color: var(--text); font-size: 13px; margin-top: 24px; }
+.risk svg { color: var(--warn-text); }
+.fab { position: fixed; right: 24px; bottom: 24px; width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; cursor: pointer; box-shadow: 0 4px 12px rgba(15,23,42,.18); }
+
+/* Trading */
+.modebar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.trade { display: grid; grid-template-columns: 1fr 340px; gap: 16px; }
+.chart-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.field-row { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 8px; background: var(--page); }
+.field-row input, .field-row select, select.inp { border: 0; background: none; padding: 9px 12px; width: 100%; outline: none; }
+select.inp { border: 1px solid var(--border); border-radius: 8px; background: var(--card); width: auto; }
+.field-row span { padding: 0 12px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.field-row:focus-within { border-color: var(--accent); }
+.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.controls .btn-accent, .controls .btn-danger { grid-column: 1 / -1; }
+.status-line { font-size: 12px; color: var(--muted); min-height: 18px; margin-top: 8px; }
+.log li { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.log li:last-child { border-bottom: 0; }
+.log ul { list-style: none; margin: 0; padding: 0; }
+.log time { color: var(--muted); font-size: 12px; min-width: 64px; font-variant-numeric: tabular-nums; }
+
+/* Abonnement */
+.plan { display: flex; flex-direction: column; gap: 16px; }
+.plan.featured { border-color: var(--accent); }
+.price { font-size: 28px; font-weight: 500; }
+.pay { display: flex; gap: 12px; align-items: center; padding: 16px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
+.pay[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); }
+
+/* Mobile */
+@media (max-width: 960px) {
+  .nav { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--card); border-bottom: 1px solid var(--border); flex-direction: column; padding: 8px 16px 16px; }
+  .nav.open { display: flex; }
+  .burger { display: block; }
+  .tools { margin-left: auto; }
+  .hero, .trade, .g3, .g4 { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .topbar-in, main { padding-left: 16px; padding-right: 16px; }
+  .g2 { grid-template-columns: 1fr; }
+  .logo span { display: none; }
+  .seg button { padding: 4px 6px; }
+  .banner { padding: 24px; }
+  .page-head .btn { width: 100%; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <button class="burger" id="burger" data-i18n-aria="menu"></button>
+    <div class="logo"><div class="logo-mark" data-icon="shield"></div><span>SafeTrade</span></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="tools">
+      <div class="seg" id="themeSeg"></div>
+      <div class="seg" id="langSeg"></div>
+      <div class="avatar">CM</div>
+    </div>
+  </div>
+</header>
+<main id="app"></main>
+<button class="fab" data-icon="life-buoy" data-i18n-aria="help"></button>
+
+<script>
+const ICONS = {
+  'layout-dashboard': '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  'chart-line': '<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m19 9-5 5-4-4-3 3"/>',
+  'credit-card': '<rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>',
+  'users': '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  'shield': '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+  'sun': '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  'moon': '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  'monitor': '<rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  'globe': '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/>',
+  'menu': '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  'play': '<polygon points="6 3 20 12 6 21 6 3"/>',
+  'pause': '<rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/>',
+  'circle-stop': '<circle cx="12" cy="12" r="10"/><rect x="9" y="9" width="6" height="6" rx="1"/>',
+  'octagon-alert': '<path d="M12 16h.01M12 8v4"/><path d="M15.31 2a2 2 0 0 1 1.42.59l4.68 4.68A2 2 0 0 1 22 8.69v6.62a2 2 0 0 1-.59 1.42l-4.68 4.68a2 2 0 0 1-1.42.59H8.69a2 2 0 0 1-1.42-.59l-4.68-4.68A2 2 0 0 1 2 15.31V8.69a2 2 0 0 1 .59-1.42l4.68-4.68A2 2 0 0 1 8.69 2z"/>',
+  'life-buoy': '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="m4.93 4.93 4.24 4.24M14.83 9.17l4.24-4.24M14.83 14.83l4.24 4.24M9.17 14.83l-4.24 4.24"/>',
+  'gift': '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C9.5 3 11 5 12 8c1-3 2.5-5 4.5-5a2.5 2.5 0 0 1 0 5"/>',
+  'triangle-alert': '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/>',
+  'trending-up': '<path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/>',
+  'trending-down': '<path d="M16 17h6v-6"/><path d="m22 17-8.5-8.5-5 5L2 7"/>',
+  'wallet': '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+  'bot': '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/>',
+  'clock': '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  'wifi': '<path d="M12 20h.01M2 8.82a15 15 0 0 1 20 0M5 12.86a10 10 0 0 1 14 0M8.5 16.43a5 5 0 0 1 7 0"/>',
+  'smartphone': '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+  'coins': '<circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18M7 6h1v4M16.71 13.88l.7.71-2.82 2.82"/>',
+  'download': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/>',
+  'x': '<path d="M18 6 6 18M6 6l12 12"/>',
+  'eye': '<path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/>',
+  'check': '<path d="M20 6 9 17l-5-5"/>',
+};
+const icon = n => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] || ''}</svg>`;
+
+// Fichiers de traduction (en production : un fichier JSON par langue, clés vérifiées en CI).
+const I18N = {
+  fr: {
+    menu: 'Menu', help: 'Assistance', nav_dashboard: 'Tableau de bord', nav_trading: 'Trading', nav_subscription: 'Abonnement', nav_admin: 'Administration',
+    theme_light: 'Clair', theme_dark: 'Sombre', theme_auto: 'Automatique',
+    hello: 'Bonjour, {name}', hello_sub: 'Voici l’état de votre compte et de votre bot aujourd’hui.', open_trading: 'Ouvrir le trading',
+    banner_title: 'Compte démo connecté', banner_sub: 'Compte Deriv {id} · USD', trial_left: 'Essai gratuit : {n} jours restants', banner_cta: 'Choisir une formule',
+    stat_balance: 'Solde Deriv', stat_today: 'Résultat du jour', stat_bot: 'État du bot', stat_trades: 'Trades du jour', bot_analysis: 'Analyse', trades_sub: '{w} gagnants · {l} perdants',
+    shortcut_ref: 'Parrainage', shortcut_ref_sub: 'Demandez à devenir affilié et partagez votre lien.', shortcut_sup: 'Support', shortcut_sup_sub: 'Une question ? Notre équipe vous répond.',
+    recent: 'Dernières positions', th_asset: 'Actif', th_open: 'Ouverture', th_stake: 'Mise', th_result: 'Résultat', th_status: 'Statut', th_actions: 'Actions',
+    st_closed_gain: 'Clôturée au gain', st_closed_sl: 'Stop loss', st_open: 'Ouverte',
+    risk: 'Le trading comporte un risque de perte en capital. SafeTrade ne garantit aucun gain. Les résultats passés ne préjugent pas des résultats futurs.',
+    mode_demo: 'Mode démo', mode_demo_sub: 'Aucun argent réel n’est engagé. Le compte réel sera disponible plus tard.', connected: 'Connecté à Deriv', market_open: 'Marché ouvert',
+    asset: 'Actif', params: 'Paramètres', p_stake: 'Mise par trade', p_sl: 'Stop loss par trade', p_min: 'Gain net minimal', p_pos: 'Positions simultanées', p_goal: 'Objectif de session', p_loss: 'Limite de perte de session', of_stake: '% de la mise', of_bal: '% du solde',
+    start: 'Démarrer le bot', pause: 'Pause', stop: 'Arrêter', emergency: 'Arrêt d’urgence', waiting: 'En attente de confirmation du serveur…', mock_note: 'Maquette : aucune action n’est envoyée.',
+    open_positions: 'Positions ouvertes', journal: 'Journal des décisions', th_pnl: 'Gain net', th_buy: 'Prix d’achat', th_sell: 'Rachat proposé',
+    j1: 'Signal d’achat, confiance 0,71. Tendance haussière détectée sur 5 minutes.', j2: 'Ordre validé par le module de risque : mise 1 USD, stop loss 50 %.', j3: 'Position clôturée : gain net +0,18 USD après spread.', j4: 'Signal ignoré : volatilité trop élevée.',
+    sub_title: 'Abonnement', sub_sub: 'Gérez votre formule et vos paiements.', current: 'Formule en cours', trial: 'Essai gratuit', trial_ends: 'Se termine le {date}',
+    week: 'Semaine', month: 'Mois', year: 'Année', per_week: '/ semaine', per_month: '/ mois', per_year: '/ an', popular: 'Le plus choisi', choose: 'Choisir', fictive: 'Prix fictifs de démonstration.',
+    pay_method: 'Moyen de paiement', mm: 'Mobile money', mm_sub: 'Via Chariow', crypto: 'Cryptomonnaies', crypto_sub: 'Via NOWPayments', invoices: 'Factures et reçus', th_date: 'Date', th_plan: 'Formule', th_amount: 'Montant', paid: 'Payé', pending: 'En attente', no_auto: 'Le renouvellement est manuel : un rappel vous est envoyé 24 heures avant l’échéance.',
+    admin_title: 'Administration', admin_sub: 'Vue d’ensemble de la plateforme.', a_active: 'Utilisateurs actifs', a_trials: 'Essais en cours', a_subs: 'Abonnés', a_rev: 'Revenus du mois', a_bots: 'Bots actifs', a_err: 'Erreurs (24 h)',
+    users: 'Utilisateurs', th_user: 'Utilisateur', th_sub: 'Accès', th_since: 'Inscrit le', s_active: 'Actif', s_trial: 'Essai', s_expired: 'Expiré', s_susp: 'Suspendu',
+    global_stop: 'Arrêt d’urgence global', global_stop_sub: 'Arrête tous les bots et bloque toute nouvelle position. Action tracée dans le journal d’audit.', global_stop_btn: 'Arrêter tous les bots',
+    caps: 'Plafonds de risque', th_param: 'Paramètre', th_cap: 'Plafond', cap_stake: 'Mise maximale en réel', cap_pos: 'Positions simultanées', cap_loss: 'Limite de perte journalière',
+  },
+  en: {
+    menu: 'Menu', help: 'Help', nav_dashboard: 'Dashboard', nav_trading: 'Trading', nav_subscription: 'Subscription', nav_admin: 'Admin',
+    theme_light: 'Light', theme_dark: 'Dark', theme_auto: 'Automatic',
+    hello: 'Hello, {name}', hello_sub: 'Here is the status of your account and your bot today.', open_trading: 'Open trading',
+    banner_title: 'Demo account connected', banner_sub: 'Deriv account {id} · USD', trial_left: 'Free trial: {n} days left', banner_cta: 'Choose a plan',
+    stat_balance: 'Deriv balance', stat_today: 'Today’s result', stat_bot: 'Bot status', stat_trades: 'Today’s trades', bot_analysis: 'Analysing', trades_sub: '{w} won · {l} lost',
+    shortcut_ref: 'Referral', shortcut_ref_sub: 'Apply to become an affiliate and share your link.', shortcut_sup: 'Support', shortcut_sup_sub: 'A question? Our team will answer.',
+    recent: 'Latest positions', th_asset: 'Asset', th_open: 'Opened', th_stake: 'Stake', th_result: 'Result', th_status: 'Status', th_actions: 'Actions',
+    st_closed_gain: 'Closed in profit', st_closed_sl: 'Stop loss', st_open: 'Open',
+    risk: 'Trading involves a risk of capital loss. SafeTrade guarantees no profit. Past results do not indicate future results.',
+    mode_demo: 'Demo mode', mode_demo_sub: 'No real money is at stake. The real account will be available later.', connected: 'Connected to Deriv', market_open: 'Market open',
+    asset: 'Asset', params: 'Settings', p_stake: 'Stake per trade', p_sl: 'Stop loss per trade', p_min: 'Minimum net profit', p_pos: 'Simultaneous positions', p_goal: 'Session target', p_loss: 'Session loss limit', of_stake: '% of stake', of_bal: '% of balance',
+    start: 'Start the bot', pause: 'Pause', stop: 'Stop', emergency: 'Emergency stop', waiting: 'Waiting for server confirmation…', mock_note: 'Mockup: no action is sent.',
+    open_positions: 'Open positions', journal: 'Decision log', th_pnl: 'Net profit', th_buy: 'Buy price', th_sell: 'Bid price',
+    j1: 'Buy signal, confidence 0.71. Uptrend detected on 5 minutes.', j2: 'Order approved by the risk module: stake 1 USD, stop loss 50%.', j3: 'Position closed: net profit +0.18 USD after spread.', j4: 'Signal skipped: volatility too high.',
+    sub_title: 'Subscription', sub_sub: 'Manage your plan and payments.', current: 'Current plan', trial: 'Free trial', trial_ends: 'Ends on {date}',
+    week: 'Week', month: 'Month', year: 'Year', per_week: '/ week', per_month: '/ month', per_year: '/ year', popular: 'Most popular', choose: 'Choose', fictive: 'Placeholder demo prices.',
+    pay_method: 'Payment method', mm: 'Mobile money', mm_sub: 'Via Chariow', crypto: 'Cryptocurrency', crypto_sub: 'Via NOWPayments', invoices: 'Invoices and receipts', th_date: 'Date', th_plan: 'Plan', th_amount: 'Amount', paid: 'Paid', pending: 'Pending', no_auto: 'Renewal is manual: a reminder is sent 24 hours before expiry.',
+    admin_title: 'Admin', admin_sub: 'Platform overview.', a_active: 'Active users', a_trials: 'Trials in progress', a_subs: 'Subscribers', a_rev: 'Revenue this month', a_bots: 'Active bots', a_err: 'Errors (24 h)',
+    users: 'Users', th_user: 'User', th_sub: 'Access', th_since: 'Joined', s_active: 'Active', s_trial: 'Trial', s_expired: 'Expired', s_susp: 'Suspended',
+    global_stop: 'Global emergency stop', global_stop_sub: 'Stops every bot and blocks new positions. Recorded in the audit log.', global_stop_btn: 'Stop all bots',
+    caps: 'Risk caps', th_param: 'Setting', th_cap: 'Cap', cap_stake: 'Maximum real stake', cap_pos: 'Simultaneous positions', cap_loss: 'Daily loss limit',
+  },
+};
+
+const state = { lang: 'fr', screen: 'dashboard', pay: 'mm' };
+try { state.lang = localStorage.getItem('st-lang') || (navigator.language.startsWith('fr') ? 'fr' : 'en'); } catch (e) {}
+const t = (k, v = {}) => (I18N[state.lang][k] || k).replace(/\{(\w+)\}/g, (_, x) => v[x]);
+const loc = () => state.lang === 'fr' ? 'fr-FR' : 'en-US';
+const usd = (n, sign) => (sign && n > 0 ? '+' : '') + new Intl.NumberFormat(loc(), { style: 'currency', currency: 'USD', currencyDisplay: 'code' }).format(n);
+const num = n => new Intl.NumberFormat(loc()).format(n);
+const date = d => new Intl.DateTimeFormat(loc(), { dateStyle: 'medium' }).format(new Date(d));
+const time = d => new Intl.DateTimeFormat(loc(), { timeStyle: 'short' }).format(new Date(d));
+const signed = n => `<span class="${n >= 0 ? 'up' : 'down'}">${icon(n >= 0 ? 'trending-up' : 'trending-down')} ${usd(n, true)}</span>`;
+
+const NAV = [['dashboard', 'layout-dashboard'], ['trading', 'chart-line'], ['subscription', 'credit-card'], ['admin', 'users']];
+const POSITIONS = [
+  ['Volatility 75 Index', '2026-10-30T09:12:00', 1, 0.18, 'gain'],
+  ['Volatility 100 Index', '2026-10-30T09:40:00', 1, -0.5, 'loss'],
+  ['Boom 500 Index', '2026-10-30T10:05:00', 1, 0.22, 'gain'],
+  ['Volatility 75 Index', '2026-10-30T10:31:00', 1, 0.07, 'open'],
+];
+const ST = { gain: ['gain', 'st_closed_gain'], loss: ['loss', 'st_closed_sl'], open: ['info', 'st_open'] };
+
+function dashboard() {
+  return `
+  <div class="page-head">
+    <div><h1>${t('hello', { name: 'Clovis' })} <span aria-hidden="true">👋</span></h1><div class="small">${t('hello_sub')}</div></div>
+    <button class="btn btn-primary" data-go="trading">${icon('chart-line')}${t('open_trading')}</button>
+  </div>
+  <div class="hero">
+    <div class="banner">
+      <div><span class="pill neutral" style="background:transparent;border-color:currentColor;color:inherit">${t('mode_demo')}</span>
+        <h2 style="margin-top:16px">${t('banner_title')}</h2><div class="muted-on">${t('banner_sub', { id: 'VRTC•••4821' })}</div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="label">${icon('clock')} ${t('trial_left', { n: 2 })}</span>
+        <button class="btn btn-ghost" style="color:var(--text)" data-go="subscription">${t('banner_cta')}</button>
+      </div>
+    </div>
+    <div class="grid g2">
+      <div class="card stat"><div class="stat-top"><span class="label">${t('stat_balance')}</span>${icon('wallet')}</div><div class="kpi">${usd(10012.4)}</div></div>
+      <div class="card stat"><div class="stat-top"><span class="label">${t('stat_today')}</span>${icon('trending-up')}</div><div class="kpi">${signed(12.4)}</div></div>
+      <div class="card stat"><div class="stat-top"><span class="label">${t('stat_bot')}</span>${icon('bot')}</div><div><span class="pill info">${t('bot_analysis')}</span></div><div class="small">Volatility 75 Index</div></div>
+      <div class="card stat"><div class="stat-top"><span class="label">${t('stat_trades')}</span>${icon('chart-line')}</div><div class="kpi">${num(23)}</div><div class="small">${t('trades_sub', { w: 21, l: 2 })}</div></div>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card shortcut"><div class="ico-box">${icon('gift')}</div><div><div class="label">${t('shortcut_ref')}</div><div class="small">${t('shortcut_ref_sub')}</div></div></div>
+    <div class="card shortcut"><div class="ico-box">${icon('life-buoy')}</div><div><div class="label">${t('shortcut_sup')}</div><div class="small">${t('shortcut_sup_sub')}</div></div></div>
+  </div>
+  <div class="section-title">${t('recent')}</div>
+  <div class="card"><div class="table-wrap"><table>
+    <thead><tr><th>${t('th_asset')}</th><th>${t('th_open')}</th><th class="num">${t('th_stake')}</th><th class="num">${t('th_result')}</th><th>${t('th_status')}</th><th>${t('th_actions')}</th></tr></thead>
+    <tbody>${POSITIONS.map(([a, d, s, r, k]) => `<tr><td>${a}</td><td>${time(d)}</td><td class="num">${usd(s)}</td><td class="num">${signed(r)}</td><td><span class="pill ${ST[k][0]}">${t(ST[k][1])}</span></td><td><button class="icon-btn" aria-label="${t('th_actions')}">${icon('eye')}</button></td></tr>`).join('')}</tbody>
+  </table></div></div>
+  ${risk()}`;
+}
+
+function chart() {
+  let v = 50, seed = 7; const pts = [];
+  for (let i = 0; i < 120; i++) { seed = (seed * 9301 + 49297) % 233280; v += (seed / 233280 - 0.48) * 4; pts.push(v); }
+  const min = Math.min(...pts), max = Math.max(...pts), W = 800, H = 280;
+  const xy = pts.map((p, i) => `${(i / (pts.length - 1) * W).toFixed(1)},${(H - 16 - (p - min) / (max - min) * (H - 32)).toFixed(1)}`);
+  const grid = [0.25, 0.5, 0.75].map(f => `<line x1="0" x2="${W}" y1="${H * f}" y2="${H * f}" stroke="var(--border)" stroke-dasharray="4 4"/>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="280" preserveAspectRatio="none" role="img" aria-label="Volatility 75 Index">
+    <defs><linearGradient id="fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".18"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>
+    ${grid}<polygon points="0,${H} ${xy.join(' ')} ${W},${H}" fill="url(#fill)"/>
+    <polyline points="${xy.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+function field(k, val, unit) {
+  return `<label class="field"><span class="label">${t(k)}</span><span class="field-row"><input value="${val}" inputmode="decimal"><span>${unit}</span></span></label>`;
+}
+
+function trading() {
+  return `
+  <div class="modebar mode-demo"><span class="label">${icon('triangle-alert')} ${t('mode_demo')}</span><span class="small" style="color:inherit">${t('mode_demo_sub')}</span></div>
+  <div class="trade">
+    <div class="grid">
+      <div class="card">
+        <div class="chart-head">
+          <select class="inp" aria-label="${t('asset')}"><option>Volatility 75 Index</option><option>Volatility 100 Index</option><option>Boom 500 Index</option></select>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill gain">${t('connected')}</span><span class="pill neutral">${t('market_open')}</span></div>
+        </div>
+        <div class="kpi">${num(4182.37)}</div>
+        ${chart()}
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:16px">${t('open_positions')}</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>${t('th_asset')}</th><th class="num">${t('th_stake')}</th><th class="num">${t('th_buy')}</th><th class="num">${t('th_sell')}</th><th class="num">${t('th_pnl')}</th><th></th></tr></thead>
+          <tbody><tr><td>Volatility 75 Index</td><td class="num">${usd(1)}</td><td class="num">${usd(1)}</td><td class="num">${usd(1.07)}</td><td class="num">${signed(0.07)}</td><td><button class="icon-btn" aria-label="${t('stop')}">${icon('x')}</button></td></tr></tbody>
+        </table></div>
+      </div>
+      <div class="card log">
+        <h3 style="margin-bottom:8px">${t('journal')}</h3>
+        <ul>${[['10:31', 'j1'], ['10:31', 'j2'], ['10:05', 'j3'], ['09:58', 'j4']].map(([h, k]) => `<li><time>${h}</time><span>${t(k)}</span></li>`).join('')}</ul>
+      </div>
+    </div>
+    <div class="card" style="align-self:start">
+      <h3 style="margin-bottom:16px">${t('params')}</h3>
+      ${field('p_stake', '1', 'USD')}${field('p_sl', '50', t('of_stake'))}${field('p_min', '0,10', 'USD')}${field('p_pos', '1', '')}${field('p_goal', '2', t('of_bal'))}${field('p_loss', '2', t('of_bal'))}
+      <div class="controls">
+        <button class="btn btn-accent" data-act>${icon('play')}${t('start')}</button>
+        <button class="btn btn-ghost" data-act>${icon('pause')}${t('pause')}</button>
+        <button class="btn btn-ghost" data-act>${icon('circle-stop')}${t('stop')}</button>
+        <button class="btn btn-danger" data-act>${icon('octagon-alert')}${t('emergency')}</button>
+      </div>
+      <div class="status-line" id="status" aria-live="polite"></div>
+    </div>
+  </div>
+  ${risk()}`;
+}
+
+function subscription() {
+  const plans = [['week', 5, 'per_week'], ['month', 15, 'per_month', true], ['year', 120, 'per_year']];
+  return `
+  <div class="page-head"><div><h1>${t('sub_title')}</h1><div class="small">${t('sub_sub')}</div></div></div>
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+    <div class="shortcut"><div class="ico-box">${icon('clock')}</div><div><div class="small">${t('current')}</div><h3>${t('trial')}</h3><div class="small">${t('trial_ends', { date: date('2026-11-01') })}</div></div></div>
+    <span class="pill warn">${t('trial_left', { n: 2 })}</span>
+  </div>
+  <div class="grid g3" style="margin-top:16px">
+    ${plans.map(([k, p, per, f]) => `<div class="card plan ${f ? 'featured' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:center"><h3>${t(k)}</h3>${f ? `<span class="pill info">${t('popular')}</span>` : ''}</div>
+      <div><span class="price">${usd(p)}</span> <span class="small">${t(per)}</span></div>
+      <button class="btn ${f ? 'btn-accent' : 'btn-ghost'}">${t('choose')}</button></div>`).join('')}
+  </div>
+  <div class="small" style="margin-top:8px">${t('fictive')} ${t('no_auto')}</div>
+  <div class="section-title">${t('pay_method')}</div>
+  <div class="grid g2" role="radiogroup">
+    <div class="pay" role="radio" aria-checked="${state.pay === 'mm'}" data-pay="mm"><div class="ico-box">${icon('smartphone')}</div><div><div class="label">${t('mm')}</div><div class="small">${t('mm_sub')}</div></div></div>
+    <div class="pay" role="radio" aria-checked="${state.pay === 'crypto'}" data-pay="crypto"><div class="ico-box">${icon('coins')}</div><div><div class="label">${t('crypto')}</div><div class="small">${t('crypto_sub')}</div></div></div>
+  </div>
+  <div class="section-title">${t('invoices')}</div>
+  <div class="card"><div class="table-wrap"><table>
+    <thead><tr><th>${t('th_date')}</th><th>${t('th_plan')}</th><th>${t('pay_method')}</th><th class="num">${t('th_amount')}</th><th>${t('th_status')}</th><th></th></tr></thead>
+    <tbody>
+      <tr><td>${date('2026-10-29')}</td><td>${t('trial')}</td><td>—</td><td class="num">${usd(0)}</td><td><span class="pill gain">${t('paid')}</span></td><td><button class="icon-btn" aria-label="PDF">${icon('download')}</button></td></tr>
+      <tr><td>${date('2026-10-30')}</td><td>${t('month')}</td><td>${t('crypto')}</td><td class="num">${usd(15)}</td><td><span class="pill warn">${t('pending')}</span></td><td></td></tr>
+    </tbody></table></div></div>`;
+}
+
+function admin() {
+  const kpis = [['a_active', num(1284), 'users'], ['a_trials', num(142), 'clock'], ['a_subs', num(611), 'credit-card'], ['a_rev', usd(8940), 'wallet'], ['a_bots', num(187), 'bot'], ['a_err', num(3), 'triangle-alert']];
+  const users = [['Amina K.', 'amina.k@example.com', 's_active', 'gain', '2026-09-14'], ['Jean M.', 'jean.m@example.com', 's_trial', 'info', '2026-10-28'], ['Sarah T.', 'sarah.t@example.com', 's_expired', 'neutral', '2026-08-02'], ['Paul D.', 'paul.d@example.com', 's_susp', 'loss', '2026-07-19']];
+  return `
+  <div class="page-head"><div><h1>${t('admin_title')}</h1><div class="small">${t('admin_sub')}</div></div></div>
+  <div class="grid g3">${kpis.map(([k, v, ic]) => `<div class="card stat"><div class="stat-top"><span class="label">${t(k)}</span>${icon(ic)}</div><div class="kpi">${v}</div></div>`).join('')}</div>
+  <div class="section-title">${t('users')}</div>
+  <div class="card"><div class="table-wrap"><table>
+    <thead><tr><th>${t('th_user')}</th><th>E-mail</th><th>${t('th_sub')}</th><th>${t('th_since')}</th><th>${t('th_actions')}</th></tr></thead>
+    <tbody>${users.map(([n, e, s, c, d]) => `<tr><td>${n}</td><td>${e}</td><td><span class="pill ${c}">${t(s)}</span></td><td>${date(d)}</td><td><button class="icon-btn" aria-label="${t('th_actions')}">${icon('eye')}</button></td></tr>`).join('')}</tbody>
+  </table></div></div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>${t('global_stop')}</h3><p class="small" style="margin:8px 0 16px">${t('global_stop_sub')}</p><button class="btn btn-danger" data-act>${icon('octagon-alert')}${t('global_stop_btn')}</button><div class="status-line" id="status" aria-live="polite"></div></div>
+    <div class="card"><h3 style="margin-bottom:12px">${t('caps')}</h3><table>
+      <thead><tr><th>${t('th_param')}</th><th class="num">${t('th_cap')}</th></tr></thead>
+      <tbody><tr><td>${t('cap_stake')}</td><td class="num">${usd(10)}</td></tr><tr><td>${t('cap_pos')}</td><td class="num">3</td></tr><tr><td>${t('cap_loss')}</td><td class="num">10 %</td></tr></tbody></table></div>
+  </div>`;
+}
+
+const risk = () => `<div class="risk" role="note">${icon('triangle-alert')}<span>${t('risk')}</span></div>`;
+const SCREENS = { dashboard, trading, subscription, admin };
+
+function render() {
+  document.documentElement.lang = state.lang;
+  document.getElementById('nav').innerHTML = NAV.map(([k, ic]) => `<button data-go="${k}" ${state.screen === k ? 'aria-current="page"' : ''}>${icon(ic)}${t('nav_' + k)}</button>`).join('');
+  const cur = document.documentElement.dataset.theme;
+  document.getElementById('themeSeg').innerHTML = [['light', 'sun'], ['dark', 'moon'], ['auto', 'monitor']].map(([k, ic]) => `<button data-theme-set="${k}" aria-pressed="${cur === k}" aria-label="${t('theme_' + k)}" title="${t('theme_' + k)}">${icon(ic)}</button>`).join('');
+  document.getElementById('langSeg').innerHTML = `<span style="display:flex;align-items:center;padding:0 4px;color:var(--muted)">${icon('globe')}</span>` + ['fr', 'en'].map(l => `<button data-lang="${l}" aria-pressed="${state.lang === l}">${l.toUpperCase()}</button>`).join('');
+  document.getElementById('app').innerHTML = SCREENS[state.screen]();
+  document.querySelectorAll('[data-icon]').forEach(el => el.innerHTML = icon(el.dataset.icon));
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.i18nAria)));
+  document.getElementById('burger').innerHTML = icon('menu');
+}
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-go],[data-theme-set],[data-lang],[data-pay],[data-act],#burger');
+  if (!el) return;
+  if (el.id === 'burger') return document.getElementById('nav').classList.toggle('open');
+  if (el.dataset.go) { state.screen = el.dataset.go; document.getElementById('nav').classList.remove('open'); window.scrollTo(0, 0); }
+  if (el.dataset.themeSet) { document.documentElement.dataset.theme = el.dataset.themeSet; try { localStorage.setItem('st-theme', el.dataset.themeSet); } catch (x) {} }
+  if (el.dataset.lang) { state.lang = el.dataset.lang; try { localStorage.setItem('st-lang', state.lang); } catch (x) {} }
+  if (el.dataset.pay) state.pay = el.dataset.pay;
+  if (el.hasAttribute('data-act')) {
+    // Comportement attendu : état d'attente jusqu'à la réponse du backend, jamais de succès simulé.
+    const s = document.getElementById('status'); el.disabled = true; s.textContent = t('waiting');
+    setTimeout(() => { el.disabled = false; s.textContent = t('mock_note'); }, 1200);
+    return;
+  }
+  render();
+});
+render();
+</script>
+</body>
+</html>
