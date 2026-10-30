@@ -56,6 +56,22 @@ Le backend est la seule source de vérité. Le front-end envoie des demandes et 
 - Le rouge de marque est le même remplissage dans les deux thèmes ; seul le texte rouge du thème sombre utilise la variante claire `#FF3B4E`.
 - Rouge de marque et pertes sont proches : une perte est **toujours** affichée avec son signe « - » et une icône, et utilise le rouge de perte (`#B91C1C` en clair), jamais l'accent.
 
+## Qualité front-end et expérience utilisateur (règle permanente, 30 octobre 2026)
+
+Objectif : un vrai produit SaaS de trading professionnel et international, pas un tableau de bord administratif, un formulaire classique ou un document qu'on fait défiler. La maquette de l'étape 0.4 n'est qu'une base fonctionnelle : la dépasser.
+
+- **Impression** : sérieux, maîtrise technologique, sécurité, précision financière, confiance. Identité rouge et anthracite, typographie et icônes de la section « Design » inchangées.
+- **Mobile d'abord** (cible principale : smartphone). Concevoir à 360 px puis enrichir vers tablette et ordinateur, jamais réduire une page d'ordinateur. Tableaux financiers transformés en cartes ou listes sur mobile, graphiques lisibles, menus et actions accessibles au pouce, cibles tactiles de 44 px minimum, champs de 16 px minimum (pas de zoom iOS), clavier virtuel pris en compte (`inputMode`, `autoComplete`, `enterKeyHint`, `dvh`), aucun élément fixe qui masque le contenu, aucun débordement horizontal.
+- **Connexion et inscription** : deux colonnes (visuel et formulaire) sur ordinateur ; sur téléphone, page pleine largeur à structure verticale, en-tête compact avec logo, formulaire intégré à la page, **jamais une petite carte centrée**. États de chargement, d'erreur, de validation et de réussite soignés.
+- **Page publique** : header avec connexion et inscription, hero fort, fonctionnement, marchés, fonctionnalités, risque et sécurité, abonnements, FAQ, footer. Peu de texte, hiérarchie forte, sections aérées.
+- **Expérience de trading** : graphiques financiers, indicateurs de performance, cartes de positions, données de marché structurées, états de connexion et du bot, historiques lisibles, indicateurs de risque.
+- **Données fictives** toujours marquées « Données de démonstration » ; jamais de performance simulée présentée comme réelle.
+- **Animations** discrètes et légères : apparition au défilement, transitions d'états et de pages, survols, profondeur et lumière maîtrisées, graphiques animés. CSS et API natives (IntersectionObserver, View Transitions) avant toute bibliothèque ; `prefers-reduced-motion` toujours respecté ; aucune animation qui ralentit l'interface.
+- **Images** : deux à quatre au maximum sur la page publique, déposées par le propriétaire dans `frontend/public/images/` (chemins et dimensions documentés dans `frontend/public/images/README.md`). Le composant d'image accepte PNG, JPG, JPEG, WebP et SVG et affiche un repli élégant tant que le fichier manque. Préférer les illustrations CSS et les compositions d'interface aux images.
+- **Système de composants** réutilisable : pas de composant dupliqué ni de style dispersé ; tout passe par les jetons de thème.
+- **Vérification avant « terminé »** dans le navigateur : téléphone 360, 375, 390 et 430 px, tablette, ordinateur 1366 et 1920 px ; interactions, animations, formulaires, clair et sombre, FR et EN, accessibilité (clavier, contrastes, libellés) et performances.
+- Les choix esthétiques relèvent du jugement du développeur : pas de validation demandée au propriétaire.
+
 ## Docker : isolation absolue (règle permanente)
 
 - **Ne jamais supprimer, réinitialiser, renommer ni modifier** un conteneur, une base, un volume, un réseau ou une image qui n'appartient pas à SafeTrade V2 (MUYUEXCHANGE, MUYUSTORE, ancien SafeTrade `safetrade-api` et `safetrade-pg`, ou tout autre projet). Aucun `docker system prune`, `docker volume prune` ni commande globale.
