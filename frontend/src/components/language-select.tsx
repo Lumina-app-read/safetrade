@@ -3,11 +3,12 @@
 import { Check, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 
 import { rememberLocale } from "@/i18n/client";
 import { LOCALES, type Locale } from "@/i18n/config";
 import { cn } from "@/lib/cn";
+import { useDismiss } from "@/lib/use-dismiss";
 
 // Drapeaux en SVG (public/flags) : un drapeau-emoji est interdit par la section 15.
 const FLAGS: Record<Locale, string> = { fr: "/flags/fr.svg", en: "/flags/gb.svg" };
@@ -42,19 +43,15 @@ export function LanguageSelect({
   const pathname = usePathname();
   const rest = pathname.split("/").slice(2).join("/");
 
+  const close = useCallback(() => setOpen(false), []);
+  useDismiss(root, open, close);
+
   useEffect(() => {
-    if (!open) return;
-    items.current[LOCALES.indexOf(current)]?.focus();
-    const close = (event: PointerEvent) => {
-      if (!root.current?.contains(event.target as Node)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", close);
-    return () => document.removeEventListener("pointerdown", close);
+    if (open) items.current[LOCALES.indexOf(current)]?.focus();
   }, [open, current]);
 
   function onKeyDown(event: KeyboardEvent) {
     if (event.key === "Escape") {
-      setOpen(false);
       root.current?.querySelector("button")?.focus();
     } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();

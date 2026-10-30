@@ -53,6 +53,6 @@ describe("emojis (section 15)", () => {
     const files = [...walk(SRC, ".tsx"), ...walk(join(SRC, "messages"), ".json")].filter((f) =>
       emoji.test(readFileSync(f, "utf8")),
     );
-    expect(files.map((f) => f.replace(SRC, "").replace(/\\/g, "/"))).toEqual(["/components/account/dashboard-greeting.tsx"]);
+    expect(files.map((f) => f.replace(SRC, "").replace(/\\/g, "/"))).toEqual(["/components/account/dashboard-home.tsx"]);
   });
 });

@@ -13,9 +13,9 @@ import {
   Smartphone,
   Tablet,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
+import { useSession } from "@/components/shell/session";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,6 @@ import { interpolate, type Messages } from "@/i18n/messages";
 import { api, errorMessage } from "@/lib/api";
 import { describeDevice } from "@/lib/device";
 
-type Me = { user: { mfa_enabled: boolean } };
 type SessionRow = {
   id: string;
   created_at: string;
@@ -40,8 +39,7 @@ type SessionRow = {
 type ApiErr = { code: string; retryAfter?: number };
 
 export function SecurityPanel({ locale, messages }: { locale: Locale; messages: Messages }) {
-  const router = useRouter();
-  const [mfaEnabled, setMfaEnabled] = useState<boolean | null>(null);
+  const { user, refresh } = useSession();
   const [sessions, setSessions] = useState<SessionRow[] | null>(null);
 
   const loadSessions = useCallback(async () => {
@@ -51,27 +49,17 @@ export function SecurityPanel({ locale, messages }: { locale: Locale; messages: 
 
   useEffect(() => {
     let active = true;
-    api<Me>("/auth/me").then((result) => {
-      if (!active) return;
-      if (!result.ok) return router.replace(`/${locale}/login`);
-      setMfaEnabled(result.data.user.mfa_enabled);
-      void loadSessions();
+    api<{ sessions: SessionRow[] }>("/auth/sessions").then((result) => {
+      if (active && result.ok) setSessions(result.data.sessions);
     });
     return () => {
       active = false;
     };
-  }, [locale, router, loadSessions]);
+  }, []);
 
-  if (mfaEnabled === null) {
-    return (
-      <p role="status" className="animate-fade text-muted">
-        {messages.security.loading}
-      </p>
-    );
-  }
   return (
-    <div className="grid animate-rise gap-6 lg:grid-cols-2 lg:items-start">
-      <MfaCard messages={messages} enabled={mfaEnabled} onChange={setMfaEnabled} />
+    <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+      <MfaCard messages={messages} enabled={user.mfa_enabled} onChange={refresh} />
       <SessionsCard locale={locale} messages={messages} sessions={sessions} reload={loadSessions} />
     </div>
   );
@@ -110,7 +98,7 @@ function useCopy() {
 
 type Setup = { secret: string; qr_svg: string };
 
-function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled: boolean; onChange: (v: boolean) => void }) {
+function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled: boolean; onChange: () => void }) {
   const t = messages.security;
   const [stage, setStage] = useState<"idle" | "setup" | "codes" | "disable">("idle");
   const [setup, setSetup] = useState<Setup | null>(null);
@@ -142,7 +130,7 @@ function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled:
     setCodes(result.data.recovery_codes);
     setSetup(null);
     setStage("codes");
-    onChange(true);
+    onChange();
   }
 
   async function disable(event: FormEvent<HTMLFormElement>) {
@@ -156,7 +144,7 @@ function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled:
     setPending(false);
     if (!result.ok) return setError(result);
     setStage("idle");
-    onChange(false);
+    onChange();
     setNotice(t.disabledNotice);
   }
 
@@ -169,7 +157,7 @@ function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled:
   }
 
   return (
-    <Card className="flex flex-col gap-5 max-sm:rounded-none max-sm:border-x-0 max-sm:px-5">
+    <Card className="flex flex-col gap-5 max-sm:-mx-5 max-sm:rounded-none max-sm:border-x-0 max-sm:px-5">
       <CardHeader
         icon={enabled ? ShieldCheck : LockKeyhole}
         title={t.mfaTitle}
@@ -360,7 +348,7 @@ function SessionsCard({
   }
 
   return (
-    <Card className="flex flex-col gap-5 max-sm:rounded-none max-sm:border-x-0 max-sm:px-5">
+    <Card className="flex flex-col gap-5 max-sm:-mx-5 max-sm:rounded-none max-sm:border-x-0 max-sm:px-5">
       <CardHeader icon={LaptopMinimal} title={t.sessionsTitle} body={t.sessionsBody} />
       {error && <Alert tone="error">{errorMessage(messages, error)}</Alert>}
       {notice && <Alert tone="success">{notice}</Alert>}

@@ -79,7 +79,7 @@ def main(argv: list[str] | None = None) -> int:
         if password != getpass.getpass("Confirmer : "):
             print("Les mots de passe ne correspondent pas.", file=sys.stderr)
             return 1
-    with DbSession(get_engine()) as db:
+    with DbSession(get_engine(), expire_on_commit=False) as db:
         try:
             user = create_admin(
                 db,

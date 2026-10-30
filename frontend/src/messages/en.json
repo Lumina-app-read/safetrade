@@ -2,9 +2,6 @@
   "meta": {
     "description": "SafeTrade: an execution assistant for Deriv. Trading involves a risk of capital loss."
   },
-  "home": {
-    "status": "Interface under construction."
-  },
   "language": {
     "label": "Language",
     "names": {
@@ -14,51 +11,18 @@
     "menu": "Choose language"
   },
   "nav": {
-    "menu": "Menu",
     "dashboard": "Dashboard",
     "trading": "Trading",
     "history": "History",
-    "subscription": "Subscription"
+    "subscription": "Subscription",
+    "account": "Account",
+    "primary": "Main navigation",
+    "home": "Home",
+    "plan": "Plan"
   },
   "theme": {
     "switchToDark": "Switch to dark theme",
     "switchToLight": "Switch to light theme"
-  },
-  "demo": {
-    "title": "Base components",
-    "subtitle": "Step 1.2 demo page, to check in light and dark themes.",
-    "buttons": "Buttons",
-    "primary": "Main action",
-    "accent": "Start the bot",
-    "ghost": "Pause",
-    "danger": "Emergency stop",
-    "pending": "Waiting for the server",
-    "badges": "Badges",
-    "badgeGain": "Closed in profit",
-    "badgeLoss": "Stop loss",
-    "badgeWarn": "Demo mode",
-    "badgeNeutral": "Analysing",
-    "badgeBrand": "Most popular",
-    "fields": "Fields",
-    "stake": "Stake per trade",
-    "stakeHint": "Between 0.35 and 50 USD.",
-    "stopLoss": "Stop loss per trade",
-    "ofStake": "% of stake",
-    "stopLossError": "Stop loss must be between 10 and 100%.",
-    "cards": "Cards",
-    "balance": "Deriv balance",
-    "today": "Today's result",
-    "table": "Table",
-    "asset": "Asset",
-    "stakeCol": "Stake",
-    "result": "Result",
-    "status": "Status",
-    "typography": "Typography",
-    "h1": "Page title, 28 px",
-    "h2": "Section title, 22 px",
-    "h3": "Subtitle, 18 px",
-    "body": "Body text, 14 px. Hierarchy comes from size, spacing and colour, never from a weight above 500.",
-    "small": "Small text, hints and timestamps, 12 px."
   },
   "auth": {
     "panelEyebrow": "Semi-automated execution platform",
@@ -160,9 +124,29 @@
   },
   "dashboard": {
     "greeting": "Hello, {name}",
-    "subtitle": "Your workspace is ready. The full dashboard arrives in step 1.8.",
-    "logout": "Sign out",
-    "loading": "Loading your workspace"
+    "subtitle": "Here is where your SafeTrade workspace stands.",
+    "openTrading": "Open trading",
+    "bannerMode": "Demo mode by default",
+    "bannerTitle": "No Deriv account connected",
+    "bannerBody": "The Deriv connection is coming soon. Your funds will always stay at Deriv.",
+    "balance": "Deriv balance",
+    "balanceEmpty": "Account not connected",
+    "today": "Today's result",
+    "todayEmpty": "No session today",
+    "bot": "Bot status",
+    "botStopped": "Stopped",
+    "botEmpty": "No activity",
+    "access": "Subscription",
+    "accessEmpty": "Coming soon",
+    "stepsTitle": "Getting started",
+    "stepsProgress": "{done} of {total}",
+    "stepEmail": "Email address confirmed",
+    "stepMfa": "Enable two-factor authentication",
+    "stepDeriv": "Connect your Deriv account",
+    "stepLimits": "Set your risk limits",
+    "stepAction": "Enable",
+    "stepSoon": "Soon",
+    "risk": "Trading involves a risk of capital loss. No profit is guaranteed."
   },
   "landing": {
     "nav": {
@@ -325,8 +309,6 @@
   "security": {
     "title": "Account security",
     "subtitle": "Protect access to your account and stay in control of your devices.",
-    "back": "Dashboard",
-    "nav": "Security",
     "mfaTitle": "Two-factor authentication",
     "mfaBody": "A temporary code from your phone is required at every sign-in. It will be mandatory to activate the real account.",
     "mfaOn": "Enabled",
@@ -369,5 +351,56 @@
     "revokedNotice": "{count} device(s) signed out.",
     "noOther": "No other device signed in.",
     "loading": "Loading"
+  },
+  "shell": {
+    "loading": "Loading your workspace",
+    "loadError": "Your workspace could not be loaded. Check your connection and try again.",
+    "retry": "Try again",
+    "userMenu": "Account menu",
+    "security": "Security",
+    "admin": "Admin",
+    "clientSpace": "Client area",
+    "logout": "Sign out"
+  },
+  "soon": {
+    "title": "This section is coming soon",
+    "tradingBody": "This is where you will follow the market, your bot and your positions live, once your Deriv account is connected.",
+    "historyBody": "This is where you will find your trades, your results by day and by asset, and the decision log.",
+    "subscriptionBody": "This is where you will manage your plan, payments and receipts.",
+    "back": "Back to the dashboard"
+  },
+  "admin": {
+    "brand": "Admin",
+    "navLabel": "Admin navigation",
+    "overview": "Overview",
+    "users": "Users",
+    "subscriptions": "Subscriptions",
+    "payments": "Payments",
+    "affiliates": "Affiliates",
+    "risk": "Trading and risk",
+    "settings": "Settings",
+    "team": "Team and roles",
+    "audit": "Audit log",
+    "soon": "Soon",
+    "title": "Overview",
+    "subtitle": "Reserved for the SafeTrade team.",
+    "role": "Your role",
+    "roleSuper": "Super administrator",
+    "roleSupport": "Support",
+    "roleFinance": "Finance",
+    "mfa": "Two-factor authentication",
+    "mfaOn": "Enabled",
+    "permissions": "Permissions",
+    "permissionsCount": "{count} granted",
+    "recentUsers": "Latest sign-ups",
+    "noUsers": "No users yet.",
+    "statusActive": "Active",
+    "statusSuspended": "Suspended",
+    "deniedTitle": "Access denied",
+    "deniedBody": "This area is reserved for the SafeTrade team.",
+    "deniedAction": "Back to my area",
+    "mfaTitle": "Two-factor authentication required",
+    "mfaBody": "Enable two-factor authentication on your account to access administration.",
+    "mfaAction": "Enable two-factor authentication"
   }
 }

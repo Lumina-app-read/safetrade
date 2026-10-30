@@ -11,8 +11,9 @@ import { PasswordField } from "@/components/ui/password-field";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/messages";
 import { api, errorMessage } from "@/lib/api";
+import { homePath } from "@/lib/roles";
 
-type LoginResult = { user?: unknown; mfa_required?: boolean; challenge?: string };
+type LoginResult = { user?: { role: string }; mfa_required?: boolean; challenge?: string };
 type ApiErr = { code: string; retryAfter?: number };
 
 const linkButton = "inline-flex items-center gap-1.5 font-medium text-accent-text underline-offset-4 hover:underline";
@@ -24,9 +25,9 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
   const [error, setError] = useState<ApiErr | null>(null);
   const [challenge, setChallenge] = useState<string | null>(null);
 
-  function done() {
-    // L'état reste « en attente » jusqu'à l'affichage du tableau de bord.
-    router.replace(`/${locale}/dashboard`);
+  function done(role: string | undefined) {
+    // L'état reste « en attente » jusqu'à l'affichage de la page d'arrivée.
+    router.replace(homePath(locale, role));
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -42,7 +43,7 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
       setChallenge(result.data.challenge);
       return;
     }
-    if (result.ok) return done();
+    if (result.ok) return done(result.data.user?.role);
     setPending(false);
     setError(result);
   }
@@ -116,7 +117,7 @@ function MfaStep({
 }: {
   messages: Messages;
   challenge: string;
-  onSuccess: () => void;
+  onSuccess: (role: string | undefined) => void;
   onRestart: () => void;
 }) {
   const t = messages.auth.mfa;
@@ -129,8 +130,8 @@ function MfaStep({
     const code = String(new FormData(event.currentTarget).get("code")).replace(/\s/g, "");
     setPending(true);
     setError(null);
-    const result = await api("/auth/login/mfa", { body: { challenge, code } });
-    if (result.ok) return onSuccess();
+    const result = await api<LoginResult>("/auth/login/mfa", { body: { challenge, code } });
+    if (result.ok) return onSuccess(result.data.user?.role);
     setPending(false);
     setError(result);
   }

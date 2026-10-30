@@ -2,9 +2,6 @@
   "meta": {
     "description": "SafeTrade : outil d'aide à l'exécution sur Deriv. Le trading comporte un risque de perte en capital."
   },
-  "home": {
-    "status": "Interface en cours de construction."
-  },
   "language": {
     "label": "Langue",
     "names": {
@@ -14,51 +11,18 @@
     "menu": "Choisir la langue"
   },
   "nav": {
-    "menu": "Menu",
     "dashboard": "Tableau de bord",
     "trading": "Trading",
     "history": "Historique",
-    "subscription": "Abonnement"
+    "subscription": "Abonnement",
+    "account": "Compte",
+    "primary": "Navigation principale",
+    "home": "Accueil",
+    "plan": "Formule"
   },
   "theme": {
     "switchToDark": "Passer au thème sombre",
     "switchToLight": "Passer au thème clair"
-  },
-  "demo": {
-    "title": "Composants de base",
-    "subtitle": "Page de démonstration de l'étape 1.2, à contrôler en thème clair et sombre.",
-    "buttons": "Boutons",
-    "primary": "Action principale",
-    "accent": "Démarrer le bot",
-    "ghost": "Pause",
-    "danger": "Arrêt d'urgence",
-    "pending": "En attente du serveur",
-    "badges": "Pastilles",
-    "badgeGain": "Clôturée au gain",
-    "badgeLoss": "Stop loss",
-    "badgeWarn": "Mode démo",
-    "badgeNeutral": "En analyse",
-    "badgeBrand": "Le plus choisi",
-    "fields": "Champs",
-    "stake": "Mise par trade",
-    "stakeHint": "Entre 0,35 et 50 USD.",
-    "stopLoss": "Stop loss par trade",
-    "ofStake": "% de la mise",
-    "stopLossError": "Le stop loss doit être compris entre 10 et 100 %.",
-    "cards": "Cartes",
-    "balance": "Solde Deriv",
-    "today": "Résultat du jour",
-    "table": "Tableau",
-    "asset": "Actif",
-    "stakeCol": "Mise",
-    "result": "Résultat",
-    "status": "Statut",
-    "typography": "Typographie",
-    "h1": "Titre de page, 28 px",
-    "h2": "Titre de section, 22 px",
-    "h3": "Sous-titre, 18 px",
-    "body": "Texte courant, 14 px. La hiérarchie vient de la taille, de l'espacement et de la couleur, jamais d'une graisse supérieure à 500.",
-    "small": "Petit texte, aides et horodatages, 12 px."
   },
   "auth": {
     "panelEyebrow": "Plateforme d'exécution semi-automatique",
@@ -160,9 +124,29 @@
   },
   "dashboard": {
     "greeting": "Bonjour, {name}",
-    "subtitle": "Votre espace est prêt. Le tableau de bord complet arrive à l'étape 1.8.",
-    "logout": "Se déconnecter",
-    "loading": "Chargement de votre espace"
+    "subtitle": "Voici où en est votre espace SafeTrade.",
+    "openTrading": "Ouvrir le trading",
+    "bannerMode": "Mode démo par défaut",
+    "bannerTitle": "Aucun compte Deriv connecté",
+    "bannerBody": "La connexion à Deriv arrive bientôt. Vos fonds resteront toujours chez Deriv.",
+    "balance": "Solde Deriv",
+    "balanceEmpty": "Compte non connecté",
+    "today": "Résultat du jour",
+    "todayEmpty": "Aucune session aujourd'hui",
+    "bot": "État du bot",
+    "botStopped": "Arrêté",
+    "botEmpty": "Aucune activité",
+    "access": "Abonnement",
+    "accessEmpty": "Bientôt disponible",
+    "stepsTitle": "Premiers pas",
+    "stepsProgress": "{done} sur {total}",
+    "stepEmail": "Adresse e-mail confirmée",
+    "stepMfa": "Activer la double authentification",
+    "stepDeriv": "Connecter votre compte Deriv",
+    "stepLimits": "Fixer vos limites de risque",
+    "stepAction": "Activer",
+    "stepSoon": "Bientôt",
+    "risk": "Le trading comporte un risque de perte en capital. Aucun gain n'est garanti."
   },
   "landing": {
     "nav": {
@@ -325,8 +309,6 @@
   "security": {
     "title": "Sécurité du compte",
     "subtitle": "Protégez l'accès à votre compte et gardez la main sur vos appareils.",
-    "back": "Tableau de bord",
-    "nav": "Sécurité",
     "mfaTitle": "Double authentification",
     "mfaBody": "Un code temporaire de votre téléphone est demandé à chaque connexion. Elle sera obligatoire pour activer le compte réel.",
     "mfaOn": "Activée",
@@ -369,5 +351,56 @@
     "revokedNotice": "{count} appareil(s) déconnecté(s).",
     "noOther": "Aucun autre appareil connecté.",
     "loading": "Chargement"
+  },
+  "shell": {
+    "loading": "Chargement de votre espace",
+    "loadError": "Impossible de charger votre espace. Vérifiez votre connexion et réessayez.",
+    "retry": "Réessayer",
+    "userMenu": "Menu du compte",
+    "security": "Sécurité",
+    "admin": "Administration",
+    "clientSpace": "Espace client",
+    "logout": "Se déconnecter"
+  },
+  "soon": {
+    "title": "Cette section arrive bientôt",
+    "tradingBody": "Vous y suivrez le marché, votre bot et vos positions en direct, une fois votre compte Deriv connecté.",
+    "historyBody": "Vous y retrouverez vos trades, vos résultats par jour et par actif, et le journal des décisions.",
+    "subscriptionBody": "Vous y gérerez votre formule, vos paiements et vos reçus.",
+    "back": "Retour au tableau de bord"
+  },
+  "admin": {
+    "brand": "Administration",
+    "navLabel": "Navigation de l'administration",
+    "overview": "Vue d'ensemble",
+    "users": "Utilisateurs",
+    "subscriptions": "Abonnements",
+    "payments": "Paiements",
+    "affiliates": "Affiliation",
+    "risk": "Trading et risque",
+    "settings": "Réglages",
+    "team": "Équipe et rôles",
+    "audit": "Journal d'audit",
+    "soon": "Bientôt",
+    "title": "Vue d'ensemble",
+    "subtitle": "Espace réservé à l'équipe SafeTrade.",
+    "role": "Votre rôle",
+    "roleSuper": "Super administrateur",
+    "roleSupport": "Support",
+    "roleFinance": "Finance",
+    "mfa": "Double authentification",
+    "mfaOn": "Activée",
+    "permissions": "Permissions",
+    "permissionsCount": "{count} accordée(s)",
+    "recentUsers": "Derniers inscrits",
+    "noUsers": "Aucun utilisateur pour le moment.",
+    "statusActive": "Actif",
+    "statusSuspended": "Suspendu",
+    "deniedTitle": "Accès refusé",
+    "deniedBody": "Cet espace est réservé à l'équipe SafeTrade.",
+    "deniedAction": "Retour à mon espace",
+    "mfaTitle": "Double authentification requise",
+    "mfaBody": "Activez la double authentification sur votre compte pour accéder à l'administration.",
+    "mfaAction": "Activer la double authentification"
   }
 }

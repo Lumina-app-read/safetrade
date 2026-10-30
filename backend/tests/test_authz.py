@@ -14,7 +14,7 @@ from sqlalchemy.orm import sessionmaker
 from app.auth import totp
 from app.auth.mailer import MemoryMailer
 from app.auth.rate_limit import MemoryFailureCounter
-from app.cli import create_admin
+from app.cli import create_admin, main
 from app.config import Settings
 from app.db.models import AuditLog, User, UserRole
 from app.main import create_app
@@ -223,3 +223,12 @@ def test_cli_create_admin(migrated_engine: Engine) -> None:
                 password=PASSWORD,
                 promote=False,
             )
+
+
+def test_cli_main_end_to_end(migrated_engine: Engine, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("app.cli.get_engine", lambda: migrated_engine)
+    monkeypatch.setattr("app.cli.getpass.getpass", lambda _: PASSWORD)
+    email = f"cli-main-{uuid.uuid4().hex[:8]}@example.com"
+    assert main(["create-admin", "--email", email, "--role", "support"]) == 0
+    assert main(["create-admin", "--email", email, "--role", "finance", "--promote"]) == 0
+    assert main(["create-admin", "--email", email, "--role", "finance"]) == 1
