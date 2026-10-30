@@ -1,6 +1,7 @@
 """Inscription, vérification d'e-mail, connexion et sessions (étape 1.5)."""
 
 import hashlib
+import ipaddress
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -166,10 +167,13 @@ def login(
 ) -> "NewSession | MfaPending":
     # Empreinte de l'e-mail dans les clés Redis : aucune donnée personnelle en clair.
     email_digest = hashlib.sha256(_normalize(email).encode()).hexdigest()[:32]
-    email_key, ip_key = f"login:email:{email_digest}", f"login:ip:{ip or 'unknown'}"
-    if (
-        failures.count(email_key) >= settings.login_max_failures_per_email
-        or failures.count(ip_key) >= settings.login_max_failures_per_ip
+    email_key = f"login:email:{email_digest}"
+    # Compteur par adresse uniquement pour une adresse publique : une adresse interne
+    # (conteneur, proxy) est partagée par tous les visiteurs, la compter permettrait à
+    # quiconque de bloquer la connexion de tout le monde (docs/decisions/q16).
+    ip_key = f"login:ip:{ip}" if ip and ipaddress.ip_address(ip).is_global else None
+    if failures.count(email_key) >= settings.login_max_failures_per_email or (
+        ip_key and failures.count(ip_key) >= settings.login_max_failures_per_ip
     ):
         audit.record(db, "auth.login", "denied", ip_address=ip, details={"reason": "rate_limited"})
         db.commit()
@@ -185,7 +189,8 @@ def login(
     if user is None or not valid:
         window = settings.login_failure_window_seconds
         failures.add(email_key, window)
-        failures.add(ip_key, window)
+        if ip_key:
+            failures.add(ip_key, window)
         audit.record(
             db,
             "auth.login",

@@ -87,7 +87,10 @@ def setup(db: DbSession, settings: Settings, user: User, ip: str | None) -> Setu
     db.commit()
     uri = totp.provisioning_uri(secret, user.email)
     buffer = io.BytesIO()
-    segno.make(uri, error="m").save(buffer, kind="svg", scale=6, border=2, xmldecl=False)
+    # Fond blanc explicite : le QR code reste lisible quel que soit le thème de la page.
+    segno.make(uri, error="m").save(
+        buffer, kind="svg", scale=6, border=2, xmldecl=False, dark="#000", light="#fff"
+    )
     return SetupInfo(secret=secret, uri=uri, qr_svg=buffer.getvalue().decode())
 
 

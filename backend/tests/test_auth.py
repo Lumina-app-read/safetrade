@@ -10,10 +10,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import Engine, select, text
 from sqlalchemy.orm import sessionmaker
 
+from app.auth import service
 from app.auth.mailer import MemoryMailer
 from app.auth.rate_limit import MemoryFailureCounter
 from app.config import Settings
 from app.db.models import AuditLog, Session, User
+from app.errors import ApiError
 from app.main import create_app
 from tests.conftest import requires_db
 
@@ -224,3 +226,29 @@ def test_no_secret_in_logs(
     client.post("/auth/login", json={"email": email, "password": PASSWORD})
     token = client.cookies.get("st_session")
     assert token and token not in caplog.text and PASSWORD not in caplog.text
+
+
+def test_ip_limit_ignores_shared_internal_addresses(migrated_engine: Engine) -> None:
+    """Une adresse interne (conteneur front-end) ne déclenche jamais le blocage par IP."""
+    failures = MemoryFailureCounter()
+    settings = Settings(environment="test", login_max_failures_per_ip=1)
+
+    def attempt(email: str, ip: str) -> str:
+        with sessionmaker(migrated_engine)() as db, pytest.raises(ApiError) as exc:
+            service.login(
+                db,
+                failures,
+                settings,
+                email=email,
+                password="wrong-password",
+                ip=ip,
+                user_agent=None,
+            )
+        return exc.value.code
+
+    # Adresse interne partagée : jamais comptée, seuls les compteurs par e-mail jouent.
+    assert {attempt(unique_email(), "172.18.0.5") for _ in range(3)} == {"auth.invalid_credentials"}
+    assert failures.count("login:ip:172.18.0.5") == 0
+    # Adresse publique : bloquée dès le seuil atteint.
+    assert attempt(unique_email(), "93.184.216.34") == "auth.invalid_credentials"
+    assert attempt(unique_email(), "93.184.216.34") == "auth.too_many_attempts"

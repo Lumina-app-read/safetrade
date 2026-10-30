@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Mail } from "lucide-react";
+import { ArrowLeft, ArrowRight, KeyRound, Mail, ShieldCheck, Smartphone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
@@ -12,36 +12,64 @@ import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/messages";
 import { api, errorMessage } from "@/lib/api";
 
+type LoginResult = { user?: unknown; mfa_required?: boolean; challenge?: string };
+type ApiErr = { code: string; retryAfter?: number };
+
+const linkButton = "inline-flex items-center gap-1.5 font-medium text-accent-text underline-offset-4 hover:underline";
+
 export function LoginForm({ locale, messages }: { locale: Locale; messages: Messages }) {
   const t = messages.auth.login;
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<{ code: string; retryAfter?: number } | null>(null);
+  const [error, setError] = useState<ApiErr | null>(null);
+  const [challenge, setChallenge] = useState<string | null>(null);
+
+  function done() {
+    // L'état reste « en attente » jusqu'à l'affichage du tableau de bord.
+    router.replace(`/${locale}/dashboard`);
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     setPending(true);
     setError(null);
-    const result = await api("/auth/login", {
+    const result = await api<LoginResult>("/auth/login", {
       body: { email: String(form.get("email")), password: String(form.get("password")) },
     });
-    if (result.ok) {
-      // L'état reste « en attente » jusqu'à l'affichage du tableau de bord.
-      router.replace(`/${locale}/dashboard`);
+    if (result.ok && result.data.mfa_required && result.data.challenge) {
+      setPending(false);
+      setChallenge(result.data.challenge);
       return;
     }
+    if (result.ok) return done();
     setPending(false);
     setError(result);
   }
 
+  if (challenge) {
+    return (
+      <MfaStep
+        messages={messages}
+        challenge={challenge}
+        onSuccess={done}
+        onRestart={() => {
+          setChallenge(null);
+          setError(null);
+        }}
+      />
+    );
+  }
+
   return (
-    <form onSubmit={submit} noValidate={false} className="flex flex-col gap-5">
+    <form onSubmit={submit} className="flex flex-col gap-5">
       <div>
         <h1 className="text-h1">{t.title}</h1>
         <p className="mt-1.5 text-muted">{t.subtitle}</p>
       </div>
-      {error && <Alert tone={error.code === "auth.email_not_verified" ? "info" : "error"}>{errorMessage(messages, error)}</Alert>}
+      {error && (
+        <Alert tone={error.code === "auth.email_not_verified" ? "info" : "error"}>{errorMessage(messages, error)}</Alert>
+      )}
       <Field
         label={t.email}
         icon={Mail}
@@ -71,10 +99,94 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
       </Button>
       <p className="text-center text-muted">
         {t.noAccount}{" "}
-        <a href={`/${locale}/register`} className="font-medium text-accent-text underline-offset-4 hover:underline">
+        <a href={`/${locale}/register`} className={linkButton}>
           {t.createAccount}
         </a>
       </p>
+    </form>
+  );
+}
+
+/** Second temps de la connexion : code de l'application ou code de secours. */
+function MfaStep({
+  messages,
+  challenge,
+  onSuccess,
+  onRestart,
+}: {
+  messages: Messages;
+  challenge: string;
+  onSuccess: () => void;
+  onRestart: () => void;
+}) {
+  const t = messages.auth.mfa;
+  const [recovery, setRecovery] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<ApiErr | null>(null);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const code = String(new FormData(event.currentTarget).get("code")).replace(/\s/g, "");
+    setPending(true);
+    setError(null);
+    const result = await api("/auth/login/mfa", { body: { challenge, code } });
+    if (result.ok) return onSuccess();
+    setPending(false);
+    setError(result);
+  }
+
+  return (
+    <form key={recovery ? "recovery" : "app"} onSubmit={submit} className="flex animate-rise flex-col gap-5">
+      <span className="grid size-14 place-items-center rounded-2xl bg-accent-soft text-accent-text">
+        <ShieldCheck size={28} strokeWidth={1.5} aria-hidden />
+      </span>
+      <div>
+        <h1 className="text-h1">{t.title}</h1>
+        <p className="mt-1.5 text-muted">{t.subtitle}</p>
+      </div>
+      {error && <Alert tone="error">{errorMessage(messages, error)}</Alert>}
+      {recovery ? (
+        <Field
+          label={t.recoveryCode}
+          icon={KeyRound}
+          name="code"
+          required
+          autoFocus
+          autoComplete="off"
+          autoCapitalize="characters"
+          spellCheck={false}
+          maxLength={9}
+          placeholder={t.recoveryPlaceholder}
+          enterKeyHint="go"
+        />
+      ) : (
+        <Field
+          label={t.code}
+          icon={Smartphone}
+          name="code"
+          required
+          autoFocus
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="[0-9 ]{6,7}"
+          maxLength={7}
+          placeholder={t.codePlaceholder}
+          enterKeyHint="go"
+          className="[&_input]:tracking-[0.3em] [&_input]:tabular-nums"
+        />
+      )}
+      <Button type="submit" variant="accent" size="lg" pending={pending} className="w-full">
+        {pending ? t.submitting : t.submit}
+      </Button>
+      <div className="flex flex-col items-center gap-3 text-small">
+        <button type="button" className={linkButton} onClick={() => setRecovery((v) => !v)}>
+          {recovery ? t.useApp : t.useRecovery}
+        </button>
+        <button type="button" className="inline-flex items-center gap-1.5 text-muted hover:text-fg" onClick={onRestart}>
+          <ArrowLeft size={16} strokeWidth={1.5} aria-hidden />
+          {t.back}
+        </button>
+      </div>
     </form>
   );
 }

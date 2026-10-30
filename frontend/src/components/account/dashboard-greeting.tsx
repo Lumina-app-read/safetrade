@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -52,9 +52,18 @@ export function DashboardGreeting({ locale, messages }: { locale: Locale; messag
         </h1>
         <p className="mt-1 text-muted">{t.subtitle}</p>
       </div>
-      <Button size="lg" icon={<LogOut size={18} strokeWidth={1.5} aria-hidden />} pending={leaving} onClick={logout}>
-        {t.logout}
-      </Button>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <a
+          href={`/${locale}/account/security`}
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-line bg-card px-5 text-label font-medium hover:bg-page"
+        >
+          <ShieldCheck size={18} strokeWidth={1.5} aria-hidden />
+          {messages.security.nav}
+        </a>
+        <Button size="lg" icon={<LogOut size={18} strokeWidth={1.5} aria-hidden />} pending={leaving} onClick={logout}>
+          {t.logout}
+        </Button>
+      </div>
     </div>
   );
 }
