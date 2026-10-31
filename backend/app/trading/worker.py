@@ -46,10 +46,22 @@ SCAN_SECONDS = 2.0
 BILLING_SECONDS = 300.0
 
 
+def can_trade(settings: Settings) -> bool:
+    """
+    Sans identifiant Deriv, aucun bot ne peut tourner. Une installation neuve doit tout de même
+    démarrer en développement ; hors développement, le moteur refuse, comme l'API (app/main.py).
+    """
+    if settings.deriv_app_id:
+        return True
+    if settings.environment not in ("development", "test"):
+        raise RuntimeError("SAFETRADE_DERIV_APP_ID est obligatoire pour le moteur.")
+    logger.warning("moteur sans identifiant Deriv", extra={"event": "trading.no_app_id"})
+    return False
+
+
 class Engine:
     def __init__(self, settings: Settings, client: Redis) -> None:
-        if not settings.deriv_app_id:
-            raise RuntimeError("SAFETRADE_DERIV_APP_ID est obligatoire pour le moteur.")
+        self._can_trade = can_trade(settings)
         self._settings = settings
         self._client = client
         self._owner = f"{socket.gethostname()}-{uuid.uuid4().hex[:8]}"
@@ -57,7 +69,7 @@ class Engine:
         self._journal = Journal(self._factory)
         self._quotas = QuotaManager(RedisQuotaStore(client))
         self._rest = DerivRest(
-            settings.deriv_app_id,
+            settings.deriv_app_id or "",
             self._quotas,
             real_account_enabled=settings.real_account_enabled,
         )
@@ -65,6 +77,9 @@ class Engine:
         self._running: dict[uuid.UUID, asyncio.Task[None]] = {}
 
     async def scan(self) -> None:
+        if not self._can_trade:
+            return
+
         def active(db: Any) -> list[BotSession]:
             return list(db.scalars(select(BotSession).where(BotSession.ended_at.is_(None))))
 

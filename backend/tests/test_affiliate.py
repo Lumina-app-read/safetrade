@@ -36,7 +36,7 @@ from app.main import create_app
 from tests.conftest import requires_db
 from tests.test_authz import KEY, ORIGIN, PASSWORD, enable_mfa, signed_up
 
-NOW = datetime(2026, 11, 1, 12, tzinfo=UTC)
+NOW = datetime.now(UTC).replace(microsecond=0)
 LETTER = {"message": "Je présente SafeTrade à ma communauté.", "payout_details": "USDT TRC20 TXabc"}
 
 

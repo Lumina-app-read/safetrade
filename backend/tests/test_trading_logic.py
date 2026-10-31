@@ -9,7 +9,9 @@ from typing import Any
 import pytest
 
 from app.broker.deriv_trading import Buy, DerivTrading, matches
+from app.config import Settings
 from app.trading import exits, risk, strategy
+from app.trading.worker import can_trade
 
 D = Decimal
 NOW = datetime(2026, 10, 31, 12, tzinfo=UTC)
@@ -267,3 +269,17 @@ def test_shortcode_match_handles_symbols_with_underscore() -> None:
 )
 def test_multiplier_follows_what_deriv_accepts(wanted: int, allowed: list[int], used: int) -> None:
     assert risk.multiplier_for(wanted, allowed) == used
+
+
+@pytest.mark.parametrize("environment", ["development", "test"])
+def test_fresh_install_starts_without_a_deriv_app_id(environment: str) -> None:
+    assert can_trade(Settings(environment=environment, deriv_app_id=None)) is False
+
+
+def test_engine_refuses_to_run_without_app_id_outside_development() -> None:
+    with pytest.raises(RuntimeError, match="SAFETRADE_DERIV_APP_ID"):
+        can_trade(Settings(environment="production", deriv_app_id=None))
+
+
+def test_engine_trades_with_an_app_id() -> None:
+    assert can_trade(Settings(environment="production", deriv_app_id="1234")) is True

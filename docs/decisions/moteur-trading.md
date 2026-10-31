@@ -55,3 +55,7 @@ Contrats de 1 USD fictif, `1HZ100V`, ×400, signal forcé. **Échantillon de que
 - Notifications (3.9) : aujourd'hui, journaux et base uniquement.
 - Reconfirmation et double authentification pour le compte réel (phase 8).
 - Endurance de 72 heures (3.9) et test de stabilité de 24 heures (2.6) : **non exécutés**.
+
+## Démarrage sans identifiant Deriv
+
+En développement, le moteur démarre sans `SAFETRADE_DERIV_APP_ID` et reste inactif, avec l'avertissement `trading.no_app_id` : une installation neuve depuis `infra/.env.example` doit démarrer, et la CI en dépend. Hors développement, il refuse de démarrer.
