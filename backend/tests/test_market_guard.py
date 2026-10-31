@@ -15,7 +15,7 @@ from redis.asyncio import Redis
 
 from app.admin.router import market_monitoring
 from app.config import Settings
-from app.logs import JsonFormatter
+from app.logs import JsonFormatter, configure_json_logs
 from app.market.feed import ALERT_DISCONNECTED_SECONDS, active_alerts
 from app.market.health import check, diagnose, presence_key
 from app.market.lease import LEASE_KEY, LeadershipLostError, Lease, lead_while_holding
@@ -409,3 +409,10 @@ def test_monitoring_route_reports_feed_assets_and_alerts() -> None:
         assert view["alerts"][0]["code"] == "market.feed_disconnected"
 
     asyncio.run(main())
+
+
+def test_http_client_logs_never_carry_account_urls() -> None:
+    previous = logging.getLogger().handlers[:]
+    configure_json_logs()
+    logging.getLogger().handlers[:] = previous
+    assert logging.getLogger("httpx").getEffectiveLevel() >= logging.WARNING

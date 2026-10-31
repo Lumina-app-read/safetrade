@@ -30,3 +30,5 @@ def configure_json_logs() -> None:
     handler = logging.StreamHandler()
     handler.setFormatter(JsonFormatter())
     logging.basicConfig(level=logging.INFO, handlers=[handler], force=True)
+    # httpx écrit chaque adresse appelée, identifiant de compte Deriv compris.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
