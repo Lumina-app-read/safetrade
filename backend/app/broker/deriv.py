@@ -25,6 +25,7 @@ from app.broker.base import (
     MessageHandler,
     OrderOutcomeUnknownError,
     Purchase,
+    RateLimitedError,
     RealAccountDisabledError,
     RequestTimeoutError,
 )
@@ -240,11 +241,9 @@ class DerivConnection:
     def _checked(response: Message) -> Message:
         error: Any = response.get("error")
         if error:
-            raise ApiRejectedError(
-                str(error.get("code", "unknown")),
-                str(error.get("message", "")),
-                error.get("details"),
-            )
+            code = str(error.get("code", "unknown"))
+            kind = RateLimitedError if code == "RateLimit" else ApiRejectedError
+            raise kind(code, str(error.get("message", "")), error.get("details"))
         return response
 
     async def request(self, call: str, payload: Message) -> Message:

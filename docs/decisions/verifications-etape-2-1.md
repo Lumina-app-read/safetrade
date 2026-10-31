@@ -15,14 +15,16 @@ Reste à vérifier sur un compte démo (étapes 2.3 et 3.4) :
 
 - [ ] Portées exactes d'un PAT.
 - [x] Portée nécessaire pour lister les comptes : `trade` [doc]. Connexion démo, solde et reconnexion avec nouvel OTP vérifiés le 31 octobre 2026.
-- [ ] `bid_price` inclut-il déjà la commission ? Valeur de `profit` juste après l'achat.
-- [ ] `sell` juste après l'ouverture : délai éventuel, `is_valid_to_sell`.
-- [ ] Glissement réel du stop loss par rapport au montant demandé.
-- [ ] Fonctionnement réel de `stop_loss` et `take_profit` sur les multiplicateurs.
-- [ ] Leur exécution quand SafeTrade est déconnecté, puis redémarré (réconciliation).
-- [ ] `contract_update` : déplacement du stop loss, et acceptation d'un stop loss en zone de gain.
-- [ ] Existence d'un trailing stop natif ; à défaut, ce qui dépend du moteur ([q18](q18-sorties-dynamiques.md)).
-- [ ] Appariement d'un achat par `statement` après une réponse perdue.
+- [x] `bid_price` et `profit` incluent la commission.
+- [x] `sell` juste après l'ouverture : refus possible tant que l'entry tick manque, moins de 2 s.
+- [ ] Glissement du stop loss sur un grand échantillon (0,03 USD observé sur 0,25).
+- [ ] Stop loss minimal demandé en cours de position, en gain.
+- [ ] Cause du `RateLimit` isolé sur `proposal_open_contract`.
+- [x] `stop_loss` et `take_profit` fonctionnent sur les multiplicateurs.
+- [x] Exécution avec SafeTrade déconnecté : 3 sur 3. La réconciliation automatique reste à coder (étape 3.4).
+- [x] `contract_update` : déplacement accepté, une fois par seconde ; stop loss en zone de gain refusé.
+- [x] Pas de trailing stop natif ; répartition Deriv et moteur dans [q18](q18-sorties-dynamiques.md).
+- [x] `statement` donne les champs d'appariement. Reste à le coder (étape 3.4).
 - [ ] Bornes de `validation_params` sur l'or, marché ouvert.
 - [ ] Limites de connexions WebSocket simultanées et code d'erreur de dépassement.
 

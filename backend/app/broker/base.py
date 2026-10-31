@@ -48,6 +48,10 @@ class ApiRejectedError(BrokerError):
         self.details = details or {}
 
 
+class RateLimitedError(ApiRejectedError):
+    """Deriv demande de ralentir : attendre avant de réessayer, sans jamais insister."""
+
+
 class OrderOutcomeUnknownError(BrokerError):
     """
     L'ordre a été envoyé mais sa réponse manque : il a pu être exécuté ou non.

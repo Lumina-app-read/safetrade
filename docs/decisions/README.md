@@ -24,7 +24,7 @@ Statuts : **décidé**, **à confirmer**, **hypothèse**.
 | 17 | [Connexion prolongée, mot de passe oublié, Google](q17-connexion-prolongee-google.md) | Décidé (Google plus tard) | — |
 | 18 | [Sorties dynamiques et rentabilité](q18-sorties-dynamiques.md) | Décidé (paramètres par backtest) | 3.6, 3.7 |
 
-Note technique Deriv : [deriv.md](deriv.md). Vérifications encore ouvertes : [verifications-etape-2-1.md](verifications-etape-2-1.md).
+Note technique Deriv : [deriv.md](deriv.md). Essais sur compte démo : [essais-demo-2026-10-31.md](essais-demo-2026-10-31.md). Vérifications encore ouvertes : [verifications-etape-2-1.md](verifications-etape-2-1.md).
 
 ## Actions du propriétaire
 

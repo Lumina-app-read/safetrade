@@ -56,17 +56,20 @@ Exemple de la règle de protection, à titre d'illustration : avec R = 5 USD, `a
 
 | Mécanisme | Exécuté par | Actif si SafeTrade est coupé |
 | --- | --- | --- |
-| `stop_loss` et `take_profit` en place | Deriv | Oui [doc, à confirmer en démo] |
+| `stop_loss` et `take_profit` en place | Deriv | Oui, vérifié en démo ; prix non garanti (glissement observé) |
 | `stop_out` (perte de la mise) | Deriv | Oui |
-| Déplacement par `contract_update` | Demandé par SafeTrade, conservé par Deriv | Le dernier niveau envoyé reste actif [à vérifier] |
-| Stop loss remonté en zone de gain | Inconnu | [à vérifier] : possible seulement si Deriv l'accepte |
+| Déplacement par `contract_update` | Demandé par SafeTrade, conservé par Deriv | Oui, le dernier niveau reste actif |
+| Stop loss remonté en zone de gain | **Refusé par Deriv** | Sans objet |
 | Suivi du cours en continu, sortie d'opportunité | SafeTrade | **Non** |
 
-Deriv ne documente pas de trailing stop natif sur les multiplicateurs [à vérifier]. Deux cas pour le niveau 2 :
+Vérifié en démo ([essais-demo-2026-10-31.md](essais-demo-2026-10-31.md)) : pas de trailing stop natif, et un stop loss ne peut pas passer en zone de gain. Son minimum observé vaut la commission + 0,01 USD. Conséquence pour le niveau 2 :
 
-- **Si Deriv accepte un stop loss en zone de gain** : à chaque palier, le moteur l'envoie par `contract_update`. Le gain sécurisé survit à une panne.
-- **Sinon** : le moteur surveille et vend par `sell`. Le gain n'est alors protégé que tant que SafeTrade fonctionne ; seul un `take_profit` chez Deriv en assure une partie. Ce compromis devra être affiché clairement.
+- **Plancher chez Deriv** : dès que la position est en gain, le moteur resserre le stop loss vers ce minimum, un déplacement par seconde au plus. Si SafeTrade tombe, la position sort près de -(commission), glissement en plus, et non à -50 USD. Le plancher fonctionne sans le moteur, une fois posé. À confirmer : le niveau minimal lorsqu'il est demandé en cours de position.
+- **Gain sécurisé par le moteur** : le cliquet en zone de gain se fait par `sell`, sur le flux de la position. **Il ne fonctionne que si SafeTrade est opérationnel.** En cas de panne, le gain non encaissé peut disparaître, seul le plancher reste.
+- **Take profit** facultatif chez Deriv, seul moyen d'encaisser un gain sans le moteur, mais il plafonne le gain s'il est utilisé seul.
+
+Ce compromis devra être affiché clairement à l'utilisateur. Le moteur n'envoie jamais `stop_loss: null`, et le module de risque le refuse.
 
 ## Limites connues
 
-Aucun mécanisme ne garantit le prix de sortie : un marché rapide peut dépasser un niveau [à vérifier en démo]. Une position à +10 USD reste exposée pendant l'intervalle entre deux mises à jour.
+Aucun mécanisme ne garantit le prix de sortie : un glissement de 0,03 USD sur 0,25 a été observé sur trois essais. Une position à +10 USD reste exposée pendant l'intervalle entre deux mises à jour.

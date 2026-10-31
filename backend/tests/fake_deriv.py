@@ -112,6 +112,12 @@ class FakeDeriv:
         elif "fail" in message:
             failure = {"code": "Boom", "message": "refusé", "details": {"field": "amount"}}
             await conn.send(json.dumps({"req_id": req_id, "error": failure}))
+        elif "limited" in message:
+            await conn.send(
+                json.dumps(
+                    {"req_id": req_id, "error": {"code": "RateLimit", "message": "ralentir"}}
+                )
+            )
         elif "slow" in message:
             await asyncio.sleep(0.05 * float(message["slow"]))
             await conn.send(json.dumps({"req_id": req_id, "slow": message["slow"]}))

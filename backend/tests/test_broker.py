@@ -15,6 +15,7 @@ from app.broker.base import (
     ConnectionLostError,
     Message,
     OrderOutcomeUnknownError,
+    RateLimitedError,
     RealAccountDisabledError,
     RequestTimeoutError,
 )
@@ -395,3 +396,11 @@ def test_redis_store_is_atomic_and_shared() -> None:
             await client.aclose()
 
     asyncio.run(main())
+
+
+def test_rate_limit_refusal_has_its_own_error() -> None:
+    async def scenario(conn: DerivConnection, _: FakeDeriv) -> None:
+        with pytest.raises(RateLimitedError):
+            await conn.request("limited", {"limited": 1})
+
+    run(scenario)
