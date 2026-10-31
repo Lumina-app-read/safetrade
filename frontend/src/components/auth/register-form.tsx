@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowRight, Mail, MailCheck, UserRound } from "lucide-react";
+import { ArrowRight, Gift, Mail, MailCheck, UserRound } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { Alert } from "@/components/ui/alert";
@@ -18,7 +19,13 @@ import { GoogleButton } from "./google-button";
 import { PasswordRules } from "./password-rules";
 import { ResendVerification } from "./resend-verification";
 
-export function RegisterForm({ locale, messages }: { locale: Locale; messages: Messages }) {
+/** Formulaire ouvert depuis un lien de parrainage : le serveur revalide le code à l'envoi. */
+export function ReferredRegisterForm({ locale, messages }: { locale: Locale; messages: Messages }) {
+  const referral = useSearchParams().get("ref")?.slice(0, 16);
+  return <RegisterForm key={referral} locale={locale} messages={messages} referral={referral} />;
+}
+
+export function RegisterForm({ locale, messages, referral }: { locale: Locale; messages: Messages; referral?: string }) {
   const t = messages.auth.register;
   const [password, setPassword] = useState("");
   const [accepted, setAccepted] = useState(false);
@@ -26,11 +33,13 @@ export function RegisterForm({ locale, messages }: { locale: Locale; messages: M
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<{ code: string; retryAfter?: number } | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [showCode, setShowCode] = useState(Boolean(referral));
   const v = messages.auth.validation;
   const { errors, field, validate, setError: setFieldError } = useFormErrors({
     first_name: requiredRule(v.firstNameRequired),
     email: emailRule(v),
     password: newPasswordRule(v),
+    referral_code: (value) => (!value.trim() || /^[A-Za-z0-9]{4,16}$/.test(value.trim()) ? undefined : v.referralInvalid),
   });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -43,12 +52,20 @@ export function RegisterForm({ locale, messages }: { locale: Locale; messages: M
     setPending(true);
     setError(null);
     const result = await api("/auth/register", {
-      body: { first_name: String(form.get("first_name")).trim(), email, password, locale, accept_risk: accepted },
+      body: {
+        first_name: String(form.get("first_name")).trim(),
+        email,
+        password,
+        locale,
+        accept_risk: accepted,
+        referral_code: String(form.get("referral_code") ?? "").trim() || null,
+      },
     });
     setPending(false);
     if (result.ok) setSentTo(email);
     // Mot de passe refusé par le serveur : l'erreur s'affiche sous le champ concerné.
     else if (result.code.startsWith("auth.password")) setFieldError("password", errorMessage(messages, result));
+    else if (result.code === "affiliate.unknown_code") setFieldError("referral_code", errorMessage(messages, result));
     else setError(result);
   }
 
@@ -114,6 +131,30 @@ export function RegisterForm({ locale, messages }: { locale: Locale; messages: M
         hideLabel={messages.auth.hidePassword}
         hint={<PasswordRules password={password} labels={t} invalid={Boolean(errors.password)} />}
       />
+      {showCode ? (
+        <Field
+          label={t.referralCode}
+          icon={Gift}
+          placeholder={t.referralPlaceholder}
+          defaultValue={referral}
+          maxLength={16}
+          autoComplete="off"
+          autoCapitalize="characters"
+          spellCheck={false}
+          enterKeyHint="next"
+          {...field("referral_code")}
+          aria-required={false}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowCode(true)}
+          className="flex min-h-11 items-center gap-2 self-start text-label font-medium text-accent-text underline-offset-4 hover:underline"
+        >
+          <Gift size={16} strokeWidth={1.5} aria-hidden />
+          {t.referralToggle}
+        </button>
+      )}
       <Checkbox
         label={t.consent}
         checked={accepted}

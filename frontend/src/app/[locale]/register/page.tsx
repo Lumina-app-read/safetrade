@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { AuthShell } from "@/components/auth/auth-shell";
-import { RegisterForm } from "@/components/auth/register-form";
+import { ReferredRegisterForm, RegisterForm } from "@/components/auth/register-form";
 import { isLocale } from "@/i18n/config";
 import { getMessages } from "@/i18n/messages";
 
@@ -17,7 +18,10 @@ export default async function RegisterPage({ params }: PageProps<"/[locale]/regi
   const messages = getMessages(locale);
   return (
     <AuthShell locale={locale} messages={messages}>
-      <RegisterForm locale={locale} messages={messages} />
+      {/* Page statique : le code du lien de parrainage est lu dans le navigateur. */}
+      <Suspense fallback={<RegisterForm locale={locale} messages={messages} />}>
+        <ReferredRegisterForm locale={locale} messages={messages} />
+      </Suspense>
     </AuthShell>
   );
 }

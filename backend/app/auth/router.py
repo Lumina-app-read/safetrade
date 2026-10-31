@@ -1,3 +1,4 @@
+import re
 import uuid
 from datetime import UTC, datetime
 from typing import Annotated, Literal
@@ -5,7 +6,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Cookie, Depends, Request, Response, status
 from pydantic import BaseModel, EmailStr, Field
 
-from app.auth import mfa, service
+from app.auth import mfa, security, service
 from app.auth.mailer import Mailer
 from app.auth.rate_limit import FailureCounter
 from app.authz import SESSION_COOKIE, CurrentSession
@@ -16,6 +17,10 @@ from app.errors import ApiError
 
 router = APIRouter(prefix="/auth", tags=["auth"], dependencies=[Depends(check_origin)])
 
+DEVICE_COOKIE = "st_device"
+DEVICE_COOKIE_SECONDS = 400 * 24 * 3600
+DEVICE_TOKEN = re.compile(r"[A-Za-z0-9_-]{20,100}")
+
 
 class RegisterIn(BaseModel):
     email: EmailStr = Field(max_length=320)
@@ -23,6 +28,7 @@ class RegisterIn(BaseModel):
     first_name: str = Field(min_length=1, max_length=100)
     locale: Literal["fr", "en"] = "fr"
     accept_risk: bool = False
+    referral_code: str | None = Field(default=None, max_length=32)
 
 
 class VerifyIn(BaseModel):
@@ -71,15 +77,35 @@ def set_session_cookie(response: Response, settings: Settings, new: service.NewS
     )
 
 
+def device_token(request: Request) -> str:
+    """Jeton d'appareil, sans donnée personnelle : seule son empreinte va en base."""
+    token = request.cookies.get(DEVICE_COOKIE) or ""
+    return token if DEVICE_TOKEN.fullmatch(token) else security.new_token()
+
+
+def set_device_cookie(response: Response, settings: Settings, token: str) -> None:
+    response.set_cookie(
+        DEVICE_COOKIE,
+        token,
+        max_age=DEVICE_COOKIE_SECONDS,
+        httponly=True,
+        secure=settings.session_cookie_secure,
+        samesite="lax",
+        path="/",
+    )
+
+
 @router.post("/register", status_code=status.HTTP_202_ACCEPTED)
 def register(
     body: RegisterIn,
     request: Request,
+    response: Response,
     db: Db,
     settings: AppSettings,
     mailer: Annotated[Mailer, Depends(get_mailer)],
     failures: Annotated[FailureCounter, Depends(get_failures)],
 ) -> dict[str, str]:
+    device = device_token(request)
     service.register(
         db,
         mailer,
@@ -91,7 +117,10 @@ def register(
         locale=body.locale,
         accept_risk=body.accept_risk,
         ip=client_ip(request),
+        referral_code=body.referral_code,
+        device=security.token_hash(device),
     )
+    set_device_cookie(response, settings, device)
     # Réponse identique que l'adresse soit nouvelle ou déjà inscrite.
     return {"status": "verification_sent"}
 
@@ -155,6 +184,7 @@ def login(
     settings: AppSettings,
     failures: Annotated[FailureCounter, Depends(get_failures)],
 ) -> dict[str, object]:
+    device = device_token(request)
     result = service.login(
         db,
         failures,
@@ -164,11 +194,13 @@ def login(
         ip=client_ip(request),
         user_agent=request.headers.get("user-agent"),
         remember=body.remember,
+        device=security.token_hash(device),
     )
     if isinstance(result, service.MfaPending):
         # Aucune session tant que le second facteur n'est pas fourni (POST /auth/login/mfa).
         return {"mfa_required": True, "challenge": result.challenge}
     set_session_cookie(response, settings, result)
+    set_device_cookie(response, settings, device)
     return {"user": service.user_view(result.user)}
 
 
@@ -176,6 +208,7 @@ def login(
 def login_mfa(
     body: MfaLoginIn, request: Request, response: Response, db: Db, settings: AppSettings
 ) -> dict[str, object]:
+    device = device_token(request)
     new = mfa.complete_login(
         db,
         settings,
@@ -183,8 +216,10 @@ def login_mfa(
         code=body.code,
         ip=client_ip(request),
         user_agent=request.headers.get("user-agent"),
+        device=security.token_hash(device),
     )
     set_session_cookie(response, settings, new)
+    set_device_cookie(response, settings, device)
     return {"user": service.user_view(new.user)}
 
 

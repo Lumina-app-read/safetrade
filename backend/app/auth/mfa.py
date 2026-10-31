@@ -141,6 +141,7 @@ def complete_login(
     code: str,
     ip: str | None,
     user_agent: str | None,
+    device: bytes | None = None,
 ) -> NewSession:
     """Second temps de la connexion : code TOTP ou code de secours contre une session."""
     record = db.scalars(
@@ -174,7 +175,7 @@ def complete_login(
         ip_address=ip,
         details={"method": method},
     )
-    return open_session(db, settings, user, ip, user_agent, record.remember)
+    return open_session(db, settings, user, ip, user_agent, record.remember, device)
 
 
 def list_sessions(db: DbSession, user: User, current: Session) -> list[dict[str, object]]:

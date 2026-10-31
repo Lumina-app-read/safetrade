@@ -30,6 +30,9 @@ class Permission(enum.StrEnum):
     SETTINGS_WRITE = "settings.write"
     TEAM_WRITE = "team.write"
     MONITORING_READ = "monitoring.read"
+    AFFILIATES_READ = "affiliates.read"
+    AFFILIATES_WRITE = "affiliates.write"
+    PAYOUTS_WRITE = "payouts.write"
 
 
 ADMIN_ROLES = frozenset({UserRole.SUPER_ADMIN, UserRole.SUPPORT, UserRole.FINANCE})
@@ -38,8 +41,15 @@ ROLE_PERMISSIONS: dict[UserRole, frozenset[Permission]] = {
     UserRole.SUPER_ADMIN: frozenset(Permission),
     # Support : consulter et aider les comptes, jamais les paiements ni les réglages.
     UserRole.SUPPORT: frozenset({Permission.USERS_READ}),
-    # Finance : paiements et consultation des comptes.
-    UserRole.FINANCE: frozenset({Permission.PAYMENTS_READ, Permission.USERS_READ}),
+    # Finance : paiements, consultation des comptes et versements aux affiliés.
+    UserRole.FINANCE: frozenset(
+        {
+            Permission.PAYMENTS_READ,
+            Permission.USERS_READ,
+            Permission.AFFILIATES_READ,
+            Permission.PAYOUTS_WRITE,
+        }
+    ),
     UserRole.CLIENT: frozenset(),
     UserRole.AFFILIATE: frozenset(),
 }

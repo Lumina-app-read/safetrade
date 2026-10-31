@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, LogOut, ShieldCheck, UserCog, type LucideIcon } from "lucide-react";
+import { Gift, LayoutDashboard, LogOut, ShieldCheck, UserCog, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
@@ -34,6 +34,7 @@ export function UserMenu({ locale, messages, area }: { locale: Locale; messages:
   const links: Array<[string, string, LucideIcon]> = [[`/${locale}/account/security`, t.security, ShieldCheck]];
   if (area === "admin") links.unshift([`/${locale}/dashboard`, t.clientSpace, LayoutDashboard]);
   else if (isAdminRole(user.role)) links.push([`/${locale}/admin`, t.admin, UserCog]);
+  else links.unshift([`/${locale}/affiliate`, messages.nav.affiliate, Gift]);
 
   return (
     <div ref={root} className="relative">

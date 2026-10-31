@@ -46,6 +46,7 @@ def test_every_template_renders_text_and_html(template: str, locale: str) -> Non
         minutes=60,
         amount="15 USD",
         ends="2026-12-01",
+        code="ABCD2345",
     )
     assert "Ada" in email.body
     assert "Ada" in email.html

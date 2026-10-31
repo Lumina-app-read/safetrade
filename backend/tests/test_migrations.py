@@ -34,6 +34,11 @@ TABLES = {
     "payment_orders",
     "subscriptions",
     "payment_events",
+    "affiliate_program",
+    "affiliates",
+    "referrals",
+    "affiliate_payouts",
+    "affiliate_commissions",
 }
 
 

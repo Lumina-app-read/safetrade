@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 import { Logo } from "@/components/brand/logo";
@@ -45,13 +46,13 @@ type ModuleKey = keyof Pick<
   "overview" | "users" | "subscriptions" | "payments" | "affiliates" | "risk" | "settings" | "team" | "audit"
 >;
 
-// Modules de la section 10, construits en phase 5. Seule la vue d'ensemble existe déjà.
-const MODULES: Array<{ key: ModuleKey; icon: LucideIcon; permission?: string }> = [
-  { key: "overview", icon: LayoutDashboard },
+// Modules de la section 10, construits en phase 5. `path` : module déjà disponible.
+const MODULES: Array<{ key: ModuleKey; icon: LucideIcon; permission?: string; path?: string }> = [
+  { key: "overview", icon: LayoutDashboard, path: "" },
   { key: "users", icon: Users, permission: "users.read" },
   { key: "subscriptions", icon: CreditCard, permission: "settings.write" },
   { key: "payments", icon: Coins, permission: "payments.read" },
-  { key: "affiliates", icon: UserCog, permission: "settings.write" },
+  { key: "affiliates", icon: UserCog, permission: "affiliates.read", path: "/affiliates" },
   { key: "risk", icon: Gauge, permission: "risk.write" },
   { key: "settings", icon: Settings, permission: "settings.write" },
   { key: "team", icon: ShieldCheck, permission: "team.write" },
@@ -76,6 +77,7 @@ function AdminGate({ locale, messages, children }: { locale: Locale; messages: M
   const t = messages.admin;
   const [admin, setAdmin] = useState<AdminProfile | null>(null);
   const [refusal, setRefusal] = useState<string | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     let active = true;
@@ -134,12 +136,17 @@ function AdminGate({ locale, messages, children }: { locale: Locale; messages: M
             <p className="mt-2 text-small tracking-[0.08em] text-on-anthracite/60 uppercase">{t.brand}</p>
           </div>
           <nav aria-label={t.navLabel} className="flex flex-col gap-1">
-            {modules.map(({ key, icon: Icon }) =>
-              key === "overview" ? (
-                <span key={key} aria-current="page" className={cn(item, "bg-accent px-3 py-2.5 text-on-accent")}>
+            {modules.map(({ key, icon: Icon, path }) =>
+              path !== undefined ? (
+                <Link
+                  key={key}
+                  href={`/${locale}/admin${path}`}
+                  aria-current={pathname === `/${locale}/admin${path}` ? "page" : undefined}
+                  className={cn(item, "px-3 py-2.5 text-on-anthracite hover:bg-on-anthracite/10 aria-[current=page]:bg-accent aria-[current=page]:text-on-accent")}
+                >
                   <Icon size={18} strokeWidth={1.5} aria-hidden />
                   {t[key]}
-                </span>
+                </Link>
               ) : (
                 <span key={key} aria-disabled className={cn(item, "px-3 py-2.5 text-on-anthracite/60")}>
                   <Icon size={18} strokeWidth={1.5} aria-hidden />
@@ -169,21 +176,24 @@ function AdminGate({ locale, messages, children }: { locale: Locale; messages: M
               aria-label={t.navLabel}
               className="flex gap-2 overflow-x-auto px-5 pb-3 [scrollbar-width:none] sm:px-6 lg:hidden [&::-webkit-scrollbar]:hidden"
             >
-              {modules.map(({ key, icon: Icon }) => (
-                <span
-                  key={key}
-                  aria-current={key === "overview" ? "page" : undefined}
-                  aria-disabled={key === "overview" ? undefined : true}
-                  className={cn(
-                    item,
-                    "h-10 border px-3",
-                    key === "overview" ? "border-accent bg-accent text-on-accent" : "border-line text-muted",
-                  )}
-                >
-                  <Icon size={16} strokeWidth={1.5} aria-hidden />
-                  {t[key]}
-                </span>
-              ))}
+              {modules.map(({ key, icon: Icon, path }) =>
+                path !== undefined ? (
+                  <Link
+                    key={key}
+                    href={`/${locale}/admin${path}`}
+                    aria-current={pathname === `/${locale}/admin${path}` ? "page" : undefined}
+                    className={cn(item, "h-10 border border-line px-3 text-fg aria-[current=page]:border-accent aria-[current=page]:bg-accent aria-[current=page]:text-on-accent")}
+                  >
+                    <Icon size={16} strokeWidth={1.5} aria-hidden />
+                    {t[key]}
+                  </Link>
+                ) : (
+                  <span key={key} aria-disabled className={cn(item, "h-10 border border-line px-3 text-muted")}>
+                    <Icon size={16} strokeWidth={1.5} aria-hidden />
+                    {t[key]}
+                  </span>
+                ),
+              )}
             </nav>
           </header>
           <main className="mx-auto max-w-[1000px] animate-rise px-5 pt-6 pb-16 sm:px-6 sm:pt-8">{children}</main>

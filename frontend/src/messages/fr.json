@@ -18,7 +18,8 @@
     "account": "Compte",
     "primary": "Navigation principale",
     "home": "Accueil",
-    "plan": "Formule"
+    "plan": "Formule",
+    "affiliate": "Parrainage"
   },
   "theme": {
     "switchToDark": "Passer au thème sombre",
@@ -70,7 +71,10 @@
       "firstNamePlaceholder": "Votre prénom",
       "emailPlaceholder": "vous@exemple.com",
       "passwordPlaceholder": "10 caractères minimum",
-      "consentRequired": "Cochez cette case pour créer votre compte."
+      "consentRequired": "Cochez cette case pour créer votre compte.",
+      "referralToggle": "J'ai un code de parrainage",
+      "referralCode": "Code de parrainage",
+      "referralPlaceholder": "Votre code, si vous en avez un"
     },
     "verify": {
       "title": "Confirmer votre adresse",
@@ -134,7 +138,8 @@
       "firstNameRequired": "Saisissez votre prénom.",
       "codeRequired": "Saisissez votre code.",
       "codeInvalid": "Le code contient 6 chiffres.",
-      "recoveryInvalid": "Le code de secours a la forme ABCD-EFGH."
+      "recoveryInvalid": "Le code de secours a la forme ABCD-EFGH.",
+      "referralInvalid": "Ce code contient des caractères non valides."
     },
     "resend": {
       "action": "Renvoyer le lien",
@@ -191,7 +196,14 @@
     "billing_unknown_plan": "Cette formule n'est pas disponible.",
     "billing_invalid_phone": "Ce numéro de téléphone a été refusé. Vérifiez l'indicatif et le code pays.",
     "billing_checkout_refused": "Le paiement n'a pas pu être préparé. Réessayez plus tard.",
-    "billing_bad_signature": "Notification refusée."
+    "billing_bad_signature": "Notification refusée.",
+    "affiliate_unknown_code": "Ce code de parrainage n'est pas valide. Corrigez-le ou laissez le champ vide.",
+    "affiliate_terms_required": "Acceptez les conditions du programme pour continuer.",
+    "affiliate_not_eligible": "Ce compte ne peut pas devenir affilié.",
+    "affiliate_already_applied": "Une demande existe déjà pour ce compte.",
+    "affiliate_invalid_state": "Cette action n'est plus possible : la situation a changé.",
+    "affiliate_not_found": "Affilié introuvable.",
+    "affiliate_nothing_to_pay": "Rien à verser pour le moment."
   },
   "fields": {
     "required": "Ce champ est obligatoire.",
@@ -840,5 +852,124 @@
       "annual": "365 jours d'accès"
     },
     "localCurrency": "Prix de référence en USD. La page de paiement affiche le montant exact dans votre devise."
+  },
+  "affiliate": {
+    "intro": "Recommandez SafeTrade et recevez une commission sur l'abonnement de vos filleuls.",
+    "rulesTitle": "Conditions du programme",
+    "ruleRate": "{rate} du premier paiement de chaque filleul",
+    "ruleRateRecurring": "{rate} de chaque paiement de vos filleuls",
+    "ruleWindow": "Le filleul paie dans les {days} jours suivant son inscription",
+    "ruleHold": "Commission disponible {days} jours après le paiement",
+    "applyTitle": "Devenir affilié",
+    "message": "Comment comptez-vous présenter SafeTrade ?",
+    "messagePlaceholder": "Votre communauté, votre site, vos réseaux",
+    "messageInvalid": "Décrivez votre projet en 10 caractères au moins.",
+    "payout": "Coordonnées de versement",
+    "payoutPlaceholder": "Numéro mobile money ou adresse USDT",
+    "payoutHint": "Vérifiez bien : ces coordonnées servent à vous verser vos commissions.",
+    "payoutInvalid": "Indiquez 6 caractères au moins.",
+    "terms": "Je m'engage à ne jamais promettre de gain et à ne pas me parrainer moi-même.",
+    "termsRequired": "Acceptez ces conditions pour envoyer votre demande.",
+    "submit": "Envoyer ma demande",
+    "submitting": "Envoi en cours",
+    "pendingTitle": "Demande en cours d'examen",
+    "pendingBody": "Notre équipe vous répondra par e-mail.",
+    "refusedBody": "Votre dernière demande n'a pas été retenue. Vous pouvez en déposer une nouvelle.",
+    "suspendedBody": "Votre compte affilié est suspendu : votre code ne fonctionne plus. Contactez le support.",
+    "active": "Compte affilié actif",
+    "code": "Votre code",
+    "link": "Votre lien",
+    "copy": "Copier",
+    "copied": "Copié",
+    "reminder": "Ne promettez jamais de gain : le trading comporte un risque de perte en capital.",
+    "referrals": "Filleuls",
+    "converted": "Convertis",
+    "held": "En attente",
+    "available": "Disponible",
+    "paid": "Versé",
+    "noReferrals": "Aucun filleul pour le moment.",
+    "registered": "Inscrit",
+    "convertedOne": "Converti",
+    "commissions": "Commissions",
+    "noCommissions": "Aucune commission pour le moment.",
+    "availableOn": "Disponible le {date}",
+    "payouts": "Versements",
+    "noPayouts": "Aucun versement pour le moment.",
+    "commissionStatuses": {
+      "held": "En attente",
+      "review": "À examiner",
+      "available": "Disponible",
+      "paid": "Versée",
+      "cancelled": "Annulée"
+    },
+    "methods": {
+      "mobile_money": "Mobile money",
+      "crypto": "Cryptomonnaie",
+      "bank": "Virement",
+      "other": "Autre"
+    },
+    "admin": {
+      "title": "Affiliation",
+      "subtitle": "Demandes, commissions et versements.",
+      "program": "Barème",
+      "edit": "Modifier",
+      "rate": "Commission",
+      "base": "Base",
+      "basisFirst": "Premier paiement",
+      "basisRecurring": "Chaque paiement",
+      "recurring": "Commission sur chaque paiement du filleul",
+      "window": "Fenêtre d'attribution",
+      "hold": "Délai de rétractation",
+      "daysValue": "{days} jours",
+      "rateInvalid": "Indiquez un taux entre 0 et 100.",
+      "daysInvalid": "Indiquez un nombre de jours entre 0 et 365.",
+      "save": "Enregistrer",
+      "saving": "Enregistrement",
+      "applications": "Affiliés et demandes",
+      "filterLabel": "Filtrer par statut",
+      "filterAll": "Toutes",
+      "empty": "Aucune demande pour le moment.",
+      "open": "Examiner",
+      "noCode": "Aucun code",
+      "application": "Demande",
+      "payoutDetails": "Coordonnées de versement",
+      "note": "Note interne",
+      "approve": "Approuver",
+      "refuse": "Refuser",
+      "suspend": "Suspendre",
+      "reinstate": "Rétablir",
+      "referrals": "Filleuls",
+      "commissions": "Commissions",
+      "payouts": "Versements",
+      "release": "Valider",
+      "cancel": "Annuler la commission",
+      "payoutAmount": "À verser : {amount}",
+      "payoutNote": "Envoyez d'abord les fonds. Cette action enregistre le versement, elle n'envoie rien.",
+      "payoutNothing": "Rien à verser pour le moment.",
+      "method": "Moyen de versement",
+      "reference": "Référence du versement",
+      "referencePlaceholder": "Numéro de transaction",
+      "referenceInvalid": "Indiquez 3 caractères au moins.",
+      "payoutSubmit": "Confirmer le versement",
+      "statuses": {
+        "pending": "En attente",
+        "approved": "Approuvé",
+        "refused": "Refusé",
+        "suspended": "Suspendu"
+      },
+      "referralStatuses": {
+        "active": "Valide",
+        "review": "À examiner",
+        "blocked": "Bloqué"
+      },
+      "reasons": {
+        "same_identity": "Même identité",
+        "same_device": "Même appareil",
+        "same_address": "Même adresse réseau",
+        "same_payer": "Même moyen de paiement",
+        "admin": "Annulée par l'administration"
+      },
+      "days": "jours"
+    }
   }
 }

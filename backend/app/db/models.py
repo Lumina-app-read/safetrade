@@ -115,6 +115,8 @@ class Session(Base):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     ip_address: Mapped[str | None] = mapped_column(INET)
     user_agent: Mapped[str | None] = mapped_column(String(512))
+    # Empreinte du cookie d'appareil : sert à refuser l'auto-parrainage (section 13).
+    device_hash: Mapped[bytes | None] = mapped_column(LargeBinary(32), index=True)
 
     user: Mapped[User] = relationship(back_populates="sessions")
 
@@ -419,6 +421,8 @@ class PaymentOrder(Base):
     # Ce que le client a réellement payé, dans sa devise. Informatif : jamais comparé au prix.
     paid_amount: Mapped[Decimal | None] = mapped_column(Money)
     paid_currency: Mapped[str | None] = mapped_column(String(3))
+    # Empreinte du téléphone du payeur, jamais le numéro : détecte un même moyen de paiement.
+    payer_hash: Mapped[bytes | None] = mapped_column(LargeBinary(32))
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -467,3 +471,111 @@ class PaymentEvent(Base):
     received_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+
+class AffiliateProgram(Base):
+    """Barème unique de l'affiliation : une seule ligne, modifiable dans l'administration."""
+
+    __tablename__ = "affiliate_program"
+    __table_args__ = (CheckConstraint("id = 1", name="single_row"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    rate_pct: Mapped[Decimal] = mapped_column(Numeric(5, 2))
+    # Faux : premier paiement du filleul uniquement. Vrai : chaque paiement.
+    recurring: Mapped[bool] = mapped_column(server_default=false())
+    attribution_days: Mapped[int] = mapped_column(Integer)
+    hold_days: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class Affiliate(Base):
+    """Demande d'affiliation, puis compte d'affilié. Une seule ligne par utilisateur."""
+
+    __tablename__ = "affiliates"
+    __table_args__ = (
+        UniqueConstraint("user_id", name="uq_affiliates_user"),
+        UniqueConstraint("code", name="uq_affiliates_code"),
+        Index("ix_affiliates_status", "status"),
+        CheckConstraint("status IN ('pending', 'approved', 'refused', 'suspended')", name="status"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    status: Mapped[str] = mapped_column(String(10), default="pending")
+    # Attribué à la première approbation, conservé ensuite : un lien publié reste le même.
+    code: Mapped[str | None] = mapped_column(String(16))
+    message: Mapped[str] = mapped_column(String(500))
+    payout_details: Mapped[str] = mapped_column(String(200))
+    payout_hash: Mapped[bytes | None] = mapped_column(LargeBinary(32))
+    terms_accepted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    # Note interne de l'administrateur, jamais montrée au client.
+    review_note: Mapped[str | None] = mapped_column(String(300))
+    reviewed_by: Mapped[uuid.UUID | None]
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Referral(Base):
+    """Rattachement d'un filleul : unique, décidé une seule fois à l'inscription."""
+
+    __tablename__ = "referrals"
+    __table_args__ = (
+        UniqueConstraint("referred_user_id", name="uq_referrals_referred"),
+        Index("ix_referrals_affiliate", "affiliate_id", "attributed_at"),
+        CheckConstraint("status IN ('active', 'review', 'blocked')", name="status"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    affiliate_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("affiliates.id"))
+    referred_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    status: Mapped[str] = mapped_column(String(10), default="active")
+    reason: Mapped[str | None] = mapped_column(String(30))
+    attributed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class AffiliatePayout(Base):
+    """Versement validé par un administrateur, en ajout seul. Montant calculé par le serveur."""
+
+    __tablename__ = "affiliate_payouts"
+    __table_args__ = (Index("ix_affiliate_payouts_affiliate", "affiliate_id", "paid_at"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    affiliate_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("affiliates.id"))
+    amount: Mapped[Decimal] = mapped_column(Money)
+    currency: Mapped[str] = mapped_column(String(3))
+    method: Mapped[str] = mapped_column(String(20))
+    reference: Mapped[str] = mapped_column(String(120))
+    paid_by: Mapped[uuid.UUID]
+    paid_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class AffiliateCommission(Base):
+    """
+    Commission d'une commande : au plus une, garanti par l'unicité sur `order_id`. « Disponible »
+    n'est pas un statut : c'est `held`, sans réserve, une fois `available_at` passé.
+    """
+
+    __tablename__ = "affiliate_commissions"
+    __table_args__ = (
+        UniqueConstraint("order_id", name="uq_affiliate_commissions_order"),
+        Index("ix_affiliate_commissions_affiliate", "affiliate_id", "status"),
+        CheckConstraint("status IN ('held', 'paid', 'cancelled')", name="status"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    affiliate_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("affiliates.id"))
+    referral_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("referrals.id"))
+    order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("payment_orders.id"))
+    # Calculée sur le prix de référence de la commande, jamais sur le montant converti.
+    base_amount: Mapped[Decimal] = mapped_column(Money)
+    rate_pct: Mapped[Decimal] = mapped_column(Numeric(5, 2))
+    amount: Mapped[Decimal] = mapped_column(Money)
+    currency: Mapped[str] = mapped_column(String(3))
+    status: Mapped[str] = mapped_column(String(10), default="held")
+    # Motif de réserve (`held`) ou d'annulation (`cancelled`).
+    reason: Mapped[str | None] = mapped_column(String(30))
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    payout_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("affiliate_payouts.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

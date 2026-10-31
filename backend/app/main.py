@@ -7,6 +7,8 @@ from redis.asyncio import Redis as AsyncRedis
 from sqlalchemy.orm import sessionmaker
 
 from app.admin.router import router as admin_router
+from app.affiliate.admin import router as affiliate_admin_router
+from app.affiliate.router import router as affiliate_router
 from app.auth.mailer import LogMailer, Mailer, build_mailer
 from app.auth.rate_limit import FailureCounter, MemoryFailureCounter, RedisFailureCounter
 from app.auth.router import router as auth_router
@@ -90,6 +92,8 @@ def create_app(
     install_error_handlers(app)
     app.include_router(auth_router)
     app.include_router(admin_router)
+    app.include_router(affiliate_admin_router)
+    app.include_router(affiliate_router)
     app.include_router(deriv_router)
     app.include_router(market_router)
     app.include_router(trading_router)

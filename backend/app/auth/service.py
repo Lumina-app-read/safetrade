@@ -10,6 +10,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session as DbSession
 
 from app import audit
+from app.affiliate.service import attribute, find_code
 from app.auth import security
 from app.auth.mailer import Mailer, render
 from app.auth.rate_limit import FailureCounter
@@ -91,6 +92,8 @@ def register(
     locale: str,
     accept_risk: bool,
     ip: str | None,
+    referral_code: str | None = None,
+    device: bytes | None = None,
 ) -> None:
     """
     Crée un compte non vérifié et envoie le lien de vérification.
@@ -103,6 +106,8 @@ def register(
     problem = security.password_problem(password, email)
     if problem:
         raise ApiError(422, problem)
+    # Contrôlé avant de chercher l'adresse : la réponse ne révèle pas si elle existe.
+    referrer = find_code(db, referral_code) if referral_code else None
 
     existing = _find_user(db, email)
     if existing is not None:
@@ -149,6 +154,8 @@ def register(
         target_id=str(user.id),
         ip_address=ip,
     )
+    if referrer is not None:
+        attribute(db, user, referrer, ip, device)
     _send_verification(db, mailer, settings, user)
 
 
@@ -221,6 +228,7 @@ def login(
     ip: str | None,
     user_agent: str | None,
     remember: bool = False,
+    device: bytes | None = None,
 ) -> "NewSession | MfaPending":
     email_key = f"login:email:{_email_digest(email)}"
     # Compteur par adresse uniquement pour une adresse publique : une adresse interne
@@ -298,7 +306,7 @@ def login(
         return MfaPending(challenge=challenge)
 
     audit.record(db, "auth.login", "success", actor_user_id=user.id, ip_address=ip)
-    return open_session(db, settings, user, ip, user_agent, remember)
+    return open_session(db, settings, user, ip, user_agent, remember, device)
 
 
 def open_session(
@@ -308,6 +316,7 @@ def open_session(
     ip: str | None,
     user_agent: str | None,
     remember: bool = False,
+    device: bytes | None = None,
 ) -> NewSession:
     token = security.new_token()
     lifetime = (
@@ -324,6 +333,7 @@ def open_session(
             remember=remember,
             ip_address=ip,
             user_agent=(user_agent or "")[:512] or None,
+            device_hash=device,
         )
     )
     db.commit()

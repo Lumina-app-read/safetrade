@@ -18,7 +18,8 @@
     "account": "Account",
     "primary": "Main navigation",
     "home": "Home",
-    "plan": "Plan"
+    "plan": "Plan",
+    "affiliate": "Referral"
   },
   "theme": {
     "switchToDark": "Switch to dark theme",
@@ -70,7 +71,10 @@
       "firstNamePlaceholder": "Your first name",
       "emailPlaceholder": "you@example.com",
       "passwordPlaceholder": "At least 10 characters",
-      "consentRequired": "Tick this box to create your account."
+      "consentRequired": "Tick this box to create your account.",
+      "referralToggle": "I have a referral code",
+      "referralCode": "Referral code",
+      "referralPlaceholder": "Your code, if you have one"
     },
     "verify": {
       "title": "Confirm your address",
@@ -134,7 +138,8 @@
       "firstNameRequired": "Enter your first name.",
       "codeRequired": "Enter your code.",
       "codeInvalid": "The code has 6 digits.",
-      "recoveryInvalid": "A recovery code looks like ABCD-EFGH."
+      "recoveryInvalid": "A recovery code looks like ABCD-EFGH.",
+      "referralInvalid": "This code contains invalid characters."
     },
     "resend": {
       "action": "Send the link again",
@@ -191,7 +196,14 @@
     "billing_unknown_plan": "This plan is not available.",
     "billing_invalid_phone": "This phone number was refused. Check the prefix and country code.",
     "billing_checkout_refused": "The payment could not be prepared. Please try again later.",
-    "billing_bad_signature": "Notification refused."
+    "billing_bad_signature": "Notification refused.",
+    "affiliate_unknown_code": "This referral code is not valid. Correct it or leave the field empty.",
+    "affiliate_terms_required": "Accept the program terms to continue.",
+    "affiliate_not_eligible": "This account cannot become an affiliate.",
+    "affiliate_already_applied": "An application already exists for this account.",
+    "affiliate_invalid_state": "This action is no longer possible: the situation has changed.",
+    "affiliate_not_found": "Affiliate not found.",
+    "affiliate_nothing_to_pay": "Nothing to pay at the moment."
   },
   "fields": {
     "required": "This field is required.",
@@ -840,5 +852,124 @@
       "annual": "365 days of access"
     },
     "localCurrency": "Reference prices in USD. The payment page shows the exact amount in your currency."
+  },
+  "affiliate": {
+    "intro": "Recommend SafeTrade and earn a commission on your referrals' subscriptions.",
+    "rulesTitle": "Program terms",
+    "ruleRate": "{rate} of each referral's first payment",
+    "ruleRateRecurring": "{rate} of each payment by your referrals",
+    "ruleWindow": "The referral pays within {days} days of signing up",
+    "ruleHold": "Commission available {days} days after payment",
+    "applyTitle": "Become an affiliate",
+    "message": "How do you plan to present SafeTrade?",
+    "messagePlaceholder": "Your community, website or social networks",
+    "messageInvalid": "Describe your project in at least 10 characters.",
+    "payout": "Payout details",
+    "payoutPlaceholder": "Mobile money number or USDT address",
+    "payoutHint": "Check carefully: these details are used to pay your commissions.",
+    "payoutInvalid": "Enter at least 6 characters.",
+    "terms": "I agree never to promise gains and not to refer myself.",
+    "termsRequired": "Accept these terms to send your application.",
+    "submit": "Send my application",
+    "submitting": "Sending",
+    "pendingTitle": "Application under review",
+    "pendingBody": "Our team will reply by email.",
+    "refusedBody": "Your last application was not accepted. You can submit a new one.",
+    "suspendedBody": "Your affiliate account is suspended: your code no longer works. Contact support.",
+    "active": "Affiliate account active",
+    "code": "Your code",
+    "link": "Your link",
+    "copy": "Copy",
+    "copied": "Copied",
+    "reminder": "Never promise gains: trading carries a risk of capital loss.",
+    "referrals": "Referrals",
+    "converted": "Converted",
+    "held": "Pending",
+    "available": "Available",
+    "paid": "Paid",
+    "noReferrals": "No referrals yet.",
+    "registered": "Signed up",
+    "convertedOne": "Converted",
+    "commissions": "Commissions",
+    "noCommissions": "No commissions yet.",
+    "availableOn": "Available on {date}",
+    "payouts": "Payouts",
+    "noPayouts": "No payouts yet.",
+    "commissionStatuses": {
+      "held": "Pending",
+      "review": "To review",
+      "available": "Available",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "methods": {
+      "mobile_money": "Mobile money",
+      "crypto": "Cryptocurrency",
+      "bank": "Bank transfer",
+      "other": "Other"
+    },
+    "admin": {
+      "title": "Affiliates",
+      "subtitle": "Applications, commissions and payouts.",
+      "program": "Program terms",
+      "edit": "Edit",
+      "rate": "Commission",
+      "base": "Basis",
+      "basisFirst": "First payment",
+      "basisRecurring": "Each payment",
+      "recurring": "Commission on each referral payment",
+      "window": "Attribution window",
+      "hold": "Withdrawal period",
+      "daysValue": "{days} days",
+      "rateInvalid": "Enter a rate between 0 and 100.",
+      "daysInvalid": "Enter a number of days between 0 and 365.",
+      "save": "Save",
+      "saving": "Saving",
+      "applications": "Affiliates and applications",
+      "filterLabel": "Filter by status",
+      "filterAll": "All",
+      "empty": "No applications yet.",
+      "open": "Review",
+      "noCode": "No code",
+      "application": "Application",
+      "payoutDetails": "Payout details",
+      "note": "Internal note",
+      "approve": "Approve",
+      "refuse": "Refuse",
+      "suspend": "Suspend",
+      "reinstate": "Reinstate",
+      "referrals": "Referrals",
+      "commissions": "Commissions",
+      "payouts": "Payouts",
+      "release": "Validate",
+      "cancel": "Cancel commission",
+      "payoutAmount": "To pay: {amount}",
+      "payoutNote": "Send the funds first. This action records the payout, it sends nothing.",
+      "payoutNothing": "Nothing to pay at the moment.",
+      "method": "Payout method",
+      "reference": "Payout reference",
+      "referencePlaceholder": "Transaction number",
+      "referenceInvalid": "Enter at least 3 characters.",
+      "payoutSubmit": "Confirm payout",
+      "statuses": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "refused": "Refused",
+        "suspended": "Suspended"
+      },
+      "referralStatuses": {
+        "active": "Valid",
+        "review": "To review",
+        "blocked": "Blocked"
+      },
+      "reasons": {
+        "same_identity": "Same identity",
+        "same_device": "Same device",
+        "same_address": "Same network address",
+        "same_payer": "Same payment method",
+        "admin": "Cancelled by the team"
+      },
+      "days": "days"
+    }
   }
 }

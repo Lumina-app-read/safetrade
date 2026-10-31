@@ -136,6 +136,12 @@ Directive du propriétaire du 31 octobre 2026, qui remplace les précédentes :
 - `app/billing/` : accès calculé par le backend (`access_of`), sans lui ni démarrage ni nouvelle position. Détails : `docs/decisions/abonnements-paiements.md`.
 - L'accès n'est activé que par une notification signée ou le rapprochement, confirmés auprès du fournisseur. Chariow n'a pas de mode de test : aucune vente de test sans accord du propriétaire.
 
+## Affiliation
+
+- `app/affiliate/` : le rattachement se décide une seule fois à l'inscription ; une commission ne naît que dans `billing.service.settle`. Détails : `docs/decisions/affiliation.md`.
+- Montants calculés par le serveur, sur le prix de référence, jamais lus dans une requête. SafeTrade n'envoie aucun fonds : l'administrateur enregistre un versement déjà effectué.
+- Un futur module de remboursement doit annuler la commission de la commande.
+
 ## Git
 
 - Une étape = une branche `step/ID-nom-court` (exemple : `step/1.5-inscription-connexion`), à partir de `main`.

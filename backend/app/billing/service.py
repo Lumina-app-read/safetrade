@@ -14,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session as DbSession
 
 from app import audit
+from app.affiliate.service import credit
 from app.billing.gateway import PaymentState
 from app.db.models import (
     PaymentEvent,
@@ -100,7 +101,9 @@ def grant_trial(db: DbSession, user: User, now: datetime | None = None) -> None:
     )
 
 
-def create_order(db: DbSession, user: User, plan: Plan, provider: str) -> PaymentOrder:
+def create_order(
+    db: DbSession, user: User, plan: Plan, provider: str, payer_hash: bytes | None = None
+) -> PaymentOrder:
     order = PaymentOrder(
         user_id=user.id,
         plan_code=plan.code,
@@ -108,6 +111,7 @@ def create_order(db: DbSession, user: User, plan: Plan, provider: str) -> Paymen
         # Prix figé à la commande : un changement de tarif ne touche pas un paiement en cours.
         amount=plan.price,
         currency=plan.currency,
+        payer_hash=payer_hash,
     )
     db.add(order)
     db.flush()
@@ -191,6 +195,8 @@ def settle(
         },
     )
     db.flush()
+    # Même transaction que l'activation : un paiement validé, jamais deux commissions.
+    credit(db, order, moment)
     return subscription
 
 

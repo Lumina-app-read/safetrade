@@ -128,6 +128,55 @@ TEMPLATES: dict[str, dict[str, Template]] = {
             "View my subscription",
         ),
     },
+    "affiliate_approved": {
+        "fr": Template(
+            "Votre demande d'affiliation SafeTrade est acceptée",
+            "Vous êtes affilié SafeTrade",
+            ("Votre lien de parrainage est prêt dans votre espace.",),
+            "Votre code : {code}. Ne promettez jamais de gain : "
+            "le trading comporte un risque de perte en capital.",
+            "Voir mon espace affilié",
+        ),
+        "en": Template(
+            "Your SafeTrade affiliate application is approved",
+            "You are a SafeTrade affiliate",
+            ("Your referral link is ready in your area.",),
+            "Your code: {code}. Never promise gains: trading carries a risk of capital loss.",
+            "View my affiliate area",
+        ),
+    },
+    "affiliate_refused": {
+        "fr": Template(
+            "Votre demande d'affiliation SafeTrade",
+            "Demande non retenue",
+            ("Votre demande d'affiliation n'a pas été retenue pour le moment.",),
+            "Vous pouvez déposer une nouvelle demande depuis votre espace.",
+            "Voir mon espace affilié",
+        ),
+        "en": Template(
+            "Your SafeTrade affiliate application",
+            "Application not accepted",
+            ("Your affiliate application was not accepted at this time.",),
+            "You can submit a new application from your area.",
+            "View my affiliate area",
+        ),
+    },
+    "affiliate_payout": {
+        "fr": Template(
+            "Votre versement d'affiliation SafeTrade",
+            "Versement enregistré",
+            ("Un versement a été enregistré pour vos commissions.",),
+            "Montant : {amount}. Le détail figure dans votre espace affilié.",
+            "Voir mon espace affilié",
+        ),
+        "en": Template(
+            "Your SafeTrade affiliate payout",
+            "Payout recorded",
+            ("A payout was recorded for your commissions.",),
+            "Amount: {amount}. The details are in your affiliate area.",
+            "View my affiliate area",
+        ),
+    },
     "subscription_expiring": {
         "fr": Template(
             "Votre accès SafeTrade se termine bientôt",

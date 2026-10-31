@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DbSession
 
+from app.affiliate.service import fingerprint
 from app.auth.mailer import Mailer
 from app.auth.rate_limit import FailureCounter
 from app.authz import CurrentSession
@@ -125,7 +126,8 @@ async def checkout(
         plan = db.get(Plan, body.plan)
         if plan is None or not plan.active:
             raise ApiError(404, "billing.unknown_plan")
-        order = service.create_order(db, user, plan, gateway.name)
+        payer = fingerprint(settings, body.phone_number)
+        order = service.create_order(db, user, plan, gateway.name, payer)
         db.commit()
         return order.id, user.email, Quote(plan.price, plan.currency)
 
