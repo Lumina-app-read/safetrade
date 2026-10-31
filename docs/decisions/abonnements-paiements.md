@@ -31,7 +31,43 @@ Boutique active, 0 produit, 0 Pulse. Le parcours de paiement reste donc testé c
 
 - Type `license` obligatoire : la documentation réserve le rachat répété à ce type, et refuse Service et Coaching au paiement par API.
 - Création manuelle : l'API n'a aucun droit d'écriture sur les produits.
-- Réglage `requires_activation` désactivé, le mode prévu pour un SaaS. SafeTrade ne lit pas les licences : il calcule seul la durée d'accès.
+- SafeTrade calcule seul la durée d'accès. La licence Chariow n'est ni une preuve ni un droit d'accès : le client la reçoit, SafeTrade ne la lit pas.
+
+## Devises
+
+Trois montants à ne pas confondre :
+
+| Montant | Champ Chariow | Rôle dans SafeTrade |
+| --- | --- | --- |
+| Référence commerciale | Aucun : table `plans` (5, 15, 120 USD) | Affichage, contrôle du produit |
+| Prix du produit, devise du produit | `pricing.current_price` ; `amount` sur une vente | **Base de la vérification** |
+| Montant payé, devise du client | `payment.amount`, `payment.exchange_rate` | Reçu et traçabilité, jamais comparé |
+
+La documentation indique que `amount` et `original_amount` restent dans la devise du produit, et que `payment.amount` montre ce que paie l'acheteur, avec une majoration de conversion appliquée par Chariow. `pricing.tracking` donne la valeur du produit en USD (ou dans sa propre devise si aucun taux n'est disponible).
+
+**Le blocage :** `settle` comparait `amount` au prix USD de la formule. Un produit en CDF aurait laissé tout paiement réel en `partial`, sans accès.
+
+## Validation d'un paiement
+
+Avant la vente (`check_product`) : produit publié, de type licence, à paiement unique, et prix cohérent avec la formule, à 10 % près (`chariow_price_tolerance_pct`) via `pricing.tracking`. Sans taux, pas de vente.
+
+À la création, SafeTrade fige `purchase.amount` (`expected_amount`, `expected_currency`), l'identifiant de vente et le produit. C'est l'engagement de Chariow pour cette commande, dans la devise du produit.
+
+Pour activer, il faut tout à la fois :
+
+1. une notification signée ou le rapprochement ;
+2. `GET /sales/{id}` : statut `completed` ou `settled`, `payment.status` à `success`, accès non révoqué ;
+3. même identifiant de vente et même produit que la commande ;
+4. même devise, montant au moins égal au montant figé ;
+5. commande non déjà payée, verrouillée pendant l'activation.
+
+Une vente `failed` ou `abandoned` peut être rouverte par Chariow : ces commandes restent rapprochées pendant 72 heures, et un paiement confirmé plus tard les active.
+
+## Limites
+
+- `custom_metadata` figure dans les Pulses, pas dans `GET /sales/{id}`. La commande est donc reliée par `order_id` puis contrôlée par l'identifiant de vente.
+- Le taux et la majoration appartiennent à Chariow : SafeTrade ne peut pas les vérifier, seulement les enregistrer.
+- **Aucune vente réelle n'existe encore.** La forme réelle de `payment` et de `purchase.amount` vient de la documentation : la première vente devra la confirmer. En cas d'écart, le paiement resterait sans activation et serait visible dans les commandes, jamais activé à tort.
 
 ## Restes
 

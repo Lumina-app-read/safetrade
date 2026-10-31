@@ -3,7 +3,7 @@
 import json
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Annotated, Any, Literal
 
@@ -22,6 +22,7 @@ from app.billing.gateway import (
     Payer,
     PaymentGateway,
     PaymentState,
+    Quote,
     valid_signature,
 )
 from app.config import Settings
@@ -120,15 +121,15 @@ async def checkout(
         raise ApiError(429, "auth.too_many_attempts", {"Retry-After": str(CHECKOUT_WINDOW)})
     failures.add(key, CHECKOUT_WINDOW)
 
-    def prepare() -> tuple[Any, str]:
+    def prepare() -> tuple[Any, str, Quote]:
         plan = db.get(Plan, body.plan)
         if plan is None or not plan.active:
             raise ApiError(404, "billing.unknown_plan")
         order = service.create_order(db, user, plan, gateway.name)
         db.commit()
-        return order.id, user.email
+        return order.id, user.email, Quote(plan.price, plan.currency)
 
-    order_id, email = await run_in_threadpool(prepare)
+    order_id, email, reference = await run_in_threadpool(prepare)
     payer = Payer(
         email=email,
         first_name=user.first_name,
@@ -139,7 +140,11 @@ async def checkout(
     )
     try:
         result = await gateway.create_checkout(
-            body.plan, payer, str(order_id), return_url(settings, user.locale, order_id)
+            body.plan,
+            payer,
+            str(order_id),
+            return_url(settings, user.locale, order_id),
+            reference,
         )
     except GatewayUnavailableError:
         await run_in_threadpool(_close, db, order_id)
@@ -152,6 +157,9 @@ async def checkout(
         row = db.get_one(PaymentOrder, order_id)
         row.provider_ref = result.reference
         row.checkout_url = result.url
+        row.product_ref = result.product
+        row.expected_amount = result.amount
+        row.expected_currency = result.currency
         db.commit()
 
     await run_in_threadpool(remember)
@@ -235,7 +243,7 @@ async def chariow_pulse(
             service.close_order(db, order_id, service.EXPIRED)
         granted = None
         if state is not None and state.status == "paid" and order_id:
-            granted = service.settle(db, order_id, state.amount, state.currency)
+            granted = service.settle(db, order_id, state)
         db.commit()
         if granted is not None:
             notices.receipt(db, mailer, settings, granted)
@@ -256,7 +264,7 @@ def _apply_state(
     with factory() as db:
         granted = None
         if state.status == "paid":
-            granted = service.settle(db, order.id, state.amount, state.currency, now)
+            granted = service.settle(db, order.id, state, now)
         elif state.status == "failed":
             service.close_order(db, order.id, service.FAILED)
         elif state.status == "expired" or age > notices.ORDER_LIFETIME_SECONDS:
@@ -276,7 +284,9 @@ async def reconcile(
             return list(
                 db.scalars(
                     select(PaymentOrder).where(
-                        PaymentOrder.status == service.PENDING,
+                        # Chariow peut rouvrir une vente échouée ou abandonnée, puis la terminer.
+                        PaymentOrder.status.in_(service.OPEN_STATUSES),
+                        PaymentOrder.created_at >= now - timedelta(seconds=notices.RECHECK_SECONDS),
                         PaymentOrder.provider == gateway.name,
                         PaymentOrder.provider_ref.is_not(None),
                     )

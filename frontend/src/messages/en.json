@@ -838,6 +838,7 @@
       "weekly": "7 days of access",
       "monthly": "30 days of access",
       "annual": "365 days of access"
-    }
+    },
+    "localCurrency": "Reference prices in USD. The payment page shows the exact amount in your currency."
   }
 }

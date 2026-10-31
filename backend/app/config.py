@@ -1,3 +1,4 @@
+from decimal import Decimal
 from functools import lru_cache
 from typing import Literal
 
@@ -46,6 +47,8 @@ class Settings(BaseSettings):
     chariow_product_weekly: str | None = None
     chariow_product_monthly: str | None = None
     chariow_product_annual: str | None = None
+    # Écart toléré entre le produit, converti en USD par Chariow, et le prix de la formule.
+    chariow_price_tolerance_pct: Decimal = Decimal(10)
 
     # Adresse publique du front-end, pour les liens envoyés par e-mail.
     public_app_url: str = "http://127.0.0.1:13000"

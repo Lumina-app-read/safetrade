@@ -412,6 +412,13 @@ class PaymentOrder(Base):
     provider_ref: Mapped[str | None] = mapped_column(String(80))
     checkout_url: Mapped[str | None] = mapped_column(Text)
     amount_received: Mapped[Decimal | None] = mapped_column(Money)
+    # Ce que le fournisseur doit encaisser : devise du produit, figée à la création de la vente.
+    product_ref: Mapped[str | None] = mapped_column(String(80))
+    expected_amount: Mapped[Decimal | None] = mapped_column(Money)
+    expected_currency: Mapped[str | None] = mapped_column(String(3))
+    # Ce que le client a réellement payé, dans sa devise. Informatif : jamais comparé au prix.
+    paid_amount: Mapped[Decimal | None] = mapped_column(Money)
+    paid_currency: Mapped[str | None] = mapped_column(String(3))
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

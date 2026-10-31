@@ -6,6 +6,7 @@ import hmac
 import json
 import uuid
 from collections.abc import Iterator
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
@@ -25,6 +26,7 @@ from app.billing.gateway import (
     GatewayUnavailableError,
     Payer,
     PaymentState,
+    Quote,
     valid_signature,
 )
 from app.billing.router import reconcile
@@ -54,19 +56,31 @@ def test_signature_uses_the_raw_body() -> None:
 class FakeChariow:
     def __init__(self) -> None:
         self.requests: list[httpx.Request] = []
+        self.product: dict[str, Any] = {
+            "status": "published",
+            "type": "license",
+            "has_variant_pricing": False,
+            "pricing": {
+                "type": "one_time",
+                "current_price": {"value": 35000, "currency": "CDF"},
+                "tracking": {"currency": "USD", "value": 15.1},
+            },
+        }
         self.checkout: tuple[int, dict[str, Any]] = (
             201,
             {
                 "data": {
                     "step": "payment",
-                    "purchase": {"id": "sal_1"},
+                    "purchase": {"id": "sal_1", "amount": {"value": 35000, "currency": "CDF"}},
                     "payment": {"checkout_url": "https://pay.chariow.test/1"},
                 }
             },
         )
         self.sale: dict[str, Any] = {
             "status": "completed",
-            "amount": {"value": 15, "currency": "USD"},
+            "amount": {"value": 35000, "currency": "CDF"},
+            "payment": {"status": "success", "amount": {"value": 7600, "currency": "XOF"}},
+            "product": {"id": "prd_m"},
         }
         self.down = False
         self.sale_id = "sal_1"
@@ -75,12 +89,17 @@ class FakeChariow:
         self.requests.append(request)
         if self.down:
             raise httpx.ConnectError("coupé")
+        if "/products/" in request.url.path:
+            return httpx.Response(200, json={"data": self.product})
         if request.method == "POST":
             body = json.loads(json.dumps(self.checkout[1]))
             if (body.get("data") or {}).get("purchase"):
                 body["data"]["purchase"]["id"] = self.sale_id = f"sal_{uuid.uuid4().hex[:10]}"
             return httpx.Response(self.checkout[0], json=body)
-        return httpx.Response(200, json={"data": self.sale})
+        return httpx.Response(200, json={"data": {"id": self.sale_id, **self.sale}})
+
+
+REFERENCE = Quote(Decimal(15), "USD")
 
 
 def gateway(fake: FakeChariow) -> ChariowGateway:
@@ -89,25 +108,30 @@ def gateway(fake: FakeChariow) -> ChariowGateway:
 
 def test_checkout_sends_order_and_never_a_second_time() -> None:
     fake = FakeChariow()
-    result = asyncio.run(gateway(fake).create_checkout("monthly", PAYER, "ord-1", None))
+    result = asyncio.run(gateway(fake).create_checkout("monthly", PAYER, "ord-1", None, REFERENCE))
     assert (result.reference, result.url) == (fake.sale_id, "https://pay.chariow.test/1")
-    sent = json.loads(fake.requests[0].content)
+    assert (result.amount, result.currency, result.product) == (Decimal(35000), "CDF", "prd_m")
+    sent = json.loads(fake.requests[1].content)
     assert sent["product_id"] == "prd_m"
     assert sent["custom_metadata"] == {"order_id": "ord-1"}
     assert sent["phone"] == {"number": "243970000000", "country_code": "CD"}
-    assert fake.requests[0].headers["authorization"] == "Bearer sk_test"
-    assert len(fake.requests) == 1
+    assert fake.requests[1].headers["authorization"] == "Bearer sk_test"
+    assert [r.method for r in fake.requests] == ["GET", "POST"]
 
 
 def test_refused_phone_and_already_purchased_are_clear() -> None:
     fake = FakeChariow()
     fake.checkout = (400, {"message": "x", "errors": {"phone": ["bad"]}})
     with pytest.raises(ApiError) as refused:
-        asyncio.run(gateway(fake).create_checkout("weekly", PAYER, "o", None))
+        asyncio.run(
+            gateway(fake).create_checkout("weekly", PAYER, "o", None, Quote(Decimal(15), "USD"))
+        )
     assert refused.value.code == "billing.invalid_phone"
     fake.checkout = (201, {"data": {"step": "already_purchased", "purchase": None}})
     with pytest.raises(ApiError) as bought:
-        asyncio.run(gateway(fake).create_checkout("weekly", PAYER, "o", None))
+        asyncio.run(
+            gateway(fake).create_checkout("weekly", PAYER, "o", None, Quote(Decimal(15), "USD"))
+        )
     assert bought.value.code == "billing.checkout_refused"
 
 
@@ -154,7 +178,25 @@ def pending_order(factory: sessionmaker[Any], user: User, plan: str = "monthly")
     with factory.begin() as db:
         order = service.create_order(db, user, db.get_one(Plan, plan), "chariow")
         order.provider_ref = f"sal_{uuid.uuid4().hex[:8]}"
+        order.product_ref = "prd_m"
+        order.expected_amount = Decimal(35000)
+        order.expected_currency = "CDF"
         return order.id
+
+
+def paid_state(factory: sessionmaker[Any], order_id: uuid.UUID, **changes: Any) -> PaymentState:
+    with factory() as db:
+        reference = db.get_one(PaymentOrder, order_id).provider_ref or ""
+    values: dict[str, Any] = {
+        "status": "paid",
+        "amount": Decimal(35000),
+        "currency": "CDF",
+        "reference": reference,
+        "product": "prd_m",
+        "payment_amount": Decimal(7600),
+        "payment_currency": "XOF",
+    }
+    return PaymentState(**{**values, **changes})
 
 
 @requires_db
@@ -201,12 +243,13 @@ def test_payment_extends_from_the_current_end_and_only_once(factory: sessionmake
     with factory.begin() as db:
         service.grant_trial(db, user, NOW)
     order_id = pending_order(factory, user)
+    state = paid_state(factory, order_id)
     with factory.begin() as db:
-        granted = service.settle(db, order_id, Decimal(15), "USD", NOW)
+        granted = service.settle(db, order_id, state, NOW)
         assert granted is not None
         assert granted.ends_at == NOW + timedelta(days=33)
     with factory.begin() as db:
-        assert service.settle(db, order_id, Decimal(15), "USD", NOW) is None
+        assert service.settle(db, order_id, state, NOW) is None
     with factory() as db:
         rows = db.scalars(select(Subscription).where(Subscription.order_id == order_id)).all()
         assert len(rows) == 1
@@ -214,17 +257,103 @@ def test_payment_extends_from_the_current_end_and_only_once(factory: sessionmake
 
 
 @requires_db
-@pytest.mark.parametrize(("amount", "currency"), [("14.99", "USD"), ("15", "XOF")])
-def test_wrong_amount_or_currency_grants_nothing(
-    factory: sessionmaker[Any], amount: str, currency: str
+def test_local_currency_payment_is_accepted_on_the_product_currency(
+    factory: sessionmaker[Any],
 ) -> None:
     user = make_user(factory)
     order_id = pending_order(factory, user)
+    state = paid_state(factory, order_id)
     with factory.begin() as db:
-        assert service.settle(db, order_id, Decimal(amount), currency, NOW) is None
+        assert service.settle(db, order_id, state, NOW) is not None
+    with factory() as db:
+        order = db.get_one(PaymentOrder, order_id)
+        assert (order.status, order.paid_amount, order.paid_currency) == (
+            "paid",
+            Decimal(7600),
+            "XOF",
+        )
+
+
+@requires_db
+@pytest.mark.parametrize(
+    ("changes", "reason"),
+    [
+        ({"amount": Decimal(34999)}, "amount_too_low"),
+        ({"currency": "USD", "amount": Decimal(35000)}, "wrong_currency"),
+        ({"product": "prd_autre"}, "wrong_product"),
+        ({"reference": "sal_autre"}, "wrong_sale"),
+    ],
+)
+def test_any_mismatch_grants_nothing(
+    factory: sessionmaker[Any], changes: dict[str, Any], reason: str
+) -> None:
+    user = make_user(factory)
+    order_id = pending_order(factory, user)
+    state = paid_state(factory, order_id, **changes)
+    with factory.begin() as db:
+        assert service.mismatch(db.get_one(PaymentOrder, order_id), state) == reason
+        assert service.settle(db, order_id, state, NOW) is None
     with factory() as db:
         assert db.get_one(PaymentOrder, order_id).status == "partial"
         assert service.latest(db, user.id) is None
+
+
+@pytest.mark.parametrize(
+    ("change", "allowed"),
+    [
+        ({}, True),
+        ({"status": "draft"}, False),
+        ({"type": "downloadable"}, False),
+        ({"has_variant_pricing": True}, False),
+    ],
+)
+def test_product_is_checked_before_any_sale(change: dict[str, Any], allowed: bool) -> None:
+    fake = FakeChariow()
+    fake.product.update(change)
+    run = gateway(fake).create_checkout("monthly", PAYER, "o", None, REFERENCE)
+    if allowed:
+        asyncio.run(run)
+    else:
+        with pytest.raises(GatewayUnavailableError):
+            asyncio.run(run)
+        assert [r.method for r in fake.requests] == ["GET"]
+
+
+@pytest.mark.parametrize(
+    ("price", "tracking", "allowed"),
+    [
+        ({"value": 15, "currency": "USD"}, {"currency": "USD", "value": 15}, True),
+        ({"value": 34000, "currency": "CDF"}, {"currency": "USD", "value": 14.8}, True),
+        ({"value": 11500, "currency": "CDF"}, {"currency": "USD", "value": 4.98}, False),
+        ({"value": 35000, "currency": "CDF"}, {"currency": "CDF", "value": 35000}, False),
+    ],
+)
+def test_product_price_must_match_the_plan(
+    price: dict[str, Any], tracking: dict[str, Any], allowed: bool
+) -> None:
+    fake = FakeChariow()
+    fake.product["pricing"].update(current_price=price, tracking=tracking)
+    check = gateway(fake).check_product("monthly", REFERENCE)
+    if allowed:
+        asyncio.run(check)
+    else:
+        with pytest.raises(GatewayUnavailableError):
+            asyncio.run(check)
+
+
+@pytest.mark.parametrize(
+    ("change", "expected"),
+    [
+        ({}, "paid"),
+        ({"payment": {"status": "pending"}}, "pending"),
+        ({"payment": None}, "pending"),
+        ({"is_access_revoked": True}, "pending"),
+    ],
+)
+def test_completed_sale_needs_a_confirmed_payment(change: dict[str, Any], expected: str) -> None:
+    fake = FakeChariow()
+    fake.sale.update(change)
+    assert asyncio.run(gateway(fake).fetch_payment("sal_1")).status == expected
 
 
 @requires_db
@@ -258,6 +387,7 @@ class StubGateway:
 
     def __init__(self, state: PaymentState | None) -> None:
         self.state = state
+        self.reference = ""
 
     def supports(self, plan: str) -> bool:
         return True
@@ -265,7 +395,7 @@ class StubGateway:
     async def fetch_payment(self, reference: str) -> PaymentState:
         if self.state is None:
             raise GatewayUnavailableError
-        return self.state
+        return replace(self.state, reference=reference)
 
     async def create_checkout(self, *_: Any) -> Any:
         raise AssertionError
@@ -278,7 +408,7 @@ def test_lost_webhook_is_recovered_by_reconciliation_once(factory: sessionmaker[
     mailer = MemoryMailer()
     settings = Settings(environment="test")
     later = datetime.now(UTC) + timedelta(minutes=10)
-    stub: Any = StubGateway(PaymentState("paid", Decimal(15), "USD"))
+    stub: Any = StubGateway(paid_state(factory, order_id))
     for _ in range(2):
         asyncio.run(reconcile(factory, stub, mailer, settings, later))
     with factory() as db:
@@ -340,6 +470,7 @@ def api(migrated_engine: Engine) -> Iterator[tuple[TestClient, MemoryMailer, Fak
         failures=MemoryFailureCounter(),
     )
     app.state.gateways = {"chariow": gateway(fake)}
+    app.state.fake_chariow = fake
     with TestClient(app, base_url="http://127.0.0.1:18000", headers={"origin": ORIGIN}) as client:
         email = f"bill-{uuid.uuid4().hex[:8]}@example.com"
         client.post(
@@ -366,15 +497,21 @@ BUY = {
 }
 
 
+def fake_of(client: TestClient) -> FakeChariow:
+    app: Any = client.app
+    fake: FakeChariow = app.state.fake_chariow
+    return fake
+
+
 def pulse(
     client: TestClient, order: str, event: str = "successful.sale", delivery: str | None = None,
-    secret: str = SECRET, reference: str = "sal_1",
+    secret: str = SECRET, reference: str | None = None,
 ) -> httpx.Response:  # fmt: skip
     body = json.dumps(
         {
             "event": event,
             "sale": {
-                "id": reference,
+                "id": reference or fake_of(client).sale_id,
                 "amount": {"value": 15, "currency": "USD"},
                 "custom_metadata": {"order_id": order},
             },
@@ -437,7 +574,7 @@ def test_forged_pulse_is_refused_and_grants_nothing(api: Any) -> None:
 def test_pulse_claiming_payment_is_checked_at_chariow(api: Any) -> None:
     client, _, fake, _ = api
     order = client.post("/billing/checkout", json=BUY).json()["order"]
-    fake.sale = {"status": "failed", "amount": {"value": 15, "currency": "USD"}}
+    fake.sale["status"] = "failed"
     pulse(client, order)
     assert client.get("/billing/me").json()["access"]["plan"] == "trial"
 
@@ -452,6 +589,26 @@ def test_chariow_down_during_pulse_lets_it_retry(api: Any) -> None:
     fake.down = False
     assert pulse(client, order, delivery=delivery).json() == {"status": "processed"}
     assert client.get("/billing/me").json()["access"]["plan"] == "monthly"
+
+
+@requires_db
+def test_reopened_sale_is_still_credited(api: Any) -> None:
+    client, _, _, _ = api
+    bought = client.post("/billing/checkout", json=BUY).json()
+    pulse(client, bought["order"], event="failed.sale")
+    assert client.get("/billing/me").json()["orders"][0]["status"] == "failed"
+    pulse(client, bought["order"])
+    assert client.get("/billing/me").json()["access"]["plan"] == "monthly"
+
+
+@requires_db
+def test_full_flow_with_payment_in_local_currency(api: Any) -> None:
+    client, mailer, _, _ = api
+    bought = client.post("/billing/checkout", json=BUY).json()
+    assert pulse(client, bought["order"]).json() == {"status": "processed"}
+    assert client.get("/billing/me").json()["access"]["status"] == "active"
+    receipt = next(m for m in mailer.sent if m.template == "payment_received")
+    assert "7600.00 XOF" in receipt.body
 
 
 @requires_db

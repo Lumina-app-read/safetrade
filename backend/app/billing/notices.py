@@ -13,11 +13,19 @@ from app.db.models import PaymentOrder, Subscription, User
 
 RECONCILE_AFTER_SECONDS = 300
 ORDER_LIFETIME_SECONDS = 24 * 3600
+RECHECK_SECONDS = 72 * 3600
 REMINDER_BEFORE = timedelta(hours=24)
 
 
 def _ends(row: Subscription) -> str:
     return row.ends_at.astimezone(UTC).strftime("%Y-%m-%d %H:%M UTC")
+
+
+def _paid(order: PaymentOrder) -> str:
+    """Montant réellement payé par le client, sinon le prix de référence."""
+    if order.paid_amount is not None and order.paid_currency:
+        return f"{order.paid_amount} {order.paid_currency}"
+    return f"{order.amount} {order.currency}"
 
 
 def _link(settings: Settings, user: User) -> str:
@@ -34,7 +42,7 @@ def receipt(db: DbSession, mailer: Mailer, settings: Settings, row: Subscription
             user.email,
             first_name=user.first_name,
             link=_link(settings, user),
-            amount=f"{order.amount} {order.currency}",
+            amount=_paid(order),
             ends=_ends(row),
         )
     )

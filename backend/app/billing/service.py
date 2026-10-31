@@ -8,13 +8,13 @@ ou du rapprochement, tous deux confirmés auprès du fournisseur.
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DbSession
 
 from app import audit
+from app.billing.gateway import PaymentState
 from app.db.models import (
     PaymentEvent,
     PaymentOrder,
@@ -31,6 +31,7 @@ PAID = "paid"
 PARTIAL = "partial"
 FAILED = "failed"
 EXPIRED = "expired"
+OPEN_STATUSES = (PENDING, FAILED, EXPIRED)
 
 
 @dataclass(frozen=True)
@@ -113,8 +114,27 @@ def create_order(db: DbSession, user: User, plan: Plan, provider: str) -> Paymen
     return order
 
 
+def mismatch(order: PaymentOrder, state: PaymentState) -> str | None:
+    """
+    Motif de refus, ou None. La comparaison se fait en devise du produit : le client peut payer
+    en devise locale, mais `amount` reste celui du produit. Le montant converti n'est jamais
+    comparé au prix : le taux appartient à Chariow.
+    """
+    expected = order.expected_amount if order.expected_amount is not None else order.amount
+    currency = order.expected_currency or order.currency
+    if state.reference != order.provider_ref:
+        return "wrong_sale"
+    if order.product_ref and state.product != order.product_ref:
+        return "wrong_product"
+    if state.currency != currency:
+        return "wrong_currency"
+    if state.amount < expected:
+        return "amount_too_low"
+    return None
+
+
 def settle(
-    db: DbSession, order_id: uuid.UUID, amount: Decimal, currency: str, now: datetime | None = None
+    db: DbSession, order_id: uuid.UUID, state: PaymentState, now: datetime | None = None
 ) -> Subscription | None:
     """
     Active ou prolonge l'accès, d'un seul geste. Commande verrouillée, et une seule ligne
@@ -126,8 +146,11 @@ def settle(
     ).first()
     if order is None or order.status == PAID:
         return None
-    order.amount_received = amount
-    if currency != order.currency or amount < order.amount:
+    order.amount_received = state.amount
+    order.paid_amount = state.payment_amount
+    order.paid_currency = state.payment_currency
+    reason = mismatch(order, state)
+    if reason:
         order.status = PARTIAL
         audit.record(
             db,
@@ -136,7 +159,7 @@ def settle(
             actor_user_id=order.user_id,
             target_type="order",
             target_id=str(order.id),
-            details={"reason": "amount_mismatch", "amount": str(amount), "currency": currency},
+            details={"reason": reason, "amount": str(state.amount), "currency": state.currency},
         )
         return None
     plan = db.get_one(Plan, order.plan_code)
@@ -159,7 +182,13 @@ def settle(
         actor_user_id=order.user_id,
         target_type="order",
         target_id=str(order.id),
-        details={"plan": order.plan_code, "amount": str(amount), "currency": currency},
+        details={
+            "plan": order.plan_code,
+            "amount": str(state.amount),
+            "currency": state.currency,
+            "paid_amount": str(state.payment_amount),
+            "paid_currency": state.payment_currency,
+        },
     )
     db.flush()
     return subscription

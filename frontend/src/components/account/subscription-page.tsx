@@ -168,7 +168,8 @@ export function SubscriptionPage({ locale, messages }: { locale: Locale; message
               </Card>
             ))}
           </div>
-          {data.plans.some((plan) => plan.providers.length === 0) && <p className="mt-3 text-small text-muted">{t.paymentSoon}</p>}
+          <p className="mt-3 text-small text-muted">{t.localCurrency}</p>
+          {data.plans.some((plan) => plan.providers.length === 0) && <p className="mt-1 text-small text-muted">{t.paymentSoon}</p>}
 
           <SectionTitle>{t.orders}</SectionTitle>
           <Card className="p-4 sm:p-5">
