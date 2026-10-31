@@ -86,7 +86,7 @@ export function DashboardHome({ locale, messages }: { locale: Locale; messages: 
         </div>
         <Link
           href={`/${locale}/trading`}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-accent px-5 text-label font-medium text-on-accent transition-colors hover:bg-accent-hover"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-label font-medium text-on-primary transition-opacity hover:opacity-90"
         >
           <ChartLine size={18} strokeWidth={1.5} aria-hidden />
           {t.openTrading}

@@ -74,7 +74,7 @@ function ConnectForm({ messages, onDone, invalid }: { messages: Messages; onDone
         showLabel={messages.auth.showPassword}
         hideLabel={messages.auth.hidePassword}
       />
-      <Button type="submit" variant="accent" size="lg" pending={pending} className="w-full">
+      <Button type="submit" variant="primary" size="lg" pending={pending} className="w-full">
         {!pending && <Link2 size={18} strokeWidth={1.5} aria-hidden />}
         {pending ? t.connecting : t.connect}
       </Button>
