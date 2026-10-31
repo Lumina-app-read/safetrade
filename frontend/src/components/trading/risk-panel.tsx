@@ -25,7 +25,7 @@ function Meter({ label, value, share, danger }: { label: string; value: string; 
         className="h-1.5 overflow-hidden rounded-full bg-page"
       >
         <div
-          className={cn("h-full rounded-full transition-[width] duration-500", danger && share >= 0.75 ? "bg-loss" : share >= 0.5 ? "bg-warn-line" : "bg-primary")}
+          className={cn("h-full rounded-full transition-[width] duration-500", danger && share >= 0.75 ? "bg-loss" : share >= 0.5 ? "bg-warn-line" : "bg-muted")}
           style={{ width: `${Math.max(share * 100, share > 0 ? 3 : 0)}%` }}
         />
       </div>

@@ -15,7 +15,8 @@ export function FitValue({
 }: {
   /** Texte affiché, pour calculer la taille. */
   text: string;
-  size?: "kpi" | "h3";
+  /** `text` : état en toutes lettres, plus petit qu'un chiffre clé. */
+  size?: "kpi" | "h3" | "text";
   /** Largeur en plus du texte, en caractères (icône, signe). */
   extra?: number;
   title?: string;
@@ -24,7 +25,7 @@ export function FitValue({
   const style = { "--chars": text.length + extra } as CSSProperties;
   return (
     <div className="@container w-full min-w-0">
-      <div className={size === "kpi" ? "text-fit" : "text-fit-h3"} style={style} title={title}>
+      <div className={size === "kpi" ? "text-fit" : size === "h3" ? "text-fit-h3" : "text-fit-text"} style={style} title={title}>
         {children ?? text}
       </div>
     </div>

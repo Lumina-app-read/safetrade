@@ -680,7 +680,7 @@
       "tokenPlaceholder": "Votre jeton Deriv",
       "tokenRequired": "Collez votre jeton Deriv.",
       "tokenExpired": "Votre jeton n'est plus valide. Collez-en un nouveau.",
-      "connect": "Connecter mon compte",
+      "connect": "Valider le jeton",
       "connecting": "Vérification auprès de Deriv",
       "scopes": "Droits lecture et trading uniquement, jamais de retrait. Le jeton est chiffré et ne sera plus jamais affiché.",
       "demoAccount": "Compte démo",
@@ -690,7 +690,8 @@
       "disconnect": "Déconnecter Deriv",
       "disconnectBlocked": "Arrêtez d'abord le bot pour déconnecter le compte.",
       "disconnectTitle": "Déconnecter Deriv",
-      "disconnectBody": "Le jeton sera effacé de SafeTrade. Pour le révoquer complètement, supprimez-le aussi dans votre espace Deriv."
+      "disconnectBody": "Le jeton sera effacé de SafeTrade. Pour le révoquer complètement, supprimez-le aussi dans votre espace Deriv.",
+      "open": "Connecter mon compte Deriv"
     },
     "settings": {
       "title": "Paramètres",

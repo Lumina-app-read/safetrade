@@ -26,6 +26,7 @@ function ConnectForm({ messages, onDone, invalid }: { messages: Messages; onDone
   const t = messages.trading.deriv;
   const [pending, setPending] = useState(false);
   const [failure, setFailure] = useState<Failure | null>(null);
+  const [opened, setOpened] = useState(false);
   const { field, validate } = useFormErrors({ token: requiredRule(t.tokenRequired) });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -43,12 +44,25 @@ function ConnectForm({ messages, onDone, invalid }: { messages: Messages; onDone
     } else setFailure(result);
   }
 
+  // Le champ n'apparaît qu'à la demande : pas de saisie de jeton sans action du client.
+  if (!opened) {
+    return (
+      <div className="flex flex-col gap-3">
+        {invalid && <Alert tone="error">{t.tokenExpired}</Alert>}
+        <p className="text-muted">{t.intro}</p>
+        <Button variant="accent" size="lg" className="w-full" onClick={() => setOpened(true)}>
+          <Link2 size={18} strokeWidth={1.5} aria-hidden />
+          {t.open}
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-3">
-      {invalid && <Alert tone="error">{t.tokenExpired}</Alert>}
+    <form onSubmit={submit} noValidate className="flex animate-rise flex-col gap-3">
       {failure && <Alert tone="error">{errorMessage(messages, failure)}</Alert>}
-      <p className="text-muted">{t.intro}</p>
       <PasswordField
+        autoFocus
         label={t.token}
         placeholder={t.tokenPlaceholder}
         {...field("token")}
@@ -60,9 +74,12 @@ function ConnectForm({ messages, onDone, invalid }: { messages: Messages; onDone
         showLabel={messages.auth.showPassword}
         hideLabel={messages.auth.hidePassword}
       />
-      <Button type="submit" variant="primary" size="lg" pending={pending} className="w-full">
+      <Button type="submit" variant="accent" size="lg" pending={pending} className="w-full">
         {!pending && <Link2 size={18} strokeWidth={1.5} aria-hidden />}
         {pending ? t.connecting : t.connect}
+      </Button>
+      <Button size="md" className="w-full" onClick={() => setOpened(false)}>
+        {messages.trading.cancel}
       </Button>
       <p className="text-small text-muted">{t.scopes}</p>
     </form>
@@ -127,7 +144,7 @@ export function DerivPanel({
                   key={account.account_id}
                   className={cn(
                     "flex min-h-14 items-center justify-between gap-3 rounded-lg border p-3",
-                    selected ? "border-primary" : "border-line",
+                    selected ? "border-accent" : "border-line",
                     locked && "bg-page",
                   )}
                 >

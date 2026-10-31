@@ -680,7 +680,7 @@
       "tokenPlaceholder": "Your Deriv token",
       "tokenRequired": "Paste your Deriv token.",
       "tokenExpired": "Your token is no longer valid. Paste a new one.",
-      "connect": "Connect my account",
+      "connect": "Validate the token",
       "connecting": "Checking with Deriv",
       "scopes": "Read and trade permissions only, never withdrawals. The token is encrypted and will never be shown again.",
       "demoAccount": "Demo account",
@@ -690,7 +690,8 @@
       "disconnect": "Disconnect Deriv",
       "disconnectBlocked": "Stop the bot first to disconnect the account.",
       "disconnectTitle": "Disconnect Deriv",
-      "disconnectBody": "The token will be erased from SafeTrade. To revoke it fully, also delete it in your Deriv area."
+      "disconnectBody": "The token will be erased from SafeTrade. To revoke it fully, also delete it in your Deriv area.",
+      "open": "Connect my Deriv account"
     },
     "settings": {
       "title": "Settings",

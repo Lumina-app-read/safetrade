@@ -91,7 +91,7 @@ function InstrumentStrip({
             onClick={() => onSelect(asset.symbol)}
             className={cn(
               "flex min-h-16 w-40 shrink-0 flex-col justify-center gap-0.5 rounded-lg border px-3 py-2 text-left transition-colors",
-              active ? "border-primary bg-card" : "border-line bg-page hover:border-muted/60",
+              active ? "border-accent bg-card" : "border-line bg-page hover:border-muted/60",
             )}
           >
             <span className="flex items-center gap-1.5">
@@ -208,7 +208,7 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
           <h1 className="text-h1">{messages.nav.trading}</h1>
           <div className="flex flex-wrap items-center gap-1.5">
             {kind === "demo" && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-small font-medium text-on-primary">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-small font-medium text-accent-text">
                 <FlaskConical size={14} strokeWidth={1.5} aria-hidden />
                 {t.env.demo}
               </span>
@@ -268,7 +268,7 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
       <section aria-label={t.kpi.title} className="grid min-w-0 grid-cols-2 gap-3 max-lg:order-4 lg:col-span-2 lg:grid-cols-4">
         <Kpi label={t.kpi.balance} hint={kind === "demo" ? t.kpi.demoFunds : undefined}>
           <FitValue
-            size="h3"
+            size={balance ? "h3" : "text"}
             text={balance ? f.moneyShort(Number(balance.balance), balance.currency) : deriv.loading ? t.loading : deriv.error && !deriv.data ? t.kpi.unavailable : t.kpi.notConnected}
             title={balance ? f.money(Number(balance.balance), balance.currency) : undefined}
           />
@@ -277,18 +277,18 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
           {session ? (
             <FitAmount size="h3" value={Number(session.session_net)} formatted={f.moneyShort(Number(session.session_net))} title={f.money(Number(session.session_net))} />
           ) : (
-            <FitValue size="h3" text={t.kpi.noSession} />
+            <FitValue size="text" text={t.kpi.noSession} />
           )}
         </Kpi>
         <Kpi label={t.kpi.day}>
           {summary.data ? (
             <FitAmount size="h3" value={Number(summary.data.day_net)} formatted={f.moneyShort(Number(summary.data.day_net))} title={f.money(Number(summary.data.day_net))} />
           ) : (
-            <FitValue size="h3" text={t.loading} />
+            <FitValue size="text" text={t.loading} />
           )}
         </Kpi>
         <Kpi label={t.kpi.winRate} hint={summary.data?.trades ? interpolate(t.kpi.sample, { count: summary.data.trades }) : t.kpi.noTrades}>
-          <FitValue size="h3" text={summary.data?.win_rate != null ? f.percent(summary.data.win_rate) : summary.data ? t.kpi.noPosition : t.loading} />
+          <FitValue size={summary.data?.win_rate != null ? "h3" : "text"} text={summary.data?.win_rate != null ? f.percent(summary.data.win_rate) : summary.data ? t.kpi.noPosition : t.loading} />
         </Kpi>
       </section>
 
@@ -304,7 +304,7 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
                   role="radio"
                   aria-checked={granularity === value}
                   onClick={() => setGranularity(value)}
-                  className="min-h-9 min-w-11 rounded-md px-2 text-label font-medium text-muted transition-colors aria-checked:bg-primary aria-checked:text-on-primary"
+                  className="min-h-9 min-w-11 rounded-md px-2 text-label font-medium text-muted transition-colors aria-checked:bg-accent aria-checked:text-on-accent"
                 >
                   {t.chart.intervals[String(value) as keyof typeof t.chart.intervals]}
                 </button>

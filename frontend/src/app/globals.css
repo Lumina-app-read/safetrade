@@ -201,6 +201,17 @@ html {
   white-space: nowrap;
 }
 
+/* États en toutes lettres (« Non connecté », « Aucun ») : plus discrets qu'un chiffre clé. */
+@utility text-fit-text {
+  display: block;
+  overflow: hidden;
+  font-size: clamp(11px, calc(100cqi / (var(--chars, 10) * 0.62)), 15px);
+  font-weight: 500;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @utility text-fit-h3 {
   display: block;
   overflow: hidden;

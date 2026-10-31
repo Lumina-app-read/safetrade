@@ -140,7 +140,7 @@ export function BotPanel({
       ) : (
         <div className="grid grid-cols-2 gap-2">
           {state === "paused" ? (
-            <Action icon={CirclePlay} label={t.resume} variant="primary" onClick={() => command("resume")} pending={pending === "resume"} disabled={waiting} />
+            <Action icon={CirclePlay} label={t.resume} variant="accent" onClick={() => command("resume")} pending={pending === "resume"} disabled={waiting} />
           ) : (
             <Action icon={CirclePause} label={t.pause} onClick={() => command("pause")} pending={pending === "pause"} disabled={!canPause || waiting} />
           )}

@@ -140,7 +140,7 @@ export function SettingsForm({
       {failure && <Alert tone="error">{errorMessage(messages, failure)}</Alert>}
       {saved && <Alert tone="success">{t.saved}</Alert>}
       <p className="text-small text-muted">{t.appliesNext}</p>
-      <Button type="submit" variant="primary" size="lg" pending={pending} className="w-full">
+      <Button type="submit" variant="accent" size="lg" pending={pending} className="w-full">
         {pending ? t.saving : t.save}
       </Button>
     </form>

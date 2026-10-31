@@ -123,7 +123,7 @@ function PositionCard({
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-small text-muted">{t.net}</p>
-          {position.current_profit === null ? <FitValue text={t.awaiting} /> : <FitAmount value={profit} formatted={f.moneyShort(profit)} title={f.money(profit)} />}
+          {position.current_profit === null ? <FitValue size="text" text={t.awaiting} /> : <FitAmount value={profit} formatted={f.moneyShort(profit)} title={f.money(profit)} />}
         </div>
         <Sparkline values={history} label={t.evolution} />
       </div>

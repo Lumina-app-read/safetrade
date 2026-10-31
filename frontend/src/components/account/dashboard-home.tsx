@@ -86,7 +86,7 @@ export function DashboardHome({ locale, messages }: { locale: Locale; messages: 
         </div>
         <Link
           href={`/${locale}/trading`}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-label font-medium text-on-primary transition-opacity hover:opacity-90"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-accent px-5 text-label font-medium text-on-accent transition-colors hover:bg-accent-hover"
         >
           <ChartLine size={18} strokeWidth={1.5} aria-hidden />
           {t.openTrading}
@@ -115,6 +115,7 @@ export function DashboardHome({ locale, messages }: { locale: Locale; messages: 
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
           <Stat label={t.balance} icon={Wallet} hint={account ? t.balanceDemo : checking ? t.balanceChecking : t.balanceEmpty}>
             <FitValue
+              size={account ? "kpi" : "text"}
               text={account ? f.moneyShort(Number(account.balance), account.currency) : deriv.loading ? messages.trading.loading : checking ? t.unavailable : t.notConnected}
               title={account ? f.money(Number(account.balance), account.currency) : undefined}
             />
@@ -123,14 +124,14 @@ export function DashboardHome({ locale, messages }: { locale: Locale; messages: 
             {summary.data ? (
               <FitAmount value={Number(summary.data.day_net)} formatted={f.moneyShort(Number(summary.data.day_net))} title={f.money(Number(summary.data.day_net))} />
             ) : (
-              <FitValue text={messages.trading.loading} />
+              <FitValue size="text" text={messages.trading.loading} />
             )}
           </Stat>
           <Stat label={t.bot} icon={Bot} hint={session ? session.symbol : t.botEmpty}>
             <Badge tone="neutral">{messages.trading.bot.states[session?.state ?? "stopped"]}</Badge>
           </Stat>
           <Stat label={t.access} icon={CreditCard} hint={user.subscription === "none" ? t.accessNone : t.accessActive}>
-            <FitValue text={planLabel(messages, user.subscription)} />
+            <FitValue size="text" text={planLabel(messages, user.subscription)} />
           </Stat>
         </div>
       </div>

@@ -17,11 +17,16 @@ export function Logo({
   onDark?: boolean;
 }) {
   return (
-    <span className={cn("inline-flex items-center gap-2 text-h3 font-medium", className)}>
-      <span className="grid size-8 place-items-center rounded-lg bg-accent text-on-accent shadow-[0_0_24px_var(--brand-ring)]">
+    <span className={cn("inline-flex items-center gap-2 text-h3 font-medium", compact && "max-sm:gap-1.5 max-sm:text-[15px]", className)}>
+      <span
+        className={cn(
+          "grid size-8 place-items-center rounded-lg bg-accent text-on-accent shadow-[0_0_24px_var(--brand-ring)]",
+          compact && "max-sm:size-7",
+        )}
+      >
         <ShieldCheck size={20} strokeWidth={1.5} aria-hidden />
       </span>
-      <span className={cn(compact && "max-sm:sr-only")}>
+      <span>
         Safe<span className={onDark ? undefined : "text-accent-text"}>Trade</span>
       </span>
     </span>
