@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import { CircleAlert, type LucideIcon } from "lucide-react";
 import { useId, type InputHTMLAttributes, type ReactNode } from "react";
 
 import { cn } from "@/lib/cn";
@@ -22,17 +22,19 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 export function Field({ label, icon: Icon, unit, hint, error, end, className, id: idProp, ...rest }: Props) {
   const autoId = useId();
   const id = idProp ?? autoId;
-  const describedBy = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
+  const describedBy = [error && `${id}-error`, hint && `${id}-hint`].filter(Boolean).join(" ") || undefined;
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
+    <div data-field className={cn("flex flex-col gap-1.5", className)}>
       <label htmlFor={id} className="text-label font-medium">
         {label}
       </label>
       <div
         className={cn(
           "group flex h-12 items-center rounded-lg border bg-card transition-[border-color,box-shadow] duration-200",
-          "focus-within:border-accent focus-within:ring-[3px] focus-within:ring-accent/15",
-          error ? "border-loss" : "border-line hover:border-muted/60",
+          "focus-within:ring-[3px]",
+          error
+            ? "border-loss focus-within:ring-loss/15"
+            : "border-line hover:border-muted/60 focus-within:border-accent focus-within:ring-accent/15",
         )}
       >
         {Icon && (
@@ -41,8 +43,8 @@ export function Field({ label, icon: Icon, unit, hint, error, end, className, id
             strokeWidth={1.5}
             aria-hidden
             className={cn(
-              "ml-3.5 shrink-0 transition-colors duration-200 group-focus-within:text-accent-text",
-              error ? "text-loss" : "text-muted",
+              "ml-3.5 shrink-0 transition-colors duration-200",
+              error ? "text-loss" : "text-muted group-focus-within:text-accent-text",
             )}
           />
         )}
@@ -59,16 +61,16 @@ export function Field({ label, icon: Icon, unit, hint, error, end, className, id
         {unit && <span className="px-3 text-small whitespace-nowrap text-muted">{unit}</span>}
         {end}
       </div>
-      {error ? (
-        <p id={`${id}-error`} className="animate-fade text-small text-loss">
+      {error && (
+        <p id={`${id}-error`} aria-live="polite" className="flex animate-fade items-start gap-1.5 text-small text-loss">
+          <CircleAlert size={14} strokeWidth={1.5} aria-hidden className="mt-0.5 shrink-0" />
           {error}
         </p>
-      ) : (
-        hint && (
-          <div id={`${id}-hint`} className="text-small text-muted">
-            {hint}
-          </div>
-        )
+      )}
+      {hint && (
+        <div id={`${id}-hint`} className="text-small text-muted">
+          {hint}
+        </div>
       )}
     </div>
   );

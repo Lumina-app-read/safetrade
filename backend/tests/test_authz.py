@@ -32,6 +32,7 @@ PUBLIC_ROUTES = {
     ("GET", "/health"),
     ("POST", "/auth/register"),
     ("POST", "/auth/verify-email"),
+    ("POST", "/auth/verify-email/resend"),
     ("POST", "/auth/login"),
     ("POST", "/auth/login/mfa"),
     ("POST", "/auth/password/forgot"),

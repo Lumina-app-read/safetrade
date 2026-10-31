@@ -53,6 +53,13 @@ services:
       SAFETRADE_REDIS_URL: redis://redis:6379/0
       SAFETRADE_DERIV_APP_ID: ${SAFETRADE_DERIV_APP_ID:-}
       SAFETRADE_ENCRYPTION_KEY: ${SAFETRADE_ENCRYPTION_KEY:?générer la clé, voir infra/.env.example}
+      # E-mails : relais SMTP Brevo. Vide en CI et en local sans compte : journal du conteneur.
+      SAFETRADE_SMTP_HOST: ${SMTP_HOST:-}
+      SAFETRADE_SMTP_PORT: ${SMTP_PORT:-587}
+      SAFETRADE_SMTP_USER: ${SMTP_USER:-}
+      SAFETRADE_SMTP_PASSWORD: ${SMTP_PASS:-}
+      SAFETRADE_SMTP_FROM: ${SMTP_FROM:-}
+      SAFETRADE_SMTP_FROM_NAME: ${SMTP_FROM_NAME:-SafeTrade}
       # Développement local en HTTP uniquement : cookie de session sans l'attribut Secure.
       SAFETRADE_SESSION_COOKIE_SECURE: "false"
       SAFETRADE_PUBLIC_APP_URL: http://127.0.0.1:${WEB_HOST_PORT}

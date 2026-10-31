@@ -31,6 +31,14 @@ class Settings(BaseSettings):
     # Durée d'un flux vers le navigateur, qui se reconnecte ensuite.
     market_stream_seconds: int = 300
 
+    # Envoi des e-mails (Brevo, relais SMTP). Vide : journal local, en développement seulement.
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: SecretStr | None = None
+    smtp_from: str | None = None
+    smtp_from_name: str = "SafeTrade"
+
     # Adresse publique du front-end, pour les liens envoyés par e-mail.
     public_app_url: str = "http://127.0.0.1:13000"
     # Origines autorisées à appeler l'API avec des cookies (contrôle anti-CSRF).
@@ -48,6 +56,8 @@ class Settings(BaseSettings):
     password_reset_minutes: int = 60
     password_reset_max_per_hour: int = 3
     email_verification_hours: int = 24
+    # Liens et avertissements envoyés par heure à une même adresse.
+    verification_max_per_hour: int = 5
 
     # Clé AES-256 (32 octets en base64) des secrets au repos : secret TOTP, puis token Deriv.
     # Génération : python -c "import base64,os;print(base64.b64encode(os.urandom(32)).decode())"

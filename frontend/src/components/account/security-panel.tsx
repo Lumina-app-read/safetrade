@@ -27,6 +27,8 @@ import { formatters } from "@/i18n/format";
 import { interpolate, type Messages } from "@/i18n/messages";
 import { api, errorMessage } from "@/lib/api";
 import { describeDevice } from "@/lib/device";
+import { useFormErrors } from "@/lib/use-form-errors";
+import { currentPasswordRule, requiredRule, totpRule } from "@/lib/validation";
 
 type SessionRow = {
   id: string;
@@ -106,6 +108,9 @@ function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled:
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<ApiErr | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const v = messages.auth.validation;
+  const setupForm = useFormErrors({ code: totpRule(v) });
+  const disableForm = useFormErrors({ password: currentPasswordRule(v), code: requiredRule(v.codeRequired) });
   const { copied, copy } = useCopy();
 
   async function start() {
@@ -121,6 +126,7 @@ function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled:
 
   async function confirm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!setupForm.validate(event.currentTarget)) return;
     const code = String(new FormData(event.currentTarget).get("code")).replace(/\s/g, "");
     setPending(true);
     setError(null);
@@ -135,6 +141,7 @@ function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled:
 
   async function disable(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!disableForm.validate(event.currentTarget)) return;
     const form = new FormData(event.currentTarget);
     setPending(true);
     setError(null);
@@ -168,7 +175,7 @@ function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled:
       {notice && <Alert tone="success">{notice}</Alert>}
 
       {stage === "setup" && setup && (
-        <form onSubmit={confirm} className="flex animate-rise flex-col gap-5">
+        <form onSubmit={confirm} noValidate className="flex animate-rise flex-col gap-5">
           <ol className="flex flex-col gap-5">
             <li className="flex flex-col gap-3">
               <p className="flex gap-2.5">
@@ -207,11 +214,9 @@ function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled:
               <Field
                 label={messages.auth.mfa.code}
                 icon={Smartphone}
-                name="code"
-                required
+                {...setupForm.field("code")}
                 inputMode="numeric"
                 autoComplete="one-time-code"
-                pattern="[0-9 ]{6,7}"
                 maxLength={7}
                 placeholder={messages.auth.mfa.codePlaceholder}
                 className="[&_input]:tracking-[0.3em] [&_input]:tabular-nums"
@@ -262,20 +267,19 @@ function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled:
       )}
 
       {stage === "disable" && (
-        <form onSubmit={disable} className="flex animate-rise flex-col gap-4 rounded-xl border border-line p-4">
+        <form onSubmit={disable} noValidate className="flex animate-rise flex-col gap-4 rounded-xl border border-line p-4">
           <div>
             <h3 className="font-medium">{t.disableTitle}</h3>
             <p className="mt-1 text-small text-muted">{t.disableBody}</p>
           </div>
           <PasswordField
             label={t.password}
-            name="password"
-            required
+            {...disableForm.field("password")}
             autoComplete="current-password"
             showLabel={messages.auth.showPassword}
             hideLabel={messages.auth.hidePassword}
           />
-          <Field label={t.code} icon={KeyRound} name="code" required autoComplete="one-time-code" maxLength={9} />
+          <Field label={t.code} icon={KeyRound} {...disableForm.field("code")} autoComplete="one-time-code" maxLength={9} />
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button size="lg" onClick={() => setStage("idle")}>
               {t.cancel}

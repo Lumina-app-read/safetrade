@@ -12,6 +12,8 @@ import { PasswordField } from "@/components/ui/password-field";
 import type { Locale } from "@/i18n/config";
 import { interpolate, type Messages } from "@/i18n/messages";
 import { api, errorMessage } from "@/lib/api";
+import { useFormErrors } from "@/lib/use-form-errors";
+import { emailRule, newPasswordRule } from "@/lib/validation";
 
 import { PasswordRules } from "./password-rules";
 
@@ -42,9 +44,11 @@ export function ForgotPasswordForm({ locale, messages }: { locale: Locale; messa
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<ApiErr | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const { field, validate } = useFormErrors({ email: emailRule(messages.auth.validation) });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!validate(event.currentTarget)) return;
     const email = String(new FormData(event.currentTarget).get("email")).trim();
     setPending(true);
     setError(null);
@@ -64,7 +68,7 @@ export function ForgotPasswordForm({ locale, messages }: { locale: Locale; messa
     );
   }
   return (
-    <form onSubmit={submit} className="flex flex-col gap-5">
+    <form onSubmit={submit} noValidate className="flex flex-col gap-5">
       <div>
         <h1 className="text-h1">{t.title}</h1>
         <p className="mt-1.5 text-muted">{t.subtitle}</p>
@@ -74,9 +78,8 @@ export function ForgotPasswordForm({ locale, messages }: { locale: Locale; messa
         label={t.email}
         icon={Mail}
         placeholder={t.emailPlaceholder}
-        name="email"
+        {...field("email")}
         type="email"
-        required
         autoComplete="email"
         inputMode="email"
         autoCapitalize="none"
@@ -100,14 +103,19 @@ export function ResetPasswordForm({ locale, messages }: { locale: Locale; messag
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<ApiErr | null>(null);
   const [done, setDone] = useState(false);
+  const { errors, field, validate, setError: setFieldError } = useFormErrors({
+    password: newPasswordRule(messages.auth.validation),
+  });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!validate(event.currentTarget)) return;
     setPending(true);
     setError(null);
     const result = await api("/auth/password/reset", { body: { token, password } });
     setPending(false);
     if (result.ok) setDone(true);
+    else if (result.code.startsWith("auth.password")) setFieldError("password", errorMessage(messages, result));
     else setError(result);
   }
 
@@ -130,7 +138,7 @@ export function ResetPasswordForm({ locale, messages }: { locale: Locale; messag
     );
   }
   return (
-    <form onSubmit={submit} className="flex flex-col gap-5">
+    <form onSubmit={submit} noValidate className="flex flex-col gap-5">
       <span className="grid size-14 place-items-center rounded-2xl bg-accent-soft text-accent-text">
         <KeyRound size={28} strokeWidth={1.5} aria-hidden />
       </span>
@@ -151,17 +159,14 @@ export function ResetPasswordForm({ locale, messages }: { locale: Locale; messag
       <PasswordField
         label={t.password}
         placeholder={t.passwordPlaceholder}
-        name="password"
-        required
-        minLength={10}
-        maxLength={128}
+        {...field("password")}
         autoComplete="new-password"
         enterKeyHint="go"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         showLabel={messages.auth.showPassword}
         hideLabel={messages.auth.hidePassword}
-        hint={<PasswordRules password={password} labels={messages.auth.register} />}
+        hint={<PasswordRules password={password} labels={messages.auth.register} invalid={Boolean(errors.password)} />}
       />
       <Button type="submit" variant="accent" size="lg" pending={pending} className="w-full">
         {pending ? t.submitting : t.submit}

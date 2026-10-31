@@ -54,9 +54,34 @@ def _issue_verification(db: DbSession, user: User, settings: Settings) -> str:
     return token
 
 
+def _within_mail_quota(failures: FailureCounter, settings: Settings, kind: str, email: str) -> bool:
+    """Plafond d'envois par adresse : le site ne doit pas servir à bombarder une boîte."""
+    key = f"{kind}:email:{_email_digest(email)}"
+    if failures.count(key) >= settings.verification_max_per_hour:
+        return False
+    failures.add(key, 3600)
+    return True
+
+
+def _send_verification(db: DbSession, mailer: Mailer, settings: Settings, user: User) -> None:
+    token = _issue_verification(db, user, settings)
+    db.commit()
+    mailer.send(
+        render(
+            "verify_email",
+            user.locale,
+            user.email,
+            first_name=user.first_name,
+            link=f"{settings.public_app_url}/{user.locale}/verify-email?token={token}",
+            hours=settings.email_verification_hours,
+        )
+    )
+
+
 def register(
     db: DbSession,
     mailer: Mailer,
+    failures: FailureCounter,
     settings: Settings,
     *,
     email: str,
@@ -68,8 +93,8 @@ def register(
 ) -> None:
     """
     Crée un compte non vérifié et envoie le lien de vérification.
-    Même réponse si l'adresse existe déjà (pas d'énumération des comptes) :
-    le titulaire reçoit alors un e-mail d'avertissement.
+    Même réponse si l'adresse existe déjà (pas d'énumération des comptes) : le titulaire
+    reçoit un avertissement, ou un nouveau lien si son compte n'est pas encore confirmé.
     """
     # Reconnaissance du risque exigée ici aussi : le navigateur ne décide jamais seul.
     if not accept_risk:
@@ -80,15 +105,19 @@ def register(
 
     existing = _find_user(db, email)
     if existing is not None:
-        mailer.send(
-            render(
-                "already_registered",
-                existing.locale,
-                existing.email,
-                first_name=existing.first_name,
-                link=f"{settings.public_app_url}/{existing.locale}/login",
-            )
-        )
+        if _within_mail_quota(failures, settings, "verify", email):
+            if existing.email_verified_at is None:
+                _send_verification(db, mailer, settings, existing)
+            else:
+                mailer.send(
+                    render(
+                        "already_registered",
+                        existing.locale,
+                        existing.email,
+                        first_name=existing.first_name,
+                        link=f"{settings.public_app_url}/{existing.locale}/login",
+                    )
+                )
         audit.record(
             db,
             "auth.register",
@@ -110,7 +139,6 @@ def register(
     )
     db.add(user)
     db.flush()
-    token = _issue_verification(db, user, settings)
     audit.record(
         db,
         "auth.register",
@@ -120,17 +148,26 @@ def register(
         target_id=str(user.id),
         ip_address=ip,
     )
-    db.commit()
-    mailer.send(
-        render(
-            "verify_email",
-            locale,
-            user.email,
-            first_name=user.first_name,
-            link=f"{settings.public_app_url}/{locale}/verify-email?token={token}",
-            hours=settings.email_verification_hours,
-        )
-    )
+    _send_verification(db, mailer, settings, user)
+
+
+def resend_verification(
+    db: DbSession,
+    mailer: Mailer,
+    failures: FailureCounter,
+    settings: Settings,
+    *,
+    email: str,
+    ip: str | None,
+) -> None:
+    """Nouveau lien de confirmation. La réponse ne révèle jamais si l'adresse existe."""
+    user = _find_user(db, email)
+    if user is None or user.email_verified_at is not None:
+        return
+    if not _within_mail_quota(failures, settings, "verify", email):
+        return
+    audit.record(db, "auth.verification_resend", "success", actor_user_id=user.id, ip_address=ip)
+    _send_verification(db, mailer, settings, user)
 
 
 def verify_email(db: DbSession, *, token: str, ip: str | None) -> None:

@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, CircleAlert } from "lucide-react";
 import { useId, type InputHTMLAttributes } from "react";
 
 import { cn } from "@/lib/cn";
@@ -38,7 +38,8 @@ export function Checkbox({ label, error, className, id: idProp, ...rest }: Props
         <span className="text-label">{label}</span>
       </label>
       {error && (
-        <p id={`${id}-error`} className="animate-fade pl-7.5 text-small text-loss">
+        <p id={`${id}-error`} aria-live="polite" className="flex animate-fade items-start gap-1.5 pl-7.5 text-small text-loss">
+          <CircleAlert size={14} strokeWidth={1.5} aria-hidden className="mt-0.5 shrink-0" />
           {error}
         </p>
       )}

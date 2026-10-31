@@ -149,7 +149,7 @@ def test_lockout_after_repeated_failures(client: TestClient, mailer: MemoryMaile
     assert int(r.headers["retry-after"]) > 0
 
 
-def test_duplicate_registration_gives_same_answer_and_warns_owner(
+def test_duplicate_registration_sends_a_new_link_while_unconfirmed(
     client: TestClient, mailer: MemoryMailer
 ) -> None:
     email = unique_email()
@@ -157,7 +157,7 @@ def test_duplicate_registration_gives_same_answer_and_warns_owner(
     register(client, email.upper())
     assert [m.template for m in mailer.sent if m.to == email] == [
         "verify_email",
-        "already_registered",
+        "verify_email",
     ]
 
 

@@ -124,6 +124,24 @@
       "missingTitle": "Lien incomplet",
       "missingBody": "Ce lien ne contient pas de code. Ouvrez le lien reçu par e-mail, ou demandez-en un nouveau.",
       "requestNew": "Demander un nouveau lien"
+    },
+    "validation": {
+      "emailRequired": "Saisissez votre adresse e-mail.",
+      "emailInvalid": "Cette adresse e-mail n'est pas valide. Exemple : vous@exemple.com",
+      "passwordRequired": "Saisissez votre mot de passe.",
+      "passwordWeak": "Votre mot de passe ne respecte pas les règles ci-dessous.",
+      "passwordTooLong": "Votre mot de passe dépasse 128 caractères.",
+      "firstNameRequired": "Saisissez votre prénom.",
+      "codeRequired": "Saisissez votre code.",
+      "codeInvalid": "Le code contient 6 chiffres.",
+      "recoveryInvalid": "Le code de secours a la forme ABCD-EFGH."
+    },
+    "resend": {
+      "action": "Renvoyer le lien",
+      "sending": "Envoi en cours",
+      "sent": "Demande prise en compte. Si cette adresse attend une confirmation, un nouveau lien vient de partir.",
+      "wait": "Nouvel envoi possible dans {seconds} s",
+      "hint": "Rien reçu ? Vérifiez vos courriers indésirables avant de renvoyer le lien."
     }
   },
   "errors": {

@@ -77,10 +77,12 @@ def register(
     db: Db,
     settings: AppSettings,
     mailer: Annotated[Mailer, Depends(get_mailer)],
+    failures: Annotated[FailureCounter, Depends(get_failures)],
 ) -> dict[str, str]:
     service.register(
         db,
         mailer,
+        failures,
         settings,
         email=body.email,
         password=body.password,
@@ -97,6 +99,22 @@ def register(
 def verify_email(body: VerifyIn, request: Request, db: Db) -> dict[str, str]:
     service.verify_email(db, token=body.token, ip=client_ip(request))
     return {"status": "verified"}
+
+
+@router.post("/verify-email/resend", status_code=status.HTTP_202_ACCEPTED)
+def resend_verification(
+    body: ForgotIn,
+    request: Request,
+    db: Db,
+    settings: AppSettings,
+    mailer: Annotated[Mailer, Depends(get_mailer)],
+    failures: Annotated[FailureCounter, Depends(get_failures)],
+) -> dict[str, str]:
+    service.resend_verification(
+        db, mailer, failures, settings, email=body.email, ip=client_ip(request)
+    )
+    # Réponse identique dans tous les cas.
+    return {"status": "verification_sent"}
 
 
 @router.post("/password/forgot", status_code=status.HTTP_202_ACCEPTED)

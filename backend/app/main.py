@@ -7,7 +7,7 @@ from redis.asyncio import Redis as AsyncRedis
 from sqlalchemy.orm import sessionmaker
 
 from app.admin.router import router as admin_router
-from app.auth.mailer import LogMailer, Mailer
+from app.auth.mailer import LogMailer, Mailer, build_mailer
 from app.auth.rate_limit import FailureCounter, MemoryFailureCounter, RedisFailureCounter
 from app.auth.router import router as auth_router
 from app.broker.deriv_rest import DerivRest
@@ -47,9 +47,10 @@ def create_app(
     app.state.session_factory = session_factory or (
         sessionmaker(get_engine(), expire_on_commit=False) if settings.database_url else None
     )
+    mailer = mailer or build_mailer(settings)
     if mailer is None:
         if settings.environment not in ("development", "test"):
-            # Aucun fournisseur d'e-mails choisi : jamais d'envoi simulé hors développement.
+            # Jamais d'envoi simulé hors développement.
             raise RuntimeError("Aucun fournisseur d'e-mails configuré.")
         mailer = LogMailer()
     app.state.mailer = mailer

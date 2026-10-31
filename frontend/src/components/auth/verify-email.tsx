@@ -10,6 +10,8 @@ import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/messages";
 import { api, errorMessage } from "@/lib/api";
 
+import { ResendVerification } from "./resend-verification";
+
 const linkClass =
   "inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg text-label font-medium";
 
@@ -50,6 +52,7 @@ export function VerifyEmail({ locale, messages }: { locale: Locale; messages: Me
         <p className="mt-2 text-muted">{body}</p>
       </div>
       {error && <Alert tone="error">{errorMessage(messages, error)}</Alert>}
+      {(!token || error?.code === "auth.verification_invalid") && <ResendVerification messages={messages} />}
       {!token ? (
         <a href={`/${locale}/register`} className={`${linkClass} border border-line bg-card hover:bg-page`}>
           {t.registerAgain}

@@ -124,6 +124,24 @@
       "missingTitle": "Incomplete link",
       "missingBody": "This link has no code. Open the link you received by email, or request a new one.",
       "requestNew": "Request a new link"
+    },
+    "validation": {
+      "emailRequired": "Enter your email address.",
+      "emailInvalid": "This email address is not valid. Example: you@example.com",
+      "passwordRequired": "Enter your password.",
+      "passwordWeak": "Your password does not meet the rules below.",
+      "passwordTooLong": "Your password is longer than 128 characters.",
+      "firstNameRequired": "Enter your first name.",
+      "codeRequired": "Enter your code.",
+      "codeInvalid": "The code has 6 digits.",
+      "recoveryInvalid": "A recovery code looks like ABCD-EFGH."
+    },
+    "resend": {
+      "action": "Send the link again",
+      "sending": "Sending",
+      "sent": "Request received. If this address is awaiting confirmation, a new link has just been sent.",
+      "wait": "You can resend in {seconds} s",
+      "hint": "Nothing received? Check your spam folder before resending the link."
     }
   },
   "errors": {

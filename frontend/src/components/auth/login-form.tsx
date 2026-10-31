@@ -14,8 +14,11 @@ import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/messages";
 import { api, errorMessage } from "@/lib/api";
 import { homePath } from "@/lib/roles";
+import { useFormErrors } from "@/lib/use-form-errors";
+import { currentPasswordRule, emailRule, recoveryRule, totpRule } from "@/lib/validation";
 
 import { GoogleButton } from "./google-button";
+import { ResendVerification } from "./resend-verification";
 
 type LoginResult = { user?: { role: string }; mfa_required?: boolean; challenge?: string };
 type ApiErr = { code: string; retryAfter?: number };
@@ -28,6 +31,9 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<ApiErr | null>(null);
   const [challenge, setChallenge] = useState<string | null>(null);
+  const [unverified, setUnverified] = useState<string | null>(null);
+  const v = messages.auth.validation;
+  const { field, validate } = useFormErrors({ email: emailRule(v), password: currentPasswordRule(v) });
 
   function done(role: string | undefined) {
     // L'état reste « en attente » jusqu'à l'affichage de la page d'arrivée.
@@ -36,12 +42,15 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!validate(event.currentTarget)) return;
     const form = new FormData(event.currentTarget);
+    const email = String(form.get("email")).trim();
     setPending(true);
     setError(null);
+    setUnverified(null);
     const result = await api<LoginResult>("/auth/login", {
       body: {
-        email: String(form.get("email")),
+        email,
         password: String(form.get("password")),
         remember: form.get("remember") === "on",
       },
@@ -54,6 +63,7 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
     if (result.ok) return done(result.data.user?.role);
     setPending(false);
     setError(result);
+    if (result.code === "auth.email_not_verified") setUnverified(email);
   }
 
   if (challenge) {
@@ -71,7 +81,8 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5">
+    <form onSubmit={submit} noValidate className="flex flex-col gap-5">
       <div>
         <h1 className="text-h1">{t.title}</h1>
         <p className="mt-1.5 text-muted">{t.subtitle}</p>
@@ -83,9 +94,8 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
         label={t.email}
         icon={Mail}
         placeholder={t.emailPlaceholder}
-        name="email"
+        {...field("email")}
         type="email"
-        required
         autoComplete="email"
         inputMode="email"
         autoCapitalize="none"
@@ -95,8 +105,7 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
       <PasswordField
         label={t.password}
         placeholder={t.passwordPlaceholder}
-        name="password"
-        required
+        {...field("password")}
         autoComplete="current-password"
         enterKeyHint="go"
         showLabel={messages.auth.showPassword}
@@ -120,6 +129,8 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
         </a>
       </p>
     </form>
+    {unverified && <ResendVerification email={unverified} messages={messages} />}
+    </div>
   );
 }
 
@@ -139,9 +150,12 @@ function MfaStep({
   const [recovery, setRecovery] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<ApiErr | null>(null);
+  const v = messages.auth.validation;
+  const { field, validate } = useFormErrors({ code: recovery ? recoveryRule(v) : totpRule(v) });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!validate(event.currentTarget)) return;
     const code = String(new FormData(event.currentTarget).get("code")).replace(/\s/g, "");
     setPending(true);
     setError(null);
@@ -152,7 +166,7 @@ function MfaStep({
   }
 
   return (
-    <form key={recovery ? "recovery" : "app"} onSubmit={submit} className="flex animate-rise flex-col gap-5">
+    <form key={recovery ? "recovery" : "app"} onSubmit={submit} noValidate className="flex animate-rise flex-col gap-5">
       <span className="grid size-14 place-items-center rounded-2xl bg-accent-soft text-accent-text">
         <ShieldCheck size={28} strokeWidth={1.5} aria-hidden />
       </span>
@@ -165,8 +179,7 @@ function MfaStep({
         <Field
           label={t.recoveryCode}
           icon={KeyRound}
-          name="code"
-          required
+          {...field("code")}
           autoFocus
           autoComplete="off"
           autoCapitalize="characters"
@@ -179,12 +192,10 @@ function MfaStep({
         <Field
           label={t.code}
           icon={Smartphone}
-          name="code"
-          required
+          {...field("code")}
           autoFocus
           inputMode="numeric"
           autoComplete="one-time-code"
-          pattern="[0-9 ]{6,7}"
           maxLength={7}
           placeholder={t.codePlaceholder}
           enterKeyHint="go"
