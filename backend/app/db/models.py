@@ -281,11 +281,16 @@ class TradingSettings(Base):
     pause_minutes: Mapped[int] = mapped_column(Integer)
     activation_r: Mapped[Decimal] = mapped_column(Numeric(6, 3))
     locked_fraction: Mapped[Decimal] = mapped_column(Numeric(4, 3))
+    # Décision du propriétaire : tout actif compatible par défaut, liste au choix du client.
+    all_symbols: Mapped[bool] = mapped_column(default=True, server_default=true())
     allowed_symbols: Mapped[list[str]] = mapped_column(JSONB)
     timezone: Mapped[str] = mapped_column(String(64))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+    def allows(self, symbol: str) -> bool:
+        return self.all_symbols or symbol in self.allowed_symbols
 
 
 class BotSession(Base):

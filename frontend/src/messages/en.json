@@ -598,7 +598,8 @@
         "stopping": "No new position. The session ends when positions are closed.",
         "stopped": "No activity."
       },
-      "blockedContract": "Deriv does not offer multipliers on this asset: the bot cannot trade it."
+      "blockedContract": "Deriv does not offer multipliers on this asset: the bot cannot trade it.",
+      "multiplierNote": "Deriv does not accept ×{wanted} on this asset: the bot will use ×{used}."
     },
     "positions": {
       "emptyTitle": "No open position",
@@ -742,7 +743,8 @@
         "pause_minutes": "Pause length (min)",
         "activation_r": "Activation (multiple of the stop)",
         "locked_fraction": "Share of gain kept (0 to 1)"
-      }
+      },
+      "everyAsset": "Allow every compatible asset"
     },
     "codes": {
       "risk_real_account_disabled": "Real account disabled.",

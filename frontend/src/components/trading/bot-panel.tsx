@@ -57,6 +57,7 @@ export function BotPanel({
   asset,
   canTrade,
   blocked,
+  note,
   onChanged,
   messages,
 }: {
@@ -64,6 +65,7 @@ export function BotPanel({
   asset: Asset | undefined;
   canTrade: boolean;
   blocked: string | null;
+  note: string | null;
   onChanged: () => void;
   messages: Messages;
 }) {
@@ -136,6 +138,7 @@ export function BotPanel({
               {blocked}
             </p>
           )}
+          {note && <p className="text-small text-muted">{note}</p>}
         </>
       ) : (
         <div className="grid grid-cols-2 gap-2">

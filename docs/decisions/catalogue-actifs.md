@@ -8,6 +8,13 @@ Demande du propriétaire du 31 octobre 2026.
 - Relevé du 31 octobre 2026 : 46 indices synthétiques (Volatility 13, Crash et Boom 14, Jump 5, Step 5, Range Break 2, paniers 5, Bull et Bear 2).
 - 44 proposent les multiplicateurs. **Bear Market et Bull Market n'en proposent pas** : ils s'affichent, mais le bot les refuse (`trading.no_multipliers`). Cette information vient de `contracts_for`, lu pour un actif par seconde, puis toutes les 6 heures.
 
+## Multiplicateurs
+
+- **Deriv n'accepte que cinq valeurs par actif, différentes d'un actif à l'autre** : 40 à 400 sur Volatility 100, 750 à 7500 sur Step Index 100. Le réglage du client ne peut donc pas s'appliquer partout.
+- `risk.multiplier_for` : le plus proche du réglage sans le dépasser, sinon le plus petit proposé. La valeur utilisée est écrite sur la position avant l'envoi, et le client la voit avant de démarrer (`GET /trading/multiplier`).
+- Sur Step Index 100, le ×100 demandé devient ×750 : à mise égale, la position est 7,5 fois plus exposée. La perte reste bornée par le stop loss et la mise.
+- `contracts_for` se trompe parfois : Volatility 15 et 30 (1s), Range Break 100 et 200 y annoncent une liste que le devis refuse, en donnant la bonne dans son message. Le flux demande donc un devis, jamais un achat, et ce devis fait foi.
+
 ## Charge
 
 | Donnée | Portée | Coût |
@@ -23,7 +30,7 @@ Demande du propriétaire du 31 octobre 2026.
 ## Barre du client
 
 - `users.market_watchlist` : liste et ordre choisis par le client (`GET` et `PUT /market/watchlist`). Vide : actifs par défaut.
-- Afficher un actif n'autorise pas le bot à le trader : `allowed_symbols` reste une autorisation explicite, dans les paramètres.
+- Décision du propriétaire du 31 octobre 2026 : **tout actif compatible est autorisé par défaut** (`trading_settings.all_symbols`). Le client peut encore restreindre à une liste dans ses paramètres (section 7).
 - Crash, Boom et Jump bougent par à-coups : le sélecteur le signale. Aucune stratégie n'est calibrée pour eux, et le bot n'y a pas été essayé en démo. Les plages de multiplicateurs varient par actif et sont lues dans chaque `proposal`.
 
 ## Lien partenaire Deriv

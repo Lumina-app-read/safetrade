@@ -47,6 +47,7 @@ export function SettingsForm({
   const f = formatters(locale);
   const labels = t.fields as Record<string, string>;
   const [allowed, setAllowed] = useState<string[]>(data.settings.allowed_symbols as string[]);
+  const [everyAsset, setEveryAsset] = useState(data.settings.all_symbols === true);
   const [pending, setPending] = useState(false);
   const [failure, setFailure] = useState<{ code: string; retryAfter?: number } | null>(null);
   const [saved, setSaved] = useState(false);
@@ -71,15 +72,22 @@ export function SettingsForm({
     event.preventDefault();
     setSaved(false);
     const ok = validate(event.currentTarget);
-    setSymbolsError(allowed.length === 0);
-    if (!ok || allowed.length === 0) return;
+    const noAsset = !everyAsset && allowed.length === 0;
+    setSymbolsError(noAsset);
+    if (!ok || noAsset) return;
     const form = new FormData(event.currentTarget);
     const values = Object.fromEntries(Object.keys(data.ranges).map((name) => [name, normalize(String(form.get(name)))]));
     setPending(true);
     setFailure(null);
     const result = await api("/trading/settings", {
       method: "PUT",
-      body: { ...values, allowed_symbols: allowed, timezone: browserTimeZone() },
+      body: {
+        ...values,
+        all_symbols: everyAsset,
+        // Le serveur exige une liste : elle est conservée pour le jour où le client restreint.
+        allowed_symbols: allowed.length ? allowed : assets.map((asset) => asset.symbol),
+        timezone: browserTimeZone(),
+      },
     });
     setPending(false);
     if (result.ok) {
@@ -122,7 +130,8 @@ export function SettingsForm({
 
       <fieldset className="flex flex-col gap-1">
         <legend className="mb-1 text-label font-medium text-muted">{t.groupAssets}</legend>
-        {assets.map((asset) => (
+        <Checkbox label={t.everyAsset} checked={everyAsset} onChange={(event) => setEveryAsset(event.target.checked)} />
+        {!everyAsset && assets.map((asset) => (
           <Checkbox
             key={asset.symbol}
             label={asset.name}
@@ -134,7 +143,7 @@ export function SettingsForm({
             }}
           />
         ))}
-        {symbolsError && <p className="text-small text-loss">{t.assetsRequired}</p>}
+        {!everyAsset && symbolsError && <p className="text-small text-loss">{t.assetsRequired}</p>}
       </fieldset>
 
       {failure && <Alert tone="error">{errorMessage(messages, failure)}</Alert>}

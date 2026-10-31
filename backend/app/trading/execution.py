@@ -148,10 +148,15 @@ class Executor:
         await self._journal.note(session_id, "order_void", code, position_id=position_id)
 
     async def open_position(
-        self, session: BotSession, settings: TradingSettings, direction: str
+        self,
+        session: BotSession,
+        settings: TradingSettings,
+        direction: str,
+        multiplier: int | None = None,
     ) -> uuid.UUID | None:
         """Renvoie la position ouverte, ou None : aucune nouvelle tentative ici."""
         stop_loss = risk.stop_amount(settings)
+        used = multiplier or settings.multiplier
         position = TradingPosition(
             session_id=session.id,
             user_id=session.user_id,
@@ -159,7 +164,7 @@ class Executor:
             symbol=session.symbol,
             direction=direction,
             stake=settings.stake,
-            multiplier=settings.multiplier,
+            multiplier=used,
             stop_loss=stop_loss,
             current_stop=stop_loss,
             status=PositionStatus.OPENING,
@@ -176,7 +181,7 @@ class Executor:
         except IntegrityError:
             await self._journal.note(session.id, "order_refused", "risk.order_pending")
             return None
-        return await self._send(session, settings, direction, stop_loss, position_id)
+        return await self._send(session, settings, direction, stop_loss, position_id, used)
 
     async def _send(
         self,
@@ -185,10 +190,11 @@ class Executor:
         direction: str,
         stop_loss: Decimal,
         position_id: uuid.UUID,
+        multiplier: int,
     ) -> uuid.UUID | None:
         try:
             proposal = await self._trading.proposal(
-                session.symbol, direction, settings.stake, settings.multiplier, stop_loss
+                session.symbol, direction, settings.stake, multiplier, stop_loss
             )
         except BrokerError as exc:
             await self._void(position_id, session.id, f"order.proposal_{type(exc).__name__}")

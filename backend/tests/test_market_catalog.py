@@ -13,12 +13,17 @@ from sqlalchemy.orm import sessionmaker
 from app.admin.router import clean_url
 from app.auth.mailer import MemoryMailer
 from app.auth.rate_limit import MemoryFailureCounter
-from app.broker.base import Message
+from app.broker.base import ApiRejectedError, Message, RequestTimeoutError
 from app.config import Settings
 from app.db.models import AuditLog, UserRole
 from app.errors import ApiError
 from app.main import create_app
-from app.market.feed import GRANULARITIES, MarketFeed, next_candles
+from app.market.feed import (
+    CONTRACTS_RETRY_SECONDS,
+    GRANULARITIES,
+    MarketFeed,
+    next_candles,
+)
 from app.market.store import MemoryMarketStore
 from tests.conftest import requires_db
 from tests.test_authz import KEY, ORIGIN, enable_mfa, signed_up
@@ -49,19 +54,31 @@ ROWS = [
 
 
 class Contracts(FakeBroker):
-    """Bull Market ne propose pas de multiplicateurs, comme chez Deriv."""
+    """Comme chez Deriv : pas de multiplicateurs sur Bull Market, liste démentie sur Jump 10."""
 
     def __init__(self, rows: list[dict[str, Any]]) -> None:
         super().__init__(rows)
         self.asked: list[str] = []
+        self.quoted: list[Message] = []
 
     async def request(self, call: str, payload: Message) -> Message:
+        if self.fail_with:
+            raise self.fail_with
+        if call == "proposal":
+            self.quoted.append(payload)
+            if payload["underlying_symbol"] == "JD10":
+                raise ApiRejectedError(
+                    "ContractBuyValidationError",
+                    "Multiplier is not in acceptable range. Accepts 400,1000,2000.",
+                )
+            return {"proposal": {}}
         if call != "contracts_for":
             return await super().request(call, payload)
         symbol = payload["contracts_for"]
         self.asked.append(symbol)
         kinds = ["CALL"] if symbol == "RDBULL" else ["MULTUP", "MULTDOWN"]
-        return {"contracts_for": {"available": [{"contract_type": k} for k in kinds]}}
+        offered = [{"contract_type": k, "multiplier_range": [20, 750]} for k in kinds]
+        return {"contracts_for": {"available": offered}}
 
 
 def feed(defaults: list[str]) -> tuple[MarketFeed, Contracts, MemoryMarketStore, Clock]:
@@ -103,6 +120,33 @@ def test_multipliers_come_from_deriv_one_symbol_per_cycle() -> None:
         assert state is not None
         found = {a["symbol"]: a["multipliers"] for a in state["assets"]}
         assert found == {"BOOM500": True, "JD10": True, "RDBULL": False}
+        assert state["assets"][0]["multiplier_range"] == [20, 750]
+        # Le devis l'emporte sur la liste annoncée.
+        assert state["assets"][1]["multiplier_range"] == [400, 1000, 2000]
+        assert state["assets"][2]["multiplier_range"] == []
+        assert "buy" not in str(broker.quoted)
+        assert all(q["proposal"] == 1 for q in broker.quoted)
+
+    asyncio.run(main())
+
+
+def test_failed_contract_read_is_retried_soon_without_blocking_the_others() -> None:
+    async def main() -> None:
+        market, broker, _, clock = feed([])
+        await market.refresh_assets()
+        broker.fail_with = RequestTimeoutError("coupure")
+        with pytest.raises(RequestTimeoutError):
+            await market.refresh_contracts(clock.now)
+        broker.fail_with = None
+        await market.refresh_contracts(clock.now)
+        assert broker.asked == ["JD10"]  # l'actif suivant passe, l'échec attend son tour
+        await market.refresh_contracts(clock.now)
+        clock.now += CONTRACTS_RETRY_SECONDS
+        await market.refresh_contracts(clock.now)
+        assert broker.asked == ["JD10", "RDBULL", "BOOM500"]
+        clock.now += 1
+        await market.refresh_contracts(clock.now)
+        assert broker.asked == ["JD10", "RDBULL", "BOOM500"]  # lu : pas avant six heures
 
     asyncio.run(main())
 

@@ -62,6 +62,7 @@ class SettingsIn(BaseModel):
     pause_minutes: int
     activation_r: Decimal
     locked_fraction: Decimal
+    all_symbols: bool = True
     allowed_symbols: list[str] = Field(min_length=1, max_length=60)
     timezone: str = Field(max_length=64)
 
@@ -73,6 +74,7 @@ class StartIn(BaseModel):
 def default_settings(user: User, app: Settings) -> TradingSettings:
     return TradingSettings(
         user_id=user.id,
+        all_symbols=True,
         allowed_symbols=list(app.market_symbols),
         timezone=user.time_zone,
         **risk.DEFAULTS,
@@ -86,7 +88,9 @@ def settings_of(db: DbSession, user: User, app: Settings) -> TradingSettings:
 def settings_view(row: TradingSettings) -> dict[str, object]:
     fields = list(risk.RANGES)
     view: dict[str, object] = {f: str(getattr(row, f)) for f in fields}
-    view.update(allowed_symbols=row.allowed_symbols, timezone=row.timezone)
+    view.update(
+        all_symbols=row.all_symbols, allowed_symbols=row.allowed_symbols, timezone=row.timezone
+    )
     return view
 
 
@@ -252,6 +256,22 @@ def write_settings(
     return {"settings": settings_view(row)}
 
 
+@router.get("/multiplier")
+async def multiplier_of(
+    symbol: Annotated[str, Query(max_length=30)],
+    db: Db,
+    app: AppSettings,
+    session: CurrentSession,
+    store: Market,
+) -> dict[str, object]:
+    """Multiplicateur que le moteur utilisera : le client le voit avant de démarrer."""
+    wanted = (await run_in_threadpool(settings_of, db, session.user, app)).multiplier
+    state = await store.get_assets()
+    asset = next((a for a in (state or {}).get("assets", []) if a["symbol"] == symbol), None)
+    allowed = (asset or {}).get("multiplier_range") or []
+    return {"symbol": symbol, "wanted": wanted, "used": risk.multiplier_for(wanted, allowed)}
+
+
 @router.get("/bot")
 def bot(db: Db, app: AppSettings, session: CurrentSession) -> dict[str, object]:
     user = session.user
@@ -289,7 +309,7 @@ def _check_start(db: DbSession, user: User, app: Settings, symbol: str) -> tuple
         raise ApiError(409, "deriv.not_connected")
     if record.account_kind != AccountKind.DEMO and not app.real_account_enabled:
         raise ApiError(403, "deriv.real_disabled")
-    if symbol not in settings_of(db, user, app).allowed_symbols:
+    if not settings_of(db, user, app).allows(symbol):
         raise ApiError(422, "trading.symbol_not_allowed")
     return record.account_id, record.account_kind
 

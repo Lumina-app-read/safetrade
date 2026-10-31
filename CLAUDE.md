@@ -131,6 +131,7 @@ Directive du propriétaire du 31 octobre 2026, qui remplace les précédentes :
 
 - Seul `safetradev2-engine` (`app/trading/worker.py`) émet des ordres ; l'API enregistre des demandes. Détails : `docs/decisions/moteur-trading.md`.
 - Tout ordre passe par `risk.order_refusal` et `entry_refusal`. Stop loss obligatoire, jamais retiré. Une position est écrite en base avant l'envoi.
+- Les multiplicateurs permis changent par actif : toujours passer par `risk.multiplier_for`, jamais le réglage brut.
 - Le mot d'ordre `stop_loss: null` est interdit : `DerivTrading.update_stop` le refuse.
 
 ## Abonnements et paiements

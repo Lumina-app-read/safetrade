@@ -137,7 +137,7 @@ export type Decision = {
 };
 
 export type SettingsResponse = {
-  settings: Record<string, string | string[]>;
+  settings: Record<string, string | string[] | boolean>;
   ranges: Record<string, { min: string; max: string }>;
   provisional: string[];
 };

@@ -25,6 +25,7 @@ class MarketSnapshot:
     candles: Sequence[Data]
     granularity: int
     candles_updated_at: float
+    multiplier_range: Sequence[int] = ()
 
 
 async def read_snapshot(
@@ -44,6 +45,7 @@ async def read_snapshot(
         candles=(stored or {}).get("candles", []),
         granularity=granularity,
         candles_updated_at=(stored or {}).get("updated_at", 0.0),
+        multiplier_range=(asset or {}).get("multiplier_range") or (),
     )
 
 

@@ -598,7 +598,8 @@
         "stopping": "Plus de nouvelle position. La session se termine à la clôture des positions.",
         "stopped": "Aucune activité."
       },
-      "blockedContract": "Deriv ne propose pas de multiplicateurs sur cet actif : le bot ne peut pas le trader."
+      "blockedContract": "Deriv ne propose pas de multiplicateurs sur cet actif : le bot ne peut pas le trader.",
+      "multiplierNote": "Deriv n'accepte pas ×{wanted} sur cet actif : le bot utilisera ×{used}."
     },
     "positions": {
       "emptyTitle": "Aucune position ouverte",
@@ -742,7 +743,8 @@
         "pause_minutes": "Durée de la pause (min)",
         "activation_r": "Activation (multiple du stop)",
         "locked_fraction": "Part du gain conservée (0 à 1)"
-      }
+      },
+      "everyAsset": "Autoriser tous les actifs compatibles"
     },
     "codes": {
       "risk_real_account_disabled": "Compte réel désactivé.",

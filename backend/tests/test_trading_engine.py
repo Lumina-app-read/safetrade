@@ -799,6 +799,38 @@ def test_start_requires_connection_and_live_market(api: Any) -> None:
     assert client.post("/trading/bot/command/emergency").status_code == 202
 
 
+def test_every_compatible_asset_is_allowed_by_default(api: Any) -> None:
+    client, store, connect = api
+    asyncio.run(fill_market(store))
+    connect()
+    assert client.get("/trading/settings").json()["settings"]["all_symbols"] is True
+    assert client.post("/trading/bot/start", json={"symbol": SYMBOL}).status_code == 201
+
+
+def test_client_can_still_restrict_the_list(api: Any) -> None:
+    client, store, connect = api
+    asyncio.run(fill_market(store))
+    connect()
+    assets = asyncio.run(store.get_assets())["assets"]
+    asyncio.run(store.put_assets([*assets, {**assets[0], "symbol": "OTHER"}]))
+    tick = asyncio.run(store.get_ticks([SYMBOL]))[SYMBOL]
+    asyncio.run(store.put_tick({**tick, "symbol": "OTHER"}))
+    body = valid_settings(all_symbols=False)
+    assert client.put("/trading/settings", json=body).status_code == 200
+    refused = client.post("/trading/bot/start", json={"symbol": "OTHER"})
+    assert (refused.status_code, refused.json()["error"]) == (422, "trading.symbol_not_allowed")
+    assert client.post("/trading/bot/start", json={"symbol": SYMBOL}).status_code == 201
+
+
+def test_multiplier_shown_is_the_one_the_engine_will_use(api: Any) -> None:
+    client, store, _ = api
+    asyncio.run(fill_market(store))
+    assets = asyncio.run(store.get_assets())["assets"]
+    asyncio.run(store.put_assets([{**assets[0], "multiplier_range": [750, 2000]}]))
+    view = client.get("/trading/multiplier", params={"symbol": SYMBOL}).json()
+    assert (view["wanted"], view["used"]) == (100, 750)
+
+
 def test_closed_market_refuses_to_start(api: Any) -> None:
     client, store, connect = api
     connect()

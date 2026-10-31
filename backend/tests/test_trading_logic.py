@@ -253,3 +253,17 @@ def test_shortcode_match_handles_symbols_with_underscore() -> None:
     assert not matches(buy, "R_100", "down", D("1"), 100)
     assert not matches(buy, "R_100", "up", D("2"), 100)
     assert not matches(buy, "R_100", "up", D("1"), 200)
+
+
+@pytest.mark.parametrize(
+    ("wanted", "allowed", "used"),
+    [
+        (100, [40, 100, 200, 300, 400], 100),  # Volatility 100 : le réglage est accepté
+        (100, [750, 2000, 3500, 5500, 7500], 750),  # Step Index 100 : le plus petit proposé
+        (100, [50, 75, 150], 75),  # jamais au-dessus du réglage quand un plus petit existe
+        (100, [20, 40, 60, 80], 80),
+        (100, [], 100),  # liste inconnue : Deriv valide le réglage
+    ],
+)
+def test_multiplier_follows_what_deriv_accepts(wanted: int, allowed: list[int], used: int) -> None:
+    assert risk.multiplier_for(wanted, allowed) == used

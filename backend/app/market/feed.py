@@ -16,6 +16,7 @@ import asyncio
 import contextlib
 import itertools
 import logging
+import re
 import time
 from collections import Counter, deque
 from collections.abc import Awaitable, Callable, Sequence
@@ -34,7 +35,9 @@ CATALOG_MARKETS = ("synthetic_index",)
 ASSETS_SECONDS = 60.0
 # `contracts_for` : un actif par cycle, relu rarement, car l'offre change peu.
 CONTRACTS_SECONDS = 6 * 3600.0
+CONTRACTS_RETRY_SECONDS = 60.0
 MULTIPLIER_CONTRACTS = {"MULTUP", "MULTDOWN"}
+ACCEPTED_MULTIPLIERS = re.compile(r"Accepts ([\d,]+)")
 # Cycle peu coûteux : les appels à Deriv restent espacés par ASSETS_SECONDS.
 SYNC_SECONDS = 1.0
 # Une bougie toutes les 0,5 s au plus : 120 appels par minute, sous les 176 de ce groupe.
@@ -130,7 +133,7 @@ class MarketFeed:
         self._symbols = list(symbols)
         self._catalog = list(symbols)
         self._hot = set(symbols)
-        self._multipliers: dict[str, bool] | None = None
+        self._multipliers: dict[str, list[int]] | None = None
         self._contracts_read_at: dict[str, float] = {}
         self._candles_read_at: dict[tuple[str, int], float] = {}
         self._clock = clock
@@ -212,9 +215,9 @@ class MarketFeed:
             # Après un redémarrage, les contrats déjà lus restent valables.
             state = await self._store.get_assets()
             self._multipliers = {
-                asset["symbol"]: asset["multipliers"]
+                asset["symbol"]: asset["multiplier_range"]
                 for asset in (state or {}).get("assets", [])
-                if asset.get("multipliers") is not None
+                if asset.get("multiplier_range") is not None
             }
         wanted = sorted(
             {s for s, row in known.items() if row["market"] in CATALOG_MARKETS}
@@ -229,7 +232,10 @@ class MarketFeed:
                 "pip_size": known[symbol]["pip_size"],
                 "exchange_is_open": bool(known[symbol]["exchange_is_open"]),
                 "is_trading_suspended": bool(known[symbol]["is_trading_suspended"]),
-                "multipliers": self._multipliers.get(symbol),
+                "multipliers": (
+                    bool(self._multipliers[symbol]) if symbol in self._multipliers else None
+                ),
+                "multiplier_range": self._multipliers.get(symbol),
             }
             for symbol in wanted
         ]
@@ -255,13 +261,45 @@ class MarketFeed:
         )
         if symbol is None:
             return
-        # Noté avant l'appel : un refus durable ne bloque pas les autres actifs.
-        self._contracts_read_at[symbol] = now
+        # Noté avant l'appel : un échec ne bloque pas les autres actifs, et il est retenté vite.
+        self._contracts_read_at[symbol] = now - CONTRACTS_SECONDS + CONTRACTS_RETRY_SECONDS
         response = await self._broker.request("contracts_for", {"contracts_for": symbol})
         offered = response.get("contracts_for", {}).get("available", [])
         kinds = {contract.get("contract_type") for contract in offered}
+        allowed = next(
+            (c.get("multiplier_range") for c in offered if c.get("contract_type") == "MULTUP"), None
+        )
+        usable = allowed if allowed and kinds >= MULTIPLIER_CONTRACTS else []
+        if usable:
+            usable = await self._quoted_multipliers(symbol, usable)
         if self._multipliers is not None:
-            self._multipliers[symbol] = kinds >= MULTIPLIER_CONTRACTS
+            # Liste propre à chaque actif : 100 existe sur Volatility 100, pas sur Step Index 100.
+            self._multipliers[symbol] = usable
+            self._contracts_read_at[symbol] = now
+
+    async def _quoted_multipliers(self, symbol: str, announced: list[int]) -> list[int]:
+        """
+        `contracts_for` annonce parfois une liste que le devis refuse (mesuré sur Range Break
+        et Volatility 15 et 30 (1s)) : un devis, jamais un achat, donne la liste qui fait foi.
+        """
+        try:
+            await self._broker.request(
+                "proposal",
+                {
+                    "proposal": 1,
+                    "amount": 1,
+                    "basis": "stake",
+                    "contract_type": "MULTUP",
+                    "currency": "USD",
+                    "multiplier": min(announced),
+                    "underlying_symbol": symbol,
+                },
+            )
+        except ApiRejectedError as exc:
+            found = ACCEPTED_MULTIPLIERS.search(exc.message)
+            if found:
+                return [int(value) for value in found.group(1).split(",") if value]
+        return announced
 
     async def _align(self, symbol: str, now: float) -> None:
         stream = self._streams.get(symbol)

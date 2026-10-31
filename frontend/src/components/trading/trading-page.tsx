@@ -209,6 +209,9 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
   const kind = session?.account_kind ?? (connection?.connected ? connection.selected.kind : null);
   const balance = connection?.connected ? connection.accounts.find((a) => a.account_id === connection.selected.account_id) : undefined;
   const allowed = (settings.data?.settings.allowed_symbols as string[] | undefined) ?? [];
+  const everyAsset = settings.data?.settings.all_symbols === true;
+  const multiplier = usePolled<{ symbol: string; wanted: number; used: number }>(symbol ? `/trading/multiplier?symbol=${encodeURIComponent(symbol)}` : null, 0);
+  const adjusted = multiplier.data?.symbol === symbol && multiplier.data.used !== multiplier.data.wanted ? multiplier.data : null;
 
   const blocked = !user.access
     ? messages.plans.blocked
@@ -220,7 +223,7 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
         ? interpolate(t.bot.blockedMarket, { name: asset.name, status: t.statuses[asset.status] })
         : asset.multipliers === false
           ? t.bot.blockedContract
-          : settings.data && !allowed.includes(asset.symbol)
+          : settings.data && !everyAsset && !allowed.includes(asset.symbol)
             ? t.bot.blockedAllowed
             : null;
 
@@ -364,7 +367,15 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
 
         <aside className="flex min-w-0 flex-col gap-4 max-lg:contents lg:col-start-2 lg:row-span-2 lg:row-start-2">
           <div className="min-w-0 max-lg:order-3">
-            <BotPanel bot={bot.data} asset={asset} canTrade={!blocked} blocked={blocked} onChanged={reload} messages={messages} />
+            <BotPanel
+              bot={bot.data}
+              asset={asset}
+              canTrade={!blocked}
+              blocked={blocked}
+              note={adjusted ? interpolate(t.bot.multiplierNote, { wanted: adjusted.wanted, used: adjusted.used }) : null}
+              onChanged={reload}
+              messages={messages}
+            />
           </div>
           <div className="min-w-0 max-lg:order-6">
             <RiskPanel risk={bot.data?.risk ?? null} locale={locale} messages={messages} />

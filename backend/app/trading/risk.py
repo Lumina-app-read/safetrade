@@ -5,6 +5,7 @@ Plages et plafonds : section 7, corrigée par q04 (mise minimale de 1 USD). Le p
 administrateur réduit la plage client ; il deviendra modifiable à l'étape 5.5.
 """
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -113,6 +114,17 @@ class OrderCheck:
     real_enabled: bool
     symbol_allowed: bool
     connected: bool
+
+
+def multiplier_for(wanted: int, allowed: Sequence[int]) -> int:
+    """
+    Deriv n'accepte que quelques multiplicateurs par actif : le plus proche du réglage sans le
+    dépasser, sinon le plus petit proposé. Liste inconnue : le réglage, que Deriv validera.
+    """
+    if not allowed:
+        return wanted
+    below = [value for value in allowed if value <= wanted]
+    return max(below) if below else min(allowed)
 
 
 def _limit(balance: Decimal, pct: Decimal) -> Decimal:

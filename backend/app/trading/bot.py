@@ -501,7 +501,7 @@ class BotRunner:
             market_refusal=None,
             account_kind=session.account_kind,
             real_enabled=self._real_enabled,
-            symbol_allowed=session.symbol in settings.allowed_symbols,
+            symbol_allowed=settings.allows(session.symbol),
             connected=self._trading.connected,
         )
         refusal = risk.order_refusal(check)
@@ -509,4 +509,5 @@ class BotRunner:
             await self._refuse(refusal, {"balance": str(balance)})
             return
         self._last_refusal = None
-        await self._executor.open_position(session, settings, signal.direction)
+        multiplier = risk.multiplier_for(settings.multiplier, snapshot.multiplier_range)
+        await self._executor.open_position(session, settings, signal.direction, multiplier)
