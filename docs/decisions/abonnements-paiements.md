@@ -21,9 +21,17 @@
 - Pulse à créer pour `successful.sale`, `failed.sale` et `abandoned.sale`, sur `https://<domaine>/api/billing/webhooks/chariow`. HTTPS obligatoire.
 - Secret de signature `whsec_...`, propre à chaque Pulse. Cinq échecs désactivent le Pulse.
 
-## Non essayé
+## État de la connexion (31 octobre 2026)
 
-Tout a été testé contre un Chariow simulé. **Aucun appel réel à Chariow n'a été fait** : clé absente de `infra/.env`, et aucune vente de test possible.
+Clé détectée et authentifiée sur la vraie API, en lecture seule. `store.read`, `products.read`, `sales.read`, `webhooks.read` et `licenses.read` répondent 200 ; `checkout.write` est confirmé par un `POST /checkout` à corps vide, refusé en 422, qui ne crée aucune vente.
+
+Boutique active, 0 produit, 0 Pulse. Le parcours de paiement reste donc testé contre un Chariow simulé uniquement : **aucune vente n'a été créée.**
+
+## Produits
+
+- Type `license` obligatoire : la documentation réserve le rachat répété à ce type, et refuse Service et Coaching au paiement par API.
+- Création manuelle : l'API n'a aucun droit d'écriture sur les produits.
+- Réglage `requires_activation` désactivé, le mode prévu pour un SaaS. SafeTrade ne lit pas les licences : il calcule seul la durée d'accès.
 
 ## Restes
 
