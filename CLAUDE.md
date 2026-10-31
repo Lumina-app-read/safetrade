@@ -118,7 +118,7 @@ Directive du propriétaire du 30 octobre 2026, qui remplace la validation après
 - Quotas : `app/broker/quotas.py`, REST et WebSocket séparés, par groupe d'appels, partagés entre les bots via Redis (80 % des limites officielles). Les sorties gardent du budget quand les entrées sont plafonnées.
 - `DerivConnection` ne renvoie jamais une requête. Une réponse d'achat perdue lève `OrderOutcomeUnknownError` : lire `statement` avant toute autre tentative.
 - Tests sur `tests/fake_deriv.py`, sans réseau.
-- Données de marché : worker `app/market/worker.py`, une connexion publique pour tout le serveur, puis Redis et flux SSE (`/market/stream`). Le statut d'un actif (`asset_status`) est calculé par le backend ; seul `live` autorisera le trading. Détails : `docs/decisions/q19-donnees-marche.md`.
+- Données de marché : worker `app/market/worker.py`, une connexion publique pour tout le serveur, puis Redis et flux SSE (`/market/stream`). Un seul worker actif (bail Redis vérifié à chaque écriture). Le statut d'un actif est calculé par le backend ; aucune ouverture sans `entry_refusal` nul (`app/market/quality.py`). Détails : `docs/decisions/q19-donnees-marche.md`.
 
 ## Git
 

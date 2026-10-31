@@ -35,6 +35,73 @@ Le backend calcule le statut, le front-end l'affiche. **Seul `live` autorisera u
 - Bougies : ordre strict et plus-haut, plus-bas cohérents, sinon non enregistrées.
 - Quatre intervalles (1, 5, 15 et 60 minutes), 500 bougies, un rafraîchissement toutes les 1,5 s : 40 appels par minute, sous les 176 du quota retenu.
 
+## Un seul worker actif
+
+Exigence du propriétaire du 31 octobre 2026.
+
+- Bail Redis de 15 s (`market:leader`), renouvelé toutes les 5 s, libéré à l'arrêt propre (`app/market/lease.py`).
+- **La garantie vient de l'écriture, pas du renouvellement** : chaque écriture du flux vérifie le bail dans le même script Lua. Un worker gelé puis réveillé ne peut plus rien publier.
+- Les autres instances attendent, puis prennent le relais. Une boucle tombée arrête tout le flux de ce worker.
+- `RedisMarketStore` sans `owner` est en lecture seule : l'API ne peut rien écrire.
+
+## Données autorisant une décision
+
+`app/market/quality.py`, fonctions pures. `entry_refusal` renvoie un motif de refus ; le moteur l'appelle avant toute ouverture.
+
+| Contrôle | Refus |
+| --- | --- |
+| Statut différent de `live` | `market.stale`, `market.closed`, `market.suspended`, `market.unavailable` |
+| Aucun tick, tick daté du futur | `market.no_tick`, `market.tick_from_future` |
+| Tick de plus de 5 s, date Deriv et date de réception confondues | `market.tick_stale` |
+| Trou de moins de 60 s, ou bougies non relues depuis | `market.recent_gap`, `market.gap_not_repaired` |
+| Bougies manquantes, en retard, non continues | `market.candles_missing`, `market.candles_stale`, `market.candles_gap` |
+
+Chaque tick porte `epoch` (Deriv), `received_at` (réception) et `last_gap_epoch`. La bougie en formation n'entre jamais dans une décision (`closed_candles`).
+
+## Surveillance
+
+- Journaux JSON (`app/logs.py`), champ `event` stable.
+- `monitor:feed`, publié toutes les 5 s même sans connexion : connexion, reconnexions, ticks reçus et écartés, trous, erreurs Deriv par code, latence, écart d'horloge, actifs silencieux.
+- `GET /admin/monitoring/market`, permission `monitoring.read`.
+- Alertes `market.feed_disconnected` (60 s), `market.symbols_silent`, `market.deriv_errors` : journal de niveau ERROR et liste `monitor:alerts`, levée puis fin.
+- Présence de chaque instance dans `monitor:worker:{hôte}`, lue par le contrôle de santé Docker.
+
+## Santé du worker
+
+Le contrôle (`app/market/health.py`) répond à une question : redémarrer ce worker serait-il utile ? Il remplace le contrôle HTTP de l'API hérité de l'image.
+
+| État | Résultat | Où le suivre |
+| --- | --- | --- |
+| Redis injoignable | `redis.unreachable`, en échec | Contrôle Docker |
+| Signal de vie absent ou de plus de 20 s | `worker.absent`, `worker.stalled` | Contrôle Docker |
+| Responsable sans rapport du flux depuis 30 s | `feed.stalled` | Contrôle Docker |
+| Instance en attente | Sain | Rôle dans `monitor:worker` |
+| Deriv coupé, reconnexion | **Sain** | `monitor:feed`, alertes |
+| Marché fermé | **Sain** | Statut de l'actif |
+
+Trois échecs de suite, à 30 s d'intervalle, sont nécessaires : une coupure brève ne déclenche rien, une vraie panne est signalée en 90 s environ. Coût mesuré d'un contrôle : 0,69 s de CPU et 36 Mo, soit 2,3 % d'un cœur en moyenne, contre 0,65 % pour le worker. Le délai de démarrage est de 20 s et un nouveau responsable dispose de 30 s pour son premier rapport.
+
+L'état `unhealthy` ne redémarre pas le conteneur avec Docker Compose. `restart: unless-stopped` couvre l'arrêt du processus.
+
+**Échec de CI du 31 octobre :** `docker compose up --wait` refuse un conteneur dont le contrôle est désactivé (`container has no healthcheck configured`), alors que Compose 5.5.1 sur le poste l'accepte. Ne jamais désactiver ce contrôle.
+
+**Limite :** aucune alerte ne quitte encore le serveur, faute de fournisseur d'e-mails (q15), et un worker mort ne peut pas s'alerter lui-même. Il faudra une sonde externe au déploiement.
+
+## Essais réels de santé et de relais
+
+| Scénario | Résultat |
+| --- | --- |
+| Commande de la CI, images reconstruites | 5 conteneurs sains, `/health` et front-end répondent |
+| Deux workers pendant 20 s | 73 ticks, 0 doublon |
+| Arrêt propre du responsable | Relais en 1,2 s |
+| Arrêt brutal, bail non libéré | Relais à l'expiration du bail, environ 13 s |
+| Deriv injoignable 80 s | Worker sain, alerte `market.feed_disconnected` levée |
+| Redis en pause 20 s | 1 échec isolé, worker resté sain |
+| Worker gelé 75 s | `unhealthy` (`worker.absent`), puis sain après reprise |
+| Écritures du worker dégelé | Refusées (`LeadershipLostError`) tant qu'il n'a pas repris le bail |
+
+Mesures faites à 15 s d'intervalle, avant le passage à 30 s pour réduire la charge.
+
 ## Mesures
 
 Depuis le poste de développement, **pas depuis un serveur** :
@@ -51,7 +118,6 @@ L'âge d'un tick à réception n'est pas exploitable au-dessous de la seconde : 
 
 ## Limites
 
-- Le flux est mono-instance : deux workers publieraient chaque tick en double.
 - `stale` et `gap` n'ont pas été observés en réel, seulement sur faux broker.
-- Les 24 heures sans coupure non récupérée relèvent de l'étape 2.6.
+- **Test de stabilité de 24 heures : non exécuté, donc non validé.** Il reste dû à l'étape 2.6.
 - Redis partage le pub/sub entre toutes ses bases numérotées : ne pas supposer l'isolation d'un test par numéro de base.

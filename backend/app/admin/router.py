@@ -12,7 +12,10 @@ from sqlalchemy import func, or_, select
 from app import audit
 from app.authz import AdminUser, Permission, permissions_of, require_admin, require_permission
 from app.db.models import AuditLog, User
-from app.deps import Db, check_origin, client_ip
+from app.deps import AppSettings, Db, check_origin, client_ip
+from app.errors import ApiError
+from app.market.router import asset_views
+from app.market.store import MarketStore
 
 router = APIRouter(
     prefix="/admin",
@@ -106,3 +109,21 @@ def read_audit(
     )
     db.commit()
     return {"entries": entries}
+
+
+@router.get("/monitoring/market")
+async def market_monitoring(
+    request: Request,
+    settings: AppSettings,
+    _: Annotated[User, Depends(require_permission(Permission.MONITORING_READ))],
+) -> dict[str, object]:
+    """Connexion, latence, erreurs Deriv, alertes et statut de chaque actif."""
+    store: MarketStore | None = request.app.state.market
+    if store is None:
+        raise ApiError(503, "market.unavailable")
+    alerts = await store.get_alerts()
+    return {
+        "feed": await store.get_health(),
+        "assets": await asset_views(store, settings.market_symbols),
+        "alerts": alerts[:50],
+    }

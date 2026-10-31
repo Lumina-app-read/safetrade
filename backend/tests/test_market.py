@@ -21,6 +21,7 @@ from app.broker.base import ApiRejectedError, ConnectionLostError, Message, Mess
 from app.config import Settings
 from app.main import create_app
 from app.market.feed import GAP_SECONDS, GRANULARITIES, MarketFeed, valid_candles
+from app.market.lease import LEASE_KEY
 from app.market.router import MAX_STREAMS_PER_USER, stream_events
 from app.market.store import (
     FEED_DOWN_SECONDS,
@@ -64,15 +65,22 @@ class FakeBroker:
         self.history: list[Message] = []
         self.candles: Any = [{"epoch": 60, "open": 2.0, "high": 3.0, "low": 1.0, "close": 2.5}]
         self.fail_with: Exception | None = None
+        self.connected = True
+        self.reconnections = 0
+        self.stopped = False
 
     async def start(self) -> None: ...
-    async def stop(self) -> None: ...
+
+    async def stop(self) -> None:
+        self.stopped = True
 
     async def request(self, call: str, payload: Message) -> Message:
         if self.fail_with:
             raise self.fail_with
         if call == "active_symbols":
             return {"active_symbols": self.rows}
+        if call == "time":
+            return {"time": 999}
         self.history.append(payload)
         return {"candles": self.candles}
 
@@ -281,7 +289,7 @@ def test_asset_status(
     asset: dict[str, Any], age: float | None, feed_age: float, expected: str
 ) -> None:
     now = 10_000.0
-    last = None if age is None else {"received_at": now - age}
+    last = None if age is None else {"epoch": now, "received_at": now - age}
     assert asset_status(asset, last, now - feed_age, now) == expected
 
 
@@ -334,7 +342,8 @@ def test_redis_store_round_trip() -> None:
 
     async def main() -> None:
         client = Redis.from_url(url)
-        store = RedisMarketStore(client)
+        await client.set(LEASE_KEY, "test")
+        store = RedisMarketStore(client, "test")
         symbol = f"T{uuid.uuid4().hex}"
         await store.put_assets([{"symbol": symbol}])
         events = store.listen()
@@ -350,7 +359,7 @@ def test_redis_store_round_trip() -> None:
         stored = await store.get_candles(symbol, 60)
         assert stored is not None
         assert stored["candles"] == [{"epoch": 60}]
-        await client.delete(f"market:tick:{symbol}", f"market:candles:{symbol}:60")
+        await client.delete(LEASE_KEY, f"market:tick:{symbol}", f"market:candles:{symbol}:60")
         await client.aclose()
 
     asyncio.run(main())

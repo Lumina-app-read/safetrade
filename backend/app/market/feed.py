@@ -13,11 +13,12 @@ import contextlib
 import itertools
 import logging
 import time
-from collections import deque
+from collections import Counter, deque
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
-from app.broker.base import Broker, BrokerError, Message, Subscription
+from app.broker.base import ApiRejectedError, Broker, BrokerError, Message, Subscription
+from app.market.quality import MAX_FUTURE_SECONDS
 from app.market.store import STALE_SECONDS, Data, MarketStore
 
 logger = logging.getLogger("safetrade.market")
@@ -25,11 +26,16 @@ logger = logging.getLogger("safetrade.market")
 GRANULARITIES = (60, 300, 900, 3600)
 CANDLE_COUNT = 500
 ASSETS_SECONDS = 60.0
-SYNC_SECONDS = 5.0
+# Cycle peu coûteux : les appels à Deriv restent espacés par ASSETS_SECONDS.
+SYNC_SECONDS = 1.0
 # Une bougie toutes les 1,5 s au plus : 40 appels par minute, loin du quota de ce groupe.
 CANDLE_PAUSE_SECONDS = 1.5
 # Au-delà, deux ticks consécutifs ne sont pas continus (actifs mesurés : 1 à 2 s).
 GAP_SECONDS = 15
+REPORT_SECONDS = 5.0
+# Interruption prolongée : alerte, puis arrêt des bots via le statut des actifs.
+ALERT_DISCONNECTED_SECONDS = 60.0
+ALERT_ERRORS_PER_REPORT = 5
 
 
 def parse_tick(message: Message, symbol: str, now: float) -> Data | None:
@@ -50,6 +56,19 @@ def parse_tick(message: Message, symbol: str, now: float) -> Data | None:
         "epoch": epoch,
         "received_at": now,
     }
+
+
+def active_alerts(health: Data, now: float) -> set[str]:
+    """Alertes en cours : fonction pure, évaluée à chaque rapport."""
+    alerts: set[str] = set()
+    down_since = health["disconnected_since"]
+    if down_since is not None and now - down_since >= ALERT_DISCONNECTED_SECONDS:
+        alerts.add("market.feed_disconnected")
+    if health["silent_symbols"]:
+        alerts.add("market.symbols_silent")
+    if health["errors_since_last_report"] >= ALERT_ERRORS_PER_REPORT:
+        alerts.add("market.deriv_errors")
+    return alerts
 
 
 def valid_candles(candles: Any) -> bool:
@@ -89,34 +108,67 @@ class MarketFeed:
         self._open: set[str] = set()
         self._assets_read_at: float | None = None
         self._urgent: deque[tuple[str, int]] = deque()
+        self._last_gap: dict[str, int] = {}
+        self.started_at = clock()
+        self.ticks_received = 0
         self.ticks_dropped = 0
+        self.gaps = 0
+        self.errors: Counter[str] = Counter()
+        self._errors_reported = 0
+        self.round_trip_ms: float | None = None
+        self.clock_offset_seconds: float | None = None
+        self._disconnected_since: float | None = None
+        self._raised: set[str] = set()
 
     async def run(self) -> None:
         await self._broker.start()
-        try:
-            await asyncio.gather(
-                self._forever(self.sync, SYNC_SECONDS),
-                self._forever(self.refresh_next_candles, self._candle_pause),
+        loops = [
+            asyncio.ensure_future(self._forever(step, pause))
+            for step, pause in (
+                (self.sync, SYNC_SECONDS),
+                (self.refresh_next_candles, self._candle_pause),
+                (self.report, REPORT_SECONDS),
             )
+        ]
+        try:
+            # Une boucle tombée, par exemple sur la perte du bail, arrête tout le flux.
+            done, _ = await asyncio.wait(loops, return_when=asyncio.FIRST_EXCEPTION)
+            for loop in done:
+                loop.result()
         finally:
+            for loop in loops:
+                loop.cancel()
+            await asyncio.gather(*loops, return_exceptions=True)
             await self._broker.stop()
 
-    @staticmethod
-    async def _forever(step: Callable[[], Awaitable[None]], pause: float) -> None:
+    async def _forever(self, step: Callable[[], Awaitable[None]], pause: float) -> None:
         while True:
             try:
                 await step()
             except BrokerError as exc:
                 # Coupure ou refus passager : le cycle suivant recommence.
-                logger.warning("flux de marché : %s", type(exc).__name__)
+                code = exc.code if isinstance(exc, ApiRejectedError) else type(exc).__name__
+                self.errors[code] += 1
+                logger.warning("erreur Deriv", extra={"event": "market.deriv_error", "code": code})
             await asyncio.sleep(pause)
 
     async def sync(self) -> None:
+        # Connexion en cours d'ouverture ou tombée : rien à tenter, ce n'est pas une erreur.
+        if not self._broker.connected:
+            return
         now = self._clock()
         if self._assets_read_at is None or now - self._assets_read_at >= ASSETS_SECONDS:
+            await self.probe()
             await self.refresh_assets()
         for symbol in self._symbols:
             await self._align(symbol, now)
+
+    async def probe(self) -> None:
+        """Latence réelle et écart d'horloge avec Deriv."""
+        started = time.perf_counter()
+        response = await self._broker.request("time", {"time": 1})
+        self.round_trip_ms = round((time.perf_counter() - started) * 1000, 1)
+        self.clock_offset_seconds = round(self._clock() - float(response["time"]), 2)
 
     async def refresh_assets(self) -> None:
         response = await self._broker.request("active_symbols", {"active_symbols": "brief"})
@@ -134,7 +186,7 @@ class MarketFeed:
             if (row := known.get(symbol)) is not None
         ]
         for symbol in set(self._symbols) - known.keys():
-            logger.warning("actif absent chez Deriv : %s", symbol)
+            logger.warning("actif absent", extra={"event": "market.unknown", "symbol": symbol})
         self._open = {
             a["symbol"] for a in assets if a["exchange_is_open"] and not a["is_trading_suspended"]
         }
@@ -152,7 +204,7 @@ class MarketFeed:
             return
         seen = self._last_received.get(symbol, self._subscribed_at[symbol])
         if now - seen > STALE_SECONDS:
-            logger.warning("flux muet, réouverture : %s", symbol)
+            logger.warning("flux rouvert", extra={"event": "market.silent", "symbol": symbol})
             await self._close(symbol)
             await self._open_stream(symbol, now)
 
@@ -174,7 +226,11 @@ class MarketFeed:
         tick = parse_tick(message, symbol, now)
         if tick is None:
             self.ticks_dropped += 1
-            logger.warning("tick incohérent écarté : %s", symbol)
+            logger.warning("tick écarté", extra={"event": "market.tick_invalid", "symbol": symbol})
+            return
+        if tick["epoch"] > now + MAX_FUTURE_SECONDS:
+            self.ticks_dropped += 1
+            logger.warning("tick futur", extra={"event": "market.tick_future", "symbol": symbol})
             return
         previous = self._last_epoch.get(symbol)
         if previous is not None and tick["epoch"] <= previous:
@@ -182,15 +238,30 @@ class MarketFeed:
             return
         self._last_epoch[symbol] = tick["epoch"]
         self._last_received[symbol] = now
+        self.ticks_received += 1
+        gap = previous is not None and tick["epoch"] - previous > GAP_SECONDS
+        if gap:
+            self._last_gap[symbol] = tick["epoch"]
+        tick["last_gap_epoch"] = self._last_gap.get(symbol)
         await self._store.put_tick(tick)
-        if previous is not None and tick["epoch"] - previous > GAP_SECONDS:
-            logger.warning("trou de %d s : %s", tick["epoch"] - previous, symbol)
+        if gap:
+            self.gaps += 1
+            logger.warning(
+                "trou de données",
+                extra={
+                    "event": "market.gap",
+                    "symbol": symbol,
+                    "seconds": tick["epoch"] - (previous or 0),
+                },
+            )
             await self._store.publish(
                 {"type": "gap", "symbol": symbol, "from": previous, "to": tick["epoch"]}
             )
             self._urgent.extend((symbol, g) for g in GRANULARITIES)
 
     async def refresh_next_candles(self) -> None:
+        if not self._broker.connected:
+            return
         if not self._urgent:
             self._urgent.extend((s, g) for s in self._symbols for g in GRANULARITIES)
         symbol, granularity = self._urgent.popleft()
@@ -206,6 +277,57 @@ class MarketFeed:
         )
         candles = response.get("candles")
         if not isinstance(candles, list) or not valid_candles(candles):
-            logger.warning("bougies incohérentes écartées : %s %d", symbol, granularity)
+            logger.warning(
+                "bougies écartées",
+                extra={
+                    "event": "market.candles_invalid",
+                    "symbol": symbol,
+                    "granularity": granularity,
+                },
+            )
             return
         await self._store.put_candles(symbol, granularity, candles)
+
+    def health(self, now: float) -> Data:
+        connected = self._broker.connected
+        if connected:
+            self._disconnected_since = None
+        elif self._disconnected_since is None:
+            self._disconnected_since = now
+        errors = sum(self.errors.values())
+        burst = errors - self._errors_reported
+        self._errors_reported = errors
+        return {
+            "reported_at": now,
+            "started_at": self.started_at,
+            "connected": connected,
+            "disconnected_since": self._disconnected_since,
+            "reconnections": self._broker.reconnections,
+            "ticks_received": self.ticks_received,
+            "ticks_dropped": self.ticks_dropped,
+            "gaps": self.gaps,
+            "errors": dict(self.errors),
+            "errors_since_last_report": burst,
+            "round_trip_ms": self.round_trip_ms,
+            "clock_offset_seconds": self.clock_offset_seconds,
+            "subscribed": sorted(self._streams),
+            "silent_symbols": sorted(
+                s
+                for s in self._open & self._streams.keys()
+                if now - self._last_received.get(s, self._subscribed_at[s]) > STALE_SECONDS
+            ),
+        }
+
+    async def report(self) -> None:
+        """État publié même sans connexion : c'est là qu'il compte le plus."""
+        now = self._clock()
+        health = self.health(now)
+        await self._store.put_health(health)
+        current = active_alerts(health, now)
+        for code in sorted(current - self._raised):
+            logger.error("alerte", extra={"event": "alert.raised", "code": code})
+            await self._store.push_alert({"code": code, "state": "raised", "at": now})
+        for code in sorted(self._raised - current):
+            logger.warning("fin d'alerte", extra={"event": "alert.resolved", "code": code})
+            await self._store.push_alert({"code": code, "state": "resolved", "at": now})
+        self._raised = current

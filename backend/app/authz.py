@@ -29,6 +29,7 @@ class Permission(enum.StrEnum):
     RISK_WRITE = "risk.write"
     SETTINGS_WRITE = "settings.write"
     TEAM_WRITE = "team.write"
+    MONITORING_READ = "monitoring.read"
 
 
 ADMIN_ROLES = frozenset({UserRole.SUPER_ADMIN, UserRole.SUPPORT, UserRole.FINANCE})
