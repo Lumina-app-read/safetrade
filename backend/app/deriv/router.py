@@ -6,13 +6,14 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 
 from app import audit
 from app.auth.rate_limit import FailureCounter
 from app.authz import CurrentSession
 from app.broker.base import AccountKind
 from app.broker.deriv_rest import DerivAccount, DerivAuthError, DerivRest, DerivUnavailableError
-from app.db.models import DerivConnectionRecord, User
+from app.db.models import BotSession, DerivConnectionRecord, User
 from app.deps import AppSettings, Db, check_origin, client_ip, get_failures
 from app.deriv import service
 from app.errors import ApiError
@@ -70,6 +71,15 @@ async def fetch_accounts(rest: DerivRest, token: str, user: User) -> list[DerivA
         return await rest.list_accounts(token, str(user.id))
     except DerivUnavailableError:
         raise ApiError(503, "deriv.unavailable") from None
+
+
+def refuse_if_bot_active(db: Db, user: User) -> None:
+    """Un bot en marche garde son jeton et son compte : ses positions en dépendent."""
+    active = db.scalars(
+        select(BotSession.id).where(BotSession.user_id == user.id, BotSession.ended_at.is_(None))
+    ).first()
+    if active is not None:
+        raise ApiError(409, "deriv.bot_active")
 
 
 @router.post("/connect")
@@ -140,6 +150,7 @@ async def select_account(
     rest: Deriv,
 ) -> dict[str, object]:
     user = session.user
+    await run_in_threadpool(refuse_if_bot_active, db, user)
     record = await run_in_threadpool(service.find, db, user)
     if record is None:
         raise ApiError(404, "deriv.not_connected")
@@ -163,4 +174,5 @@ async def select_account(
 
 @router.delete("/connection", status_code=status.HTTP_204_NO_CONTENT)
 def disconnect(request: Request, db: Db, session: CurrentSession) -> None:
+    refuse_if_bot_active(db, session.user)
     service.disconnect(db, session.user, client_ip(request))

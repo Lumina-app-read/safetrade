@@ -6,17 +6,27 @@ from fastapi.responses import JSONResponse
 
 
 class ApiError(Exception):
-    def __init__(self, status: int, code: str, headers: dict[str, str] | None = None) -> None:
+    def __init__(
+        self,
+        status: int,
+        code: str,
+        headers: dict[str, str] | None = None,
+        fields: list[str] | None = None,
+    ) -> None:
         super().__init__(code)
         self.status = status
         self.code = code
         self.headers = headers
+        self.fields = fields
 
 
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(ApiError)
     def api_error(_: Request, exc: ApiError) -> JSONResponse:
-        return JSONResponse({"error": exc.code}, status_code=exc.status, headers=exc.headers)
+        content: dict[str, object] = {"error": exc.code}
+        if exc.fields:
+            content["fields"] = exc.fields
+        return JSONResponse(content, status_code=exc.status, headers=exc.headers)
 
     @app.exception_handler(RequestValidationError)
     def validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:

@@ -50,6 +50,7 @@ CONTRACT_STALE_SECONDS = 5.0
 # Deriv refuse plus d'un `contract_update` par seconde.
 UPDATE_SPACING_SECONDS = 1.1
 SELL_RETRY_SECONDS = 2.0
+HEARTBEAT_SECONDS = 5.0
 # Refus mesuré : « Enter an amount equal to or higher than 0.21. »
 STOP_MINIMUM = re.compile(r"higher than (\d+(?:\.\d+)?)")
 
@@ -104,6 +105,7 @@ class BotRunner:
         self._disconnected_at: float | None = None
         self._last_candle: int | None = None
         self._last_refusal: str | None = None
+        self._beat_at: float | None = None
         self.finished = False
 
     async def run(self) -> None:
@@ -160,6 +162,7 @@ class BotRunner:
         if session.ended_at is not None:
             self.finished = True
             return
+        await self._beat(session)
         if not self._trading.connected:
             await self._on_disconnected()
             return
@@ -182,6 +185,16 @@ class BotRunner:
         await self._advance(session, settings, positions)
         if session.state == BotState.ANALYZING and not positions:
             await self._consider_entry(session, settings, positions)
+
+    async def _beat(self, session: BotSession) -> None:
+        """Signal de vie, écrit aussi sans connexion à Deriv : c'est là qu'il compte."""
+        now = self._monotonic()
+        connected = self._trading.connected
+        changed = connected != session.deriv_connected
+        if not changed and self._beat_at is not None and now - self._beat_at < HEARTBEAT_SECONDS:
+            return
+        self._beat_at = now
+        await self._set(heartbeat_at=self._clock(), deriv_connected=connected)
 
     async def _on_disconnected(self) -> None:
         now = self._monotonic()
@@ -266,6 +279,10 @@ class BotRunner:
             row.peak_profit = peak
             row.commission = commission
             row.current_stop = stop
+            if contract.get("entry_spot") is not None:
+                row.entry_spot = as_decimal(contract["entry_spot"])
+            stop_order = (contract.get("limit_order") or {}).get("stop_loss") or {}
+            row.stop_spot = as_decimal(stop_order["value"]) if stop_order.get("value") else None
 
         await self._journal.run(save)
         if stop is None:

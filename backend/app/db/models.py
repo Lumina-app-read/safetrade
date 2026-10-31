@@ -307,6 +307,9 @@ class BotSession(Base):
     command: Mapped[str | None] = mapped_column(String(20))
     stop_reason: Mapped[str | None] = mapped_column(String(50))
     error_code: Mapped[str | None] = mapped_column(String(80))
+    # Signal de vie du moteur : le client voit s'il est réellement suivi.
+    heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    deriv_connected: Mapped[bool] = mapped_column(server_default=false())
     start_balance: Mapped[Decimal | None] = mapped_column(Money)
     paused_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -349,6 +352,8 @@ class TradingPosition(Base):
     buy_price: Mapped[Decimal | None] = mapped_column(Money)
     commission: Mapped[Decimal | None] = mapped_column(Money)
     current_stop: Mapped[Decimal | None] = mapped_column(Money)
+    entry_spot: Mapped[Decimal | None] = mapped_column(Numeric(20, 6))
+    stop_spot: Mapped[Decimal | None] = mapped_column(Numeric(20, 6))
     current_profit: Mapped[Decimal | None] = mapped_column(Money)
     peak_profit: Mapped[Decimal] = mapped_column(Money, default=Decimal(0))
     close_requested: Mapped[bool] = mapped_column(server_default=false())

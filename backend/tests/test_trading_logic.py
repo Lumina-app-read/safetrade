@@ -78,6 +78,13 @@ def test_each_limit_refuses_the_order(changes: dict[str, Any], expected: str) ->
     assert risk.order_refusal(check(**changes)) == expected
 
 
+def test_slippage_counts_in_the_loss_room() -> None:
+    assert risk.worst_case_loss(D("0.5")) == D("0.58")
+    # Le stop de 0,50 tient dans la marge restante, pas son glissement possible.
+    assert risk.order_refusal(check(session_net=D("-19.45"))) == "risk.loss_room"
+    assert risk.order_refusal(check(session_net=D("-19.40"))) is None
+
+
 def test_stake_above_absolute_range_is_refused() -> None:
     order = check(stake=D("60"), params=params(stake=D("60")), balance=D("100000"))
     assert risk.order_refusal(order) == "risk.stake_out_of_range"

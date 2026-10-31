@@ -817,5 +817,87 @@ def test_history_lists_only_own_rows(api: Any, world: World) -> None:
     assert client.get("/trading/decisions").json()["decisions"] == []
 
 
+def test_heartbeat_tells_whether_the_engine_really_runs(world: World) -> None:
+    steps(world, 1)
+    session = world.session()
+    assert session.heartbeat_at is not None
+    assert session.deriv_connected is True
+
+
+def test_spots_are_saved_for_the_chart(world: World) -> None:
+    runner, contract_id = open_one(world)
+    world.broker.contracts[contract_id].update(
+        entry_spot="1250.25",
+        limit_order={"stop_loss": {"order_amount": -0.5, "value": "1249.00"}},
+    )
+    steps(world, 1, runner)
+    position = world.positions()[0]
+    assert position.entry_spot == Decimal("1250.25")
+    assert position.stop_spot == Decimal("1249")
+
+
+def test_settings_error_names_the_fields(api: Any) -> None:
+    client, _, _ = api
+    response = client.put(
+        "/trading/settings", json=valid_settings(stake="51", timezone="Mars/Base")
+    )
+    assert response.json()["fields"] == ["stake", "timezone"]
+    ranges = client.get("/trading/settings").json()
+    assert ranges["ranges"]["stake"] == {"min": "1", "max": "50"}
+    assert "activation_r" in ranges["provisional"]
+
+
+def test_summary_counts_only_real_closed_positions(api: Any, migrated_engine: Engine) -> None:
+    client, _, _ = api
+    empty = client.get("/trading/summary").json()
+    assert (empty["trades"], empty["win_rate"], empty["curve"]) == (0, None, [])
+    factory = sessionmaker(migrated_engine, expire_on_commit=False)
+    with factory.begin() as db:
+        user = db.scalars(
+            select(User).where(User.email.like("bot-%")).order_by(User.created_at.desc())
+        ).first()
+        assert user is not None
+        session = BotSession(
+            user_id=user.id, account_id=f"V{uuid.uuid4().hex[:10]}",
+            account_kind="demo", symbol=SYMBOL, ended_at=datetime.now(UTC),
+            state=BotState.STOPPED,
+        )  # fmt: skip
+        db.add(session)
+        db.flush()
+        for net in ("-0.50", "0.80", "0.20"):
+            db.add(
+                TradingPosition(
+                    session_id=session.id, user_id=user.id, account_id=session.account_id,
+                    symbol=SYMBOL, direction="up", stake=Decimal(1), multiplier=100,
+                    stop_loss=Decimal("0.5"), status=PositionStatus.CLOSED,
+                    net_result=Decimal(net), closed_at=datetime.now(UTC),
+                    peak_profit=Decimal(0),
+                )
+            )  # fmt: skip
+    data = client.get("/trading/summary").json()
+    assert (data["trades"], data["wins"], data["losses"]) == (3, 2, 1)
+    assert data["total_net"] == "0.50"
+    assert data["curve"][-1]["net"] == "0.50"
+    assert client.get("/trading/bot").json()["last_session"]["state"] == "stopped"
+    history = client.get("/trading/positions", params={"closed": True}).json()["positions"]
+    assert {p["account_kind"] for p in history} == {"demo"}
+
+
+def test_idle_signals_can_be_hidden(world: World, migrated_engine: Engine) -> None:
+    steps(world, 1)
+    with world.factory() as db:
+        kinds = list(db.scalars(select(TradingDecision.kind)))
+    assert "reconciled" in kinds
+
+
+def test_deriv_cannot_be_disconnected_while_the_bot_runs(api: Any) -> None:
+    client, store, connect = api
+    connect()
+    asyncio.run(fill_market(store))
+    assert client.post("/trading/bot/start", json={"symbol": SYMBOL}).status_code == 201
+    response = client.delete("/deriv/connection")
+    assert (response.status_code, response.json()["error"]) == (409, "deriv.bot_active")
+
+
 def test_buy_row_shape() -> None:
     assert Buy(1, Decimal(1), 2, "x").contract_id == 1

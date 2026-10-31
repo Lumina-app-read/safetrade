@@ -45,13 +45,12 @@ Contrats de 1 USD fictif, `1HZ100V`, ×400, signal forcé. **Échantillon de que
 ## Constats
 
 - Minimum du stop arrondi à l'affichage : le moteur monte d'un cent après chaque refus, sans jamais dépasser le stop en place.
-- Glissement mesuré au stop : jusqu'à 0,05 USD sur 0,50. La marge `risk.loss_room` n'en tient pas compte ; à intégrer si l'échantillon le confirme.
+- Glissement mesuré au stop : jusqu'à 0,05 USD sur 0,50. La marge de perte restante en tient compte (`SLIPPAGE_MARGIN`, 15 %), voir [tableau-trading.md](tableau-trading.md).
 - Multiplicateur par défaut, `activation_r` et `locked_fraction` : provisoires, à calibrer par backtest (q18).
 
 ## Pas encore fait
 
 - Banc d'essai sur bougies historiques, puis calibrage.
-- Page de trading (3.8) et écran de paramètres (3.3).
 - Plafonds modifiables par l'administrateur (5.5).
 - Notifications (3.9) : aujourd'hui, journaux et base uniquement.
 - Reconfirmation et double authentification pour le compte réel (phase 8).

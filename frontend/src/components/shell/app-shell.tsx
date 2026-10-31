@@ -32,12 +32,14 @@ const ACCOUNT: NavItem = { path: "/account/security", label: "account", icon: Us
 export function AppShell({ locale, messages, children }: { locale: Locale; messages: Messages; children: ReactNode }) {
   const pathname = usePathname();
   const isCurrent = (path: string) => pathname === `/${locale}${path}`;
+  // Le tableau de trading profite de toute la largeur d'un grand écran.
+  const width = isCurrent("/trading") ? "max-w-[1560px]" : "max-w-[1200px]";
 
   return (
     <SessionGate locale={locale} messages={messages}>
       <div className="min-h-dvh bg-page">
         <header className="sticky top-0 z-20 border-b border-line bg-card/90 backdrop-blur-xl">
-          <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-3 px-5 sm:px-6">
+          <div className={`mx-auto flex h-16 ${width} items-center gap-3 px-5 sm:px-6`}>
             <Link href={`/${locale}/dashboard`} aria-label={messages.nav.dashboard}>
               <Logo compact />
             </Link>
@@ -65,7 +67,7 @@ export function AppShell({ locale, messages, children }: { locale: Locale; messa
         {/* Marge basse sur téléphone : les onglets fixes ne masquent jamais le contenu. */}
         <main
           key={pathname}
-          className="mx-auto max-w-[1200px] animate-rise px-5 pt-6 pb-[calc(88px+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 lg:pb-16"
+          className={`mx-auto ${width} animate-rise px-4 pt-5 pb-[calc(88px+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 lg:pb-16`}
         >
           {children}
         </main>

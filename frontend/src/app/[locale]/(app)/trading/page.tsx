@@ -1,12 +1,11 @@
 import { notFound } from "next/navigation";
 
-import { ComingSoon } from "@/components/shell/coming-soon";
+import { TradingPage } from "@/components/trading/trading-page";
 import { isLocale } from "@/i18n/config";
 import { getMessages } from "@/i18n/messages";
 
 export default async function Page({ params }: PageProps<"/[locale]/trading">) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const messages = getMessages(locale);
-  return <ComingSoon locale={locale} messages={messages} title={messages.nav.trading} body={messages.soon.tradingBody} />;
+  return <TradingPage locale={locale} messages={getMessages(locale)} />;
 }

@@ -29,6 +29,10 @@ RANGES: dict[str, tuple[Decimal, Decimal]] = {
     "locked_fraction": (D("0.1"), D("0.95")),
 }
 REAL_MAX_STAKE = D("10")
+# Un stop loss n'est pas garanti au centime. Mesuré en démo : jusqu'à 12 % au-delà du niveau
+# (0,03 sur 0,25 ; 0,05 sur 0,50), sur quelques contrats. Marge prudente, à revoir sur un
+# grand échantillon.
+SLIPPAGE_MARGIN = D("0.15")
 
 # Défauts démo de la section 7. `multiplier`, `activation_r` et `locked_fraction` sont
 # provisoires : non calibrés tant que le backtest ne les a pas validés (q18).
@@ -81,6 +85,11 @@ def out_of_range(values: dict[str, Any], *, real: bool = False) -> list[str]:
 
 def stop_amount(params: RiskParams) -> Decimal:
     return (params.stake * params.stop_loss_pct / 100).quantize(D("0.01"))
+
+
+def worst_case_loss(stop_loss: Decimal) -> Decimal:
+    """Perte à prévoir pour un stop donné, glissement compris."""
+    return (stop_loss * (1 + SLIPPAGE_MARGIN)).quantize(D("0.01"))
 
 
 @dataclass(frozen=True)
@@ -160,10 +169,10 @@ def order_refusal(check: OrderCheck) -> str | None:
         return "risk.insufficient_balance"
     if check.open_exposure + check.stake > _limit(check.balance, p.capital_pct):
         return "risk.capital_exposure"
-    # Cette position, stoppée, ne doit pas pouvoir franchir une limite de perte.
+    # Cette position, stoppée avec glissement, ne doit pas franchir une limite de perte.
     session_room = check.session_net + _limit(check.start_balance, p.session_loss_pct)
     day_room = check.day_net + _limit(check.day_start_balance, p.daily_loss_pct)
-    if check.stop_loss > min(session_room, day_room):
+    if worst_case_loss(check.stop_loss) > min(session_room, day_room):
         return "risk.loss_room"
     return None
 

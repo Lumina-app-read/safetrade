@@ -5,10 +5,20 @@ import { INTL_LOCALE, type Locale } from "./config";
  * Les montants affichent le code de devise (« 10 012,40 USD »), plus lisible
  * que le symbole « $US » en français.
  */
+/** Fuseau du navigateur : la journée de trading se calcule dans le fuseau du client. */
+export function browserTimeZone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
 export function formatters(locale: Locale, timeZone?: string) {
   const intl = INTL_LOCALE[locale];
   return {
     number: (value: number) => new Intl.NumberFormat(intl).format(value),
+    /** Cours d'un actif, avec le nombre de décimales de sa cotation. */
+    price: (value: number, digits: number) =>
+      new Intl.NumberFormat(intl, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value),
+    dateTime: (value: Date | string) =>
+      new Intl.DateTimeFormat(intl, { dateStyle: "short", timeStyle: "short", timeZone }).format(new Date(value)),
     /** 0.0084 → « +0,84 % » (signed) ou « 0,84 % ». */
     percent: (value: number, digits = 0, signed = false) =>
       new Intl.NumberFormat(intl, {

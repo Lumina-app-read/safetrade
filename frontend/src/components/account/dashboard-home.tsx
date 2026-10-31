@@ -18,11 +18,16 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { useSession } from "@/components/shell/session";
+import { SignedAmount } from "@/components/ui/amount";
 import { Badge } from "@/components/ui/badge";
 import { Card, SectionTitle } from "@/components/ui/card";
 import type { Locale } from "@/i18n/config";
+import { formatters } from "@/i18n/format";
 import { interpolate, type Messages } from "@/i18n/messages";
 import { cn } from "@/lib/cn";
+
+import type { BotResponse, DerivConnection, Summary } from "../trading/types";
+import { usePolled } from "../trading/use-live";
 
 function Stat({ label, icon: Icon, children, hint }: { label: string; icon: LucideIcon; children: ReactNode; hint: string }) {
   return (
@@ -39,11 +44,19 @@ function Stat({ label, icon: Icon, children, hint }: { label: string; icon: Luci
 
 /**
  * Tableau de bord client : uniquement des données réelles. Tant que Deriv n'est pas
- * connecté (phase 2), les valeurs sont des états vides, jamais des chiffres inventés.
+ * connecté, les valeurs sont des états vides, jamais des chiffres inventés.
  */
 export function DashboardHome({ locale, messages }: { locale: Locale; messages: Messages }) {
   const t = messages.dashboard;
   const { user } = useSession();
+  const f = formatters(locale);
+  const deriv = usePolled<DerivConnection>("/deriv/connection", 60000);
+  const bot = usePolled<BotResponse>("/trading/bot", 5000);
+  const summary = usePolled<Summary>("/trading/summary", 15000);
+  const connection = deriv.data?.connected && deriv.data.token_valid ? deriv.data : null;
+  const account = connection?.accounts.find((a) => a.account_id === connection.selected.account_id);
+  const session = bot.data?.session ?? null;
+  const trading = `/${locale}/trading`;
 
   const steps: Array<{ label: string; done: boolean; icon: LucideIcon; href?: string }> = [
     { label: t.stepEmail, done: true, icon: MailCheck },
@@ -53,8 +66,8 @@ export function DashboardHome({ locale, messages }: { locale: Locale; messages: 
       icon: ShieldCheck,
       href: `/${locale}/account/security`,
     },
-    { label: t.stepDeriv, done: false, icon: Link2 },
-    { label: t.stepLimits, done: false, icon: SlidersHorizontal },
+    { label: t.stepDeriv, done: connection !== null, icon: Link2, href: trading },
+    { label: t.stepLimits, done: session !== null || (summary.data?.trades ?? 0) > 0, icon: SlidersHorizontal, href: trading },
   ];
   const done = steps.filter((s) => s.done).length;
 
@@ -91,20 +104,20 @@ export function DashboardHome({ locale, messages }: { locale: Locale; messages: 
             {t.bannerMode}
           </span>
           <div className="relative">
-            <h2 className="text-h2">{t.bannerTitle}</h2>
-            <p className="mt-2 max-w-md text-on-anthracite/75">{t.bannerBody}</p>
+            <h2 className="text-h2">{connection ? t.bannerConnected : t.bannerTitle}</h2>
+            <p className="mt-2 max-w-md text-on-anthracite/75">{connection ? t.bannerConnectedBody : t.bannerBody}</p>
           </div>
         </section>
 
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          <Stat label={t.balance} icon={Wallet} hint={t.balanceEmpty}>
-            —
+          <Stat label={t.balance} icon={Wallet} hint={account ? t.balanceDemo : t.balanceEmpty}>
+            {account ? f.money(Number(account.balance), account.currency) : "—"}
           </Stat>
-          <Stat label={t.today} icon={ChartLine} hint={t.todayEmpty}>
-            —
+          <Stat label={t.today} icon={ChartLine} hint={summary.data?.trades ? t.todayReal : t.todayEmpty}>
+            {summary.data?.trades ? <SignedAmount value={Number(summary.data.day_net)} formatted={f.money(Number(summary.data.day_net))} /> : "—"}
           </Stat>
-          <Stat label={t.bot} icon={Bot} hint={t.botEmpty}>
-            <Badge tone="neutral">{t.botStopped}</Badge>
+          <Stat label={t.bot} icon={Bot} hint={session ? session.symbol : t.botEmpty}>
+            <Badge tone="neutral">{messages.trading.bot.states[session?.state ?? "stopped"]}</Badge>
           </Stat>
           <Stat label={t.access} icon={CreditCard} hint={t.accessEmpty}>
             —
