@@ -30,6 +30,10 @@ TABLES = {
     "bot_sessions",
     "trading_positions",
     "trading_decisions",
+    "plans",
+    "payment_orders",
+    "subscriptions",
+    "payment_events",
 }
 
 

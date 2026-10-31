@@ -39,6 +39,14 @@ class Settings(BaseSettings):
     smtp_from: str | None = None
     smtp_from_name: str = "SafeTrade"
 
+    # Chariow : aucun mode de test, toute vente est réelle. Sans clé, le paiement est désactivé.
+    chariow_api_key: SecretStr | None = None
+    chariow_webhook_secret: SecretStr | None = None
+    # Identifiants des produits publiés, de type licence pour pouvoir racheter.
+    chariow_product_weekly: str | None = None
+    chariow_product_monthly: str | None = None
+    chariow_product_annual: str | None = None
+
     # Adresse publique du front-end, pour les liens envoyés par e-mail.
     public_app_url: str = "http://127.0.0.1:13000"
     # Origines autorisées à appeler l'API avec des cookies (contrôle anti-CSRF).

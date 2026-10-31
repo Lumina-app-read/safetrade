@@ -9,6 +9,7 @@ from app.auth import mfa, service
 from app.auth.mailer import Mailer
 from app.auth.rate_limit import FailureCounter
 from app.authz import SESSION_COOKIE, CurrentSession
+from app.billing.service import access_of
 from app.config import Settings
 from app.deps import AppSettings, Db, check_origin, client_ip, get_failures, get_mailer
 from app.errors import ApiError
@@ -234,7 +235,17 @@ def me(
     db: Db, settings: AppSettings, token: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None
 ) -> dict[str, object]:
     user, _ = service.authenticate(db, settings, token)
-    return {"user": service.user_view(user)}
+    access = access_of(db, user)
+    return {
+        "user": {
+            **service.user_view(user),
+            # Expiré ou suspendu : aucun niveau en cours, seul l'historique reste visible.
+            "subscription": access.plan if access.allowed else "none",
+            "subscription_status": access.status,
+            "subscription_ends_at": access.ends_at,
+            "access": access.allowed,
+        }
+    }
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)

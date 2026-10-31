@@ -33,6 +33,7 @@ PUBLIC_ROUTES = {
     ("POST", "/auth/register"),
     ("POST", "/auth/verify-email"),
     ("POST", "/auth/verify-email/resend"),
+    ("POST", "/billing/webhooks/chariow"),
     ("POST", "/auth/login"),
     ("POST", "/auth/login/mfa"),
     ("POST", "/auth/password/forgot"),

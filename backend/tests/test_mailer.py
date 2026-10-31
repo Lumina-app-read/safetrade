@@ -37,7 +37,15 @@ LINK = "https://safetrade.test/fr/verify-email?token=abc&x=1"
 @pytest.mark.parametrize("locale", ["fr", "en"])
 def test_every_template_renders_text_and_html(template: str, locale: str) -> None:
     email = render(
-        template, locale, "a@example.com", first_name="Ada", link=LINK, hours=24, minutes=60
+        template,
+        locale,
+        "a@example.com",
+        first_name="Ada",
+        link=LINK,
+        hours=24,
+        minutes=60,
+        amount="15 USD",
+        ends="2026-12-01",
     )
     assert "Ada" in email.body
     assert "Ada" in email.html

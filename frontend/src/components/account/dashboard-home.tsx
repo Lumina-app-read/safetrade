@@ -130,7 +130,7 @@ export function DashboardHome({ locale, messages }: { locale: Locale; messages: 
           <Stat label={t.bot} icon={Bot} hint={session ? session.symbol : t.botEmpty}>
             <Badge tone="neutral">{messages.trading.bot.states[session?.state ?? "stopped"]}</Badge>
           </Stat>
-          <Stat label={t.access} icon={CreditCard} hint={user.subscription === "none" ? t.accessNone : t.accessActive}>
+          <Stat label={t.access} icon={CreditCard} hint={user.subscription_ends_at && user.access ? interpolate(messages.plans.endsOn, { date: f.date(user.subscription_ends_at) }) : t.accessNone}>
             <FitValue size="text" text={planLabel(messages, user.subscription)} />
           </Stat>
         </div>

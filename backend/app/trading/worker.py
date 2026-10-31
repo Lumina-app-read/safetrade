@@ -11,13 +11,19 @@ import signal
 import socket
 import time
 import uuid
+from datetime import UTC, datetime
 from typing import Any
 
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
+from app.auth.mailer import build_mailer
+from app.billing.gateway import build_gateways
+from app.billing.notices import remind_expiring
+from app.billing.router import reconcile
 from app.broker.base import AccountKind, RealAccountDisabledError
 from app.broker.deriv import DerivConnection, ensure_account_allowed
 from app.broker.deriv_rest import DerivAccount, DerivRest
@@ -37,6 +43,7 @@ from app.trading.execution import Executor, Journal
 logger = logging.getLogger("safetrade.trading")
 
 SCAN_SECONDS = 2.0
+BILLING_SECONDS = 300.0
 
 
 class Engine:
@@ -126,6 +133,24 @@ class Engine:
         finally:
             await connection.stop()
 
+    async def billing(self) -> None:
+        """Rapprochement des paiements et rappels d'échéance, à côté des sessions."""
+        mailer = build_mailer(self._settings)
+        gateways = build_gateways(self._settings)
+        while True:
+            await asyncio.sleep(BILLING_SECONDS)
+            now = datetime.now(UTC)
+            try:
+                for gateway in gateways.values():
+                    if mailer is not None:
+                        await reconcile(self._factory, gateway, mailer, self._settings, now)
+                if mailer is not None:
+                    await asyncio.to_thread(
+                        remind_expiring, self._factory, mailer, self._settings, now
+                    )
+            except SQLAlchemyError:
+                logger.exception("tâche d'abonnement", extra={"event": "billing.task_failed"})
+
     async def stop(self) -> None:
         for task in self._running.values():
             task.cancel()
@@ -134,12 +159,14 @@ class Engine:
     async def run(self) -> None:
         role: dict[str, Any] = {"owner": self._owner, "role": "engine", "since": time.time()}
         presence = asyncio.create_task(signal_presence(self._client, role))
+        billing = asyncio.create_task(self.billing())
         try:
             while True:
                 await self.scan()
                 await asyncio.sleep(SCAN_SECONDS)
         finally:
             presence.cancel()
+            billing.cancel()
             await self.stop()
 
 

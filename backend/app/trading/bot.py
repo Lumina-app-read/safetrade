@@ -20,6 +20,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DbSession
 
+from app.billing.service import has_access
 from app.broker.base import ApiRejectedError, BrokerError, Message, Subscription
 from app.broker.deriv_trading import DerivTrading
 from app.db.models import (
@@ -409,6 +410,12 @@ class BotRunner:
             if session.paused_until is not None and now >= session.paused_until:
                 await self._set(state=BotState.ANALYZING)
                 session.state = BotState.ANALYZING
+            return
+        if not await self._journal.run(lambda db: has_access(db, session.user_id, now)):
+            # Plus de nouvelle position ; les ouvertes finissent sous leur stop loss (q06).
+            await self._set(state=BotState.STOPPING, stop_reason="billing.expired")
+            session.state = BotState.STOPPING
+            await self._journal.note(self.session_id, "limit", "billing.expired")
             return
         if state not in (BotState.ANALYZING, BotState.POSITION_OPEN):
             return

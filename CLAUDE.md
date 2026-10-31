@@ -131,6 +131,11 @@ Directive du propriétaire du 31 octobre 2026, qui remplace les précédentes :
 - Tout ordre passe par `risk.order_refusal` et `entry_refusal`. Stop loss obligatoire, jamais retiré. Une position est écrite en base avant l'envoi.
 - Le mot d'ordre `stop_loss: null` est interdit : `DerivTrading.update_stop` le refuse.
 
+## Abonnements et paiements
+
+- `app/billing/` : accès calculé par le backend (`access_of`), sans lui ni démarrage ni nouvelle position. Détails : `docs/decisions/abonnements-paiements.md`.
+- L'accès n'est activé que par une notification signée ou le rapprochement, confirmés auprès du fournisseur. Chariow n'a pas de mode de test : aucune vente de test sans accord du propriétaire.
+
 ## Git
 
 - Une étape = une branche `step/ID-nom-court` (exemple : `step/1.5-inscription-connexion`), à partir de `main`.

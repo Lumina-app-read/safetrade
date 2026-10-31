@@ -10,6 +10,9 @@ from app.admin.router import router as admin_router
 from app.auth.mailer import LogMailer, Mailer, build_mailer
 from app.auth.rate_limit import FailureCounter, MemoryFailureCounter, RedisFailureCounter
 from app.auth.router import router as auth_router
+from app.billing.gateway import build_gateways
+from app.billing.router import router as billing_router
+from app.billing.router import webhooks as billing_webhooks
 from app.broker.deriv_rest import DerivRest
 from app.broker.quotas import MemoryQuotaStore, QuotaManager, RedisQuotaStore
 from app.config import Settings, get_settings
@@ -82,6 +85,7 @@ def create_app(
         market = RedisMarketStore(AsyncRedis.from_url(settings.redis_url.get_secret_value()))
     app.state.market = market
     app.state.market_streams = Counter()
+    app.state.gateways = build_gateways(settings)
 
     install_error_handlers(app)
     app.include_router(auth_router)
@@ -89,6 +93,8 @@ def create_app(
     app.include_router(deriv_router)
     app.include_router(market_router)
     app.include_router(trading_router)
+    app.include_router(billing_router)
+    app.include_router(billing_webhooks)
 
     @app.get("/health", response_model=Health, tags=["system"])
     def health() -> Health:

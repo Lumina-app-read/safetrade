@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session as DbSession
 
 from app import audit
 from app.authz import CurrentSession
+from app.billing.service import require_access
 from app.broker.base import AccountKind
 from app.config import Settings
 from app.db.models import (
@@ -278,6 +279,7 @@ def bot(db: Db, app: AppSettings, session: CurrentSession) -> dict[str, object]:
 def _check_start(db: DbSession, user: User, app: Settings, symbol: str) -> tuple[str, str]:
     if user.risk_accepted_at is None:
         raise ApiError(403, "trading.risk_not_accepted")
+    require_access(db, user)
     record = deriv_service.find(db, user)
     if record is None or record.account_id is None or record.account_kind is None:
         raise ApiError(409, "deriv.not_connected")

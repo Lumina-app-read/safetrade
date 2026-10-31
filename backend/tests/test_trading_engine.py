@@ -36,6 +36,7 @@ from app.db.models import (
     BotState,
     DerivConnectionRecord,
     PositionStatus,
+    Subscription,
     TradingDecision,
     TradingPosition,
     TradingSettings,
@@ -216,6 +217,15 @@ class World:
                 )
             )
             db.flush()
+            now = datetime.now(UTC)
+            db.add(
+                Subscription(
+                    user_id=self.user_id,
+                    plan_code="trial",
+                    starts_at=now,
+                    ends_at=now + timedelta(days=3),
+                )
+            )
             db.add(
                 TradingSettings(
                     user_id=self.user_id,
@@ -720,6 +730,14 @@ def api(
         connection.execute(
             text("UPDATE users SET email_verified_at = now() WHERE email = :e"), {"e": email}
         )
+        connection.execute(
+            text(
+                "INSERT INTO subscriptions (id, user_id, plan_code, starts_at, ends_at) "
+                "SELECT gen_random_uuid(), id, 'trial', now(), now() + interval '3 days' "
+                "FROM users WHERE email = :e"
+            ),
+            {"e": email},
+        )
     assert (
         client.post("/auth/login", json={"email": email, "password": PASSWORD}).status_code == 200
     )
@@ -897,6 +915,40 @@ def test_deriv_cannot_be_disconnected_while_the_bot_runs(api: Any) -> None:
     assert client.post("/trading/bot/start", json={"symbol": SYMBOL}).status_code == 201
     response = client.delete("/deriv/connection")
     assert (response.status_code, response.json()["error"]) == (409, "deriv.bot_active")
+
+
+def test_expired_access_stops_entries_and_keeps_protecting_positions(world: World) -> None:
+    runner, contract_id = open_one(world)
+    with world.factory.begin() as db:
+        rows = db.scalars(select(Subscription).where(Subscription.user_id == world.user_id))
+        for row in rows:
+            row.ends_at = datetime.now(UTC) - timedelta(seconds=1)
+    steps(world, 2, runner)
+    session = world.session()
+    assert (session.state, session.stop_reason) == (BotState.STOPPING, "billing.expired")
+    assert world.broker.sells == []
+    assert world.positions()[0].status == PositionStatus.OPEN
+    world.broker.close(contract_id, 0.9)
+    steps(world, 2, runner)
+    assert world.session().state == BotState.STOPPED
+    assert world.broker.buys == 1
+
+
+def test_expired_access_cannot_start_a_bot(api: Any, migrated_engine: Engine) -> None:
+    client, store, connect = api
+    connect()
+    asyncio.run(fill_market(store))
+    email = client.get("/auth/me").json()["user"]["email"]
+    with migrated_engine.begin() as connection:
+        connection.execute(
+            text(
+                "UPDATE subscriptions SET ends_at = now() - interval '1 minute' "
+                "WHERE user_id = (SELECT id FROM users WHERE email = :e)"
+            ),
+            {"e": email},
+        )
+    response = client.post("/trading/bot/start", json={"symbol": SYMBOL})
+    assert (response.status_code, response.json()["error"]) == (402, "billing.access_required")
 
 
 def test_buy_row_shape() -> None:

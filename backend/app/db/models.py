@@ -23,6 +23,7 @@ from sqlalchemy import (
     false,
     func,
     text,
+    true,
 )
 from sqlalchemy.dialects.postgresql import INET, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -379,3 +380,83 @@ class TradingDecision(Base):
     code: Mapped[str | None] = mapped_column(String(80))
     data: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Plan(Base):
+    """Formules et durée de l'essai : des données, modifiables sans changer le code."""
+
+    __tablename__ = "plans"
+
+    code: Mapped[str] = mapped_column(String(20), primary_key=True)
+    duration_days: Mapped[int] = mapped_column(Integer)
+    price: Mapped[Decimal] = mapped_column(Money)
+    currency: Mapped[str] = mapped_column(String(3))
+    active: Mapped[bool] = mapped_column(server_default=true())
+
+
+class PaymentOrder(Base):
+    __tablename__ = "payment_orders"
+    __table_args__ = (
+        UniqueConstraint("provider", "provider_ref", name="uq_payment_orders_provider_ref"),
+        Index("ix_payment_orders_user", "user_id", "created_at"),
+        Index("ix_payment_orders_status", "status"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    plan_code: Mapped[str] = mapped_column(ForeignKey("plans.code"))
+    provider: Mapped[str] = mapped_column(String(20))
+    amount: Mapped[Decimal] = mapped_column(Money)
+    currency: Mapped[str] = mapped_column(String(3))
+    status: Mapped[str] = mapped_column(String(12), default="pending")
+    provider_ref: Mapped[str | None] = mapped_column(String(80))
+    checkout_url: Mapped[str | None] = mapped_column(Text)
+    amount_received: Mapped[Decimal | None] = mapped_column(Money)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Subscription(Base):
+    """Une ligne par période d'accès. L'unicité sur `order_id` empêche un double crédit."""
+
+    __tablename__ = "subscriptions"
+    __table_args__ = (
+        Index("ix_subscriptions_user_ends", "user_id", "ends_at"),
+        Index(
+            "uq_subscriptions_one_trial",
+            "user_id",
+            unique=True,
+            postgresql_where=text("plan_code = 'trial'"),
+        ),
+        UniqueConstraint("order_id", name="uq_subscriptions_order"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    plan_code: Mapped[str] = mapped_column(ForeignKey("plans.code"))
+    order_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("payment_orders.id"))
+    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    reminded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class PaymentEvent(Base):
+    """Notifications reçues, en ajout seul. Aucune donnée personnelle du payeur."""
+
+    __tablename__ = "payment_events"
+    __table_args__ = (
+        UniqueConstraint("provider", "delivery_id", name="uq_payment_events_delivery"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
+    provider: Mapped[str] = mapped_column(String(20))
+    delivery_id: Mapped[str] = mapped_column(String(120))
+    event: Mapped[str] = mapped_column(String(50))
+    order_id: Mapped[uuid.UUID | None]
+    reference: Mapped[str] = mapped_column(String(80))
+    amount: Mapped[Decimal | None] = mapped_column(Money)
+    currency: Mapped[str | None] = mapped_column(String(3))
+    received_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )

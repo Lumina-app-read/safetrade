@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useSession } from "@/components/shell/session";
 import { Dialog } from "@/components/ui/dialog";
 import { FitAmount, FitValue } from "@/components/ui/fit-value";
 import type { Locale } from "@/i18n/config";
@@ -155,6 +156,7 @@ function Kpi({ label, children, hint }: { label: string; children: ReactNode; hi
 export function TradingPage({ locale, messages }: { locale: Locale; messages: Messages }) {
   const t = messages.trading;
   const f = formatters(locale);
+  const { user } = useSession();
   const market = useMarket();
   const bot = usePolled<BotResponse>("/trading/bot", 2000);
   const deriv = usePolled<DerivConnection>("/deriv/connection", 30000);
@@ -179,9 +181,11 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
   const balance = connection?.connected ? connection.accounts.find((a) => a.account_id === connection.selected.account_id) : undefined;
   const allowed = (settings.data?.settings.allowed_symbols as string[] | undefined) ?? [];
 
-  const blocked = !derivReady
-    ? t.bot.blockedDeriv
-    : !asset
+  const blocked = !user.access
+    ? messages.plans.blocked
+    : !derivReady
+      ? t.bot.blockedDeriv
+      : !asset
       ? t.bot.blockedAsset
       : asset.status !== "live"
         ? interpolate(t.bot.blockedMarket, { name: asset.name, status: t.statuses[asset.status] })

@@ -185,7 +185,13 @@
     "trading_no_active_bot": "No bot is active.",
     "trading_position_not_found": "Position not found.",
     "trading_position_not_open": "This position is no longer open.",
-    "deriv_bot_active": "Stop the bot first to change the Deriv connection."
+    "deriv_bot_active": "Stop the bot first to change the Deriv connection.",
+    "billing_access_required": "Your trial or subscription has ended. Choose a plan to restart the bot.",
+    "billing_provider_unavailable": "Payment is unavailable right now. Please try again later.",
+    "billing_unknown_plan": "This plan is not available.",
+    "billing_invalid_phone": "This phone number was refused. Check the prefix and country code.",
+    "billing_checkout_refused": "The payment could not be prepared. Please try again later.",
+    "billing_bad_signature": "Notification refused."
   },
   "fields": {
     "required": "This field is required.",
@@ -221,7 +227,6 @@
     "todayReal": "Positions closed today",
     "notConnected": "Not connected",
     "accessNone": "No active plan",
-    "accessActive": "Active plan",
     "bannerChecking": "Checking your Deriv account",
     "balanceChecking": "Reading from Deriv",
     "unavailable": "Unavailable"
@@ -442,7 +447,6 @@
   },
   "soon": {
     "title": "This section is coming soon",
-    "subscriptionBody": "This is where you will manage your plan, payments and receipts.",
     "back": "Back to the dashboard"
   },
   "admin": {
@@ -780,19 +784,60 @@
       "unknown": "Engine event.",
       "LimitOrderAmountTooLow": "Level below the Deriv minimum: retrying one notch higher, the current stop stays in place.",
       "ContractUpdateTooFrequent": "Update too soon, retrying.",
-      "InvalidtoSell": "Sale not possible yet, retrying."
+      "InvalidtoSell": "Sale not possible yet, retrying.",
+      "billing_expired": "Trial or subscription ended: no new position."
     }
   },
   "plans": {
     "current": "Current plan",
-    "active": "Active",
-    "inactive": "Inactive",
     "levels": {
       "none": "None",
       "trial": "Trial",
       "weekly": "Weekly",
       "monthly": "Monthly",
       "annual": "Annual"
+    },
+    "choose": "Choose a plan",
+    "orders": "My orders",
+    "noOrders": "No order yet.",
+    "endsOn": "Valid until {date}",
+    "endedOn": "Ended on {date}",
+    "blocked": "Your access has ended: the bot can no longer open positions. Your history stays available.",
+    "subscribe": "Choose",
+    "extend": "Extend",
+    "paymentSoon": "Payment is not enabled yet.",
+    "featureBot": "Full trading bot",
+    "featureManual": "Manual renewal, no automatic charge",
+    "payIntro": "You will be redirected to Chariow's secure payment page. Access starts once the payment is confirmed.",
+    "lastName": "Last name",
+    "phone": "Phone number",
+    "phonePlaceholder": "243970000000",
+    "country": "Two-letter country code",
+    "countryPlaceholder": "CD",
+    "lastNameRequired": "Enter your last name.",
+    "phoneInvalid": "Enter your number with its country prefix, digits only.",
+    "countryInvalid": "Enter two letters, for example CD.",
+    "payNow": "Pay",
+    "paying": "Preparing the payment",
+    "statuses": {
+      "trial": "Trial running",
+      "active": "Active",
+      "expired": "Expired",
+      "suspended": "Suspended",
+      "none": "None"
+    },
+    "orderStatuses": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "partial": "Wrong amount",
+      "failed": "Failed",
+      "expired": "Expired",
+      "refunded": "Refunded"
+    },
+    "durations": {
+      "weekly": "7 days of access",
+      "monthly": "30 days of access",
+      "annual": "365 days of access"
     }
   }
 }

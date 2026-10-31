@@ -13,6 +13,7 @@ from app import audit
 from app.auth import security
 from app.auth.mailer import Mailer, render
 from app.auth.rate_limit import FailureCounter
+from app.billing.service import grant_trial
 from app.config import Settings
 from app.db.models import (
     EmailVerificationToken,
@@ -183,6 +184,7 @@ def verify_email(db: DbSession, *, token: str, ip: str | None) -> None:
         raise ApiError(400, "auth.verification_invalid")
     record.used_at = _now()
     user.email_verified_at = user.email_verified_at or _now()
+    grant_trial(db, user)
     audit.record(
         db,
         "auth.verify_email",
@@ -380,8 +382,6 @@ def user_view(user: User) -> dict[str, str | uuid.UUID | bool]:
         "theme": user.theme,
         "email_verified": user.email_verified_at is not None,
         "mfa_enabled": user.totp_enabled_at is not None,
-        # Formules : étape 4.1. Valeurs prévues : none, trial, weekly, monthly, annual.
-        "subscription": "none",
     }
 
 

@@ -112,6 +112,38 @@ TEMPLATES: dict[str, dict[str, Template]] = {
             "Choose a password",
         ),
     },
+    "payment_received": {
+        "fr": Template(
+            "Votre paiement SafeTrade est confirmé",
+            "Paiement confirmé",
+            ("Merci, votre abonnement SafeTrade est actif.",),
+            "Montant : {amount}. Accès valable jusqu'au {ends}. Conservez ce message comme reçu.",
+            "Voir mon abonnement",
+        ),
+        "en": Template(
+            "Your SafeTrade payment is confirmed",
+            "Payment confirmed",
+            ("Thank you, your SafeTrade subscription is active.",),
+            "Amount: {amount}. Access valid until {ends}. Keep this message as your receipt.",
+            "View my subscription",
+        ),
+    },
+    "subscription_expiring": {
+        "fr": Template(
+            "Votre accès SafeTrade se termine bientôt",
+            "Votre accès se termine bientôt",
+            ("Sans renouvellement, le bot ne pourra plus ouvrir de position.",),
+            "Fin de l'accès : {ends}.",
+            "Renouveler",
+        ),
+        "en": Template(
+            "Your SafeTrade access ends soon",
+            "Your access ends soon",
+            ("Without renewal, the bot will no longer open positions.",),
+            "Access ends: {ends}.",
+            "Renew",
+        ),
+    },
     "password_changed": {
         "fr": Template(
             "Votre mot de passe SafeTrade a été modifié",

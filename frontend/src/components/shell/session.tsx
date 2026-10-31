@@ -16,6 +16,9 @@ export type SessionUser = {
   role: string;
   mfa_enabled: boolean;
   subscription: string;
+  subscription_status: string;
+  subscription_ends_at: string | null;
+  access: boolean;
 };
 
 type Session = { user: SessionUser; refresh: () => void };
