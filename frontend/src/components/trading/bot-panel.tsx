@@ -46,7 +46,7 @@ function Action({
   return (
     <Button size="lg" variant={variant} className="w-full" onClick={onClick} disabled={disabled} pending={pending}>
       {!pending && <Icon size={18} strokeWidth={1.5} aria-hidden />}
-      {label}
+      <span className="min-w-0 truncate">{label}</span>
     </Button>
   );
 }

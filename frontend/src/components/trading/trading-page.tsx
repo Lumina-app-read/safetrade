@@ -3,11 +3,11 @@
 import { ArrowDownRight, ArrowUpRight, CircleAlert, FlaskConical, History, Layers, LoaderCircle, Lock, ScrollText, SlidersHorizontal, WifiOff, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { SignedAmount } from "@/components/ui/amount";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
+import { FitAmount, FitValue } from "@/components/ui/fit-value";
 import type { Locale } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { interpolate, type Messages } from "@/i18n/messages";
@@ -140,9 +140,9 @@ function Quote({ asset, price, locale, messages }: { asset: Asset; price: number
 function Kpi({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
   return (
     <div className="flex min-w-0 flex-col gap-1 rounded-xl border border-line bg-card p-4 shadow-card">
-      <span className="truncate text-small text-muted">{label}</span>
-      <span className="text-h3 font-medium tabular-nums">{children}</span>
-      {hint && <span className="truncate text-small text-muted">{hint}</span>}
+      <span className="text-small text-muted">{label}</span>
+      {children}
+      {hint && <span className="text-small text-muted">{hint}</span>}
     </div>
   );
 }
@@ -267,16 +267,28 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
       <section aria-label={t.kpi.title} className="grid min-w-0 grid-cols-2 gap-3 max-lg:order-4 lg:col-span-2 lg:grid-cols-4">
         <Kpi label={t.kpi.balance} hint={kind === "demo" ? t.kpi.demoFunds : undefined}>
-          {balance ? f.money(Number(balance.balance), balance.currency) : deriv.loading ? t.loading : deriv.error && !deriv.data ? t.kpi.unavailable : t.kpi.notConnected}
+          <FitValue
+            size="h3"
+            text={balance ? f.moneyShort(Number(balance.balance), balance.currency) : deriv.loading ? t.loading : deriv.error && !deriv.data ? t.kpi.unavailable : t.kpi.notConnected}
+            title={balance ? f.money(Number(balance.balance), balance.currency) : undefined}
+          />
         </Kpi>
         <Kpi label={t.kpi.session}>
-          {session ? <SignedAmount value={Number(session.session_net)} formatted={f.money(Number(session.session_net))} /> : t.kpi.noSession}
+          {session ? (
+            <FitAmount size="h3" value={Number(session.session_net)} formatted={f.moneyShort(Number(session.session_net))} title={f.money(Number(session.session_net))} />
+          ) : (
+            <FitValue size="h3" text={t.kpi.noSession} />
+          )}
         </Kpi>
         <Kpi label={t.kpi.day}>
-          {summary.data ? <SignedAmount value={Number(summary.data.day_net)} formatted={f.money(Number(summary.data.day_net))} /> : t.loading}
+          {summary.data ? (
+            <FitAmount size="h3" value={Number(summary.data.day_net)} formatted={f.moneyShort(Number(summary.data.day_net))} title={f.money(Number(summary.data.day_net))} />
+          ) : (
+            <FitValue size="h3" text={t.loading} />
+          )}
         </Kpi>
         <Kpi label={t.kpi.winRate} hint={summary.data?.trades ? interpolate(t.kpi.sample, { count: summary.data.trades }) : t.kpi.noTrades}>
-          {summary.data?.win_rate != null ? f.percent(summary.data.win_rate) : summary.data ? t.kpi.noPosition : t.loading}
+          <FitValue size="h3" text={summary.data?.win_rate != null ? f.percent(summary.data.win_rate) : summary.data ? t.kpi.noPosition : t.loading} />
         </Kpi>
       </section>
 

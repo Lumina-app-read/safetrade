@@ -187,6 +187,32 @@ html {
 }
 
 /*
+ * Valeurs de cartes (composant FitValue) : la taille dépend de la longueur du texte et de
+ * la largeur du conteneur. Aucun montant ne peut sortir de sa carte, sans JavaScript.
+ */
+@utility text-fit {
+  display: block;
+  overflow: hidden;
+  font-size: clamp(11px, calc(100cqi / (var(--chars, 10) * 0.62)), 24px);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@utility text-fit-h3 {
+  display: block;
+  overflow: hidden;
+  font-size: clamp(11px, calc(100cqi / (var(--chars, 10) * 0.62)), 18px);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
  * Apparition au défilement (composant Reveal). Le contenu n'est masqué que si
  * JavaScript est actif : sans script, tout reste visible.
  */

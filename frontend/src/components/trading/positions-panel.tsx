@@ -3,10 +3,10 @@
 import { ArrowDownRight, ArrowUpRight, Layers, LoaderCircle, Shield, ShieldCheck, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { SignedAmount } from "@/components/ui/amount";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FitAmount, FitValue } from "@/components/ui/fit-value";
 import type { Locale } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import type { Messages } from "@/i18n/messages";
@@ -47,7 +47,7 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex min-w-0 flex-col gap-0.5">
       <dt className="text-small text-muted">{label}</dt>
-      <dd className="font-medium tabular-nums">{children}</dd>
+      <dd className="font-medium [overflow-wrap:anywhere] tabular-nums">{children}</dd>
     </div>
   );
 }
@@ -121,11 +121,9 @@ function PositionCard({
       </div>
 
       <div className="flex items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-small text-muted">{t.net}</p>
-          <p className="text-kpi font-medium">
-            {position.current_profit === null ? t.awaiting : <SignedAmount value={profit} formatted={f.money(profit)} />}
-          </p>
+          {position.current_profit === null ? <FitValue text={t.awaiting} /> : <FitAmount value={profit} formatted={f.moneyShort(profit)} title={f.money(profit)} />}
         </div>
         <Sparkline values={history} label={t.evolution} />
       </div>

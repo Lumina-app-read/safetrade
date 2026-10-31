@@ -142,7 +142,9 @@ export function DerivPanel({
                       <span className="block truncate text-small text-muted">{locked ? t.realLocked : t.demoNote}</span>
                     </span>
                   </span>
-                  {!locked && <span className="font-medium whitespace-nowrap tabular-nums">{f.money(Number(account.balance), account.currency)}</span>}
+                  {!locked && (
+                    <span className="shrink-0 font-medium whitespace-nowrap tabular-nums">{f.money(Number(account.balance), account.currency)}</span>
+                  )}
                 </li>
               );
             })}

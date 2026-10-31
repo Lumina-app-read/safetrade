@@ -1,9 +1,22 @@
 import { INTL_LOCALE, type Locale } from "./config";
 
+const COMPACT_FROM = 100_000;
+
+/**
+ * Montant avec le symbole court de la devise (« 10 012,40 $ »), plus étroit que son code.
+ * Une devise que le navigateur ne connaît pas (USDT, USDC...) garde son code : un format
+ * refusé ne doit jamais casser la page.
+ */
+function formatMoney(intl: string, value: number, currency: string, options: Intl.NumberFormatOptions = {}): string {
+  try {
+    return new Intl.NumberFormat(intl, { style: "currency", currency, currencyDisplay: "narrowSymbol", ...options }).format(value);
+  } catch {
+    return `${new Intl.NumberFormat(intl, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)} ${currency}`;
+  }
+}
+
 /**
  * Formats dépendant de la langue (section 15) : nombres, montants, dates.
- * Les montants affichent le code de devise (« 10 012,40 USD »), plus lisible
- * que le symbole « $US » en français.
  */
 /** Fuseau du navigateur : la journée de trading se calcule dans le fuseau du client. */
 export function browserTimeZone(): string {
@@ -27,8 +40,12 @@ export function formatters(locale: Locale, timeZone?: string) {
         maximumFractionDigits: digits,
         signDisplay: signed ? "exceptZero" : "auto",
       }).format(value),
-    money: (value: number, currency = "USD") =>
-      new Intl.NumberFormat(intl, { style: "currency", currency, currencyDisplay: "code" }).format(value),
+    money: (value: number, currency = "USD") => formatMoney(intl, value, currency),
+    /** Pour les cartes étroites : forme abrégée dès 100 000 (« 123,46 k $ », « 1,23 M $ »). */
+    moneyShort: (value: number, currency = "USD") =>
+      Math.abs(value) < COMPACT_FROM
+        ? formatMoney(intl, value, currency)
+        : formatMoney(intl, value, currency, { notation: "compact", maximumFractionDigits: 2 }),
     date: (value: Date | string) => new Intl.DateTimeFormat(intl, { dateStyle: "medium", timeZone }).format(new Date(value)),
     /** « il y a 5 minutes », « hier »... par rapport à maintenant. */
     relative: (value: Date | string, now: Date = new Date()) => {

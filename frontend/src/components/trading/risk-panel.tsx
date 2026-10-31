@@ -12,7 +12,7 @@ import type { RiskUsage } from "./types";
 function Meter({ label, value, share, danger }: { label: string; value: string; share: number; danger?: boolean }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="flex items-baseline justify-between gap-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3">
         <span className="text-label font-medium">{label}</span>
         <span className="text-small whitespace-nowrap text-muted tabular-nums">{value}</span>
       </div>

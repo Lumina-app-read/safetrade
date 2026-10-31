@@ -11,8 +11,8 @@ export function SignedAmount({ value, formatted }: { value: number; formatted: s
   const up = value > 0;
   const Icon = up ? TrendingUp : TrendingDown;
   return (
-    <span className={cn("inline-flex items-center gap-1 tabular-nums", up ? "text-gain" : "text-loss")}>
-      <Icon size={16} strokeWidth={1.5} aria-hidden />
+    <span className={cn("inline-flex items-center gap-1 tabular-nums whitespace-nowrap", up ? "text-gain" : "text-loss")}>
+      <Icon size={16} strokeWidth={1.5} aria-hidden className="shrink-0" />
       {up ? "+" : ""}
       {formatted}
     </span>

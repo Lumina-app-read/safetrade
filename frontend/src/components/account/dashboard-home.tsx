@@ -18,9 +18,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { useSession } from "@/components/shell/session";
-import { SignedAmount } from "@/components/ui/amount";
 import { Badge } from "@/components/ui/badge";
 import { Card, SectionTitle } from "@/components/ui/card";
+import { FitAmount, FitValue } from "@/components/ui/fit-value";
 import type { Locale } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { interpolate, type Messages } from "@/i18n/messages";
@@ -34,10 +34,10 @@ function Stat({ label, icon: Icon, children, hint }: { label: string; icon: Luci
   return (
     <Card className="flex min-w-0 flex-col gap-2 p-4 sm:p-6">
       <div className="flex items-center justify-between gap-2 text-muted">
-        <span className="truncate text-label font-medium">{label}</span>
+        <span className="min-w-0 text-label font-medium">{label}</span>
         <Icon size={20} strokeWidth={1.5} aria-hidden className="shrink-0 max-sm:hidden" />
       </div>
-      <div className="text-kpi font-medium">{children}</div>
+      <div className="min-h-8 min-w-0 text-kpi font-medium">{children}</div>
       <p className="text-small text-muted">{hint}</p>
     </Card>
   );
@@ -114,16 +114,23 @@ export function DashboardHome({ locale, messages }: { locale: Locale; messages: 
 
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
           <Stat label={t.balance} icon={Wallet} hint={account ? t.balanceDemo : checking ? t.balanceChecking : t.balanceEmpty}>
-            {account ? f.money(Number(account.balance), account.currency) : deriv.loading ? messages.trading.loading : checking ? t.unavailable : t.notConnected}
+            <FitValue
+              text={account ? f.moneyShort(Number(account.balance), account.currency) : deriv.loading ? messages.trading.loading : checking ? t.unavailable : t.notConnected}
+              title={account ? f.money(Number(account.balance), account.currency) : undefined}
+            />
           </Stat>
           <Stat label={t.today} icon={ChartLine} hint={summary.data?.trades ? t.todayReal : t.todayEmpty}>
-            {summary.data ? <SignedAmount value={Number(summary.data.day_net)} formatted={f.money(Number(summary.data.day_net))} /> : messages.trading.loading}
+            {summary.data ? (
+              <FitAmount value={Number(summary.data.day_net)} formatted={f.moneyShort(Number(summary.data.day_net))} title={f.money(Number(summary.data.day_net))} />
+            ) : (
+              <FitValue text={messages.trading.loading} />
+            )}
           </Stat>
           <Stat label={t.bot} icon={Bot} hint={session ? session.symbol : t.botEmpty}>
             <Badge tone="neutral">{messages.trading.bot.states[session?.state ?? "stopped"]}</Badge>
           </Stat>
           <Stat label={t.access} icon={CreditCard} hint={user.subscription === "none" ? t.accessNone : t.accessActive}>
-            {planLabel(messages, user.subscription)}
+            <FitValue text={planLabel(messages, user.subscription)} />
           </Stat>
         </div>
       </div>
