@@ -9,7 +9,7 @@ import itertools
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from app.market.store import Data
+from app.market.store import Data, MarketStore, asset_status
 
 # Plus strict que STALE_SECONDS, qui ne sert qu'à l'affichage.
 MAX_TICK_AGE_SECONDS = 5.0
@@ -25,6 +25,26 @@ class MarketSnapshot:
     candles: Sequence[Data]
     granularity: int
     candles_updated_at: float
+
+
+async def read_snapshot(
+    store: MarketStore, symbol: str, granularity: int, now: float
+) -> MarketSnapshot:
+    """Vue d'un actif pour le moteur. Un actif absent est `unavailable`, jamais supposé sain."""
+    state = await store.get_assets()
+    ticks = await store.get_ticks([symbol])
+    stored = await store.get_candles(symbol, granularity)
+    asset = next((a for a in (state or {}).get("assets", []) if a["symbol"] == symbol), None)
+    status = "unavailable"
+    if state is not None and asset is not None:
+        status = asset_status(asset, ticks.get(symbol), state["updated_at"], now)
+    return MarketSnapshot(
+        status=status,
+        tick=ticks.get(symbol),
+        candles=(stored or {}).get("candles", []),
+        granularity=granularity,
+        candles_updated_at=(stored or {}).get("updated_at", 0.0),
+    )
 
 
 def closed_candles(candles: Sequence[Data], granularity: int, now: float) -> list[Data]:

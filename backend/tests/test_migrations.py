@@ -26,6 +26,10 @@ TABLES = {
     "recovery_codes",
     "password_reset_tokens",
     "deriv_connections",
+    "trading_settings",
+    "bot_sessions",
+    "trading_positions",
+    "trading_decisions",
 }
 
 

@@ -38,21 +38,24 @@ class LeadershipLostError(Exception):
 
 
 class Lease:
-    def __init__(self, client: Redis, owner: str, seconds: int = LEASE_SECONDS) -> None:
+    def __init__(
+        self, client: Redis, owner: str, seconds: int = LEASE_SECONDS, key: str = LEASE_KEY
+    ) -> None:
         self.owner = owner
+        self.key = key
         self._client = client
         self._seconds = seconds
         self._renew = client.register_script(_RENEW)
         self._release = client.register_script(_RELEASE)
 
     async def acquire(self) -> bool:
-        return bool(await self._client.set(LEASE_KEY, self.owner, nx=True, ex=self._seconds))
+        return bool(await self._client.set(self.key, self.owner, nx=True, ex=self._seconds))
 
     async def renew(self) -> bool:
-        return bool(await self._renew(keys=[LEASE_KEY], args=[self.owner, self._seconds]))
+        return bool(await self._renew(keys=[self.key], args=[self.owner, self._seconds]))
 
     async def release(self) -> None:
-        await self._release(keys=[LEASE_KEY], args=[self.owner])
+        await self._release(keys=[self.key], args=[self.owner])
 
 
 async def lead_while_holding(

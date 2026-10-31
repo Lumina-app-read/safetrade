@@ -158,7 +158,15 @@
     "market_unavailable": "Market data is unavailable right now.",
     "market_unknown_symbol": "This asset is not offered.",
     "market_invalid_granularity": "This interval is not offered.",
-    "market_too_many_streams": "Too many open streams. Close a tab and try again."
+    "market_too_many_streams": "Too many open streams. Close a tab and try again.",
+    "trading_invalid_settings": "A setting is outside the allowed range.",
+    "trading_symbol_not_allowed": "This asset is not one of your allowed assets.",
+    "trading_risk_not_accepted": "You must accept the risk warning before starting the bot.",
+    "trading_market_not_live": "This market is not available right now.",
+    "trading_bot_already_active": "A bot is already active on this account.",
+    "trading_no_active_bot": "No bot is active.",
+    "trading_position_not_found": "Position not found.",
+    "trading_position_not_open": "This position is no longer open."
   },
   "fields": {
     "required": "This field is required.",

@@ -64,7 +64,7 @@ Exemple de la règle de protection, à titre d'illustration : avec R = 5 USD, `a
 
 Vérifié en démo ([essais-demo-2026-10-31.md](essais-demo-2026-10-31.md)) : pas de trailing stop natif, et un stop loss ne peut pas passer en zone de gain. Son minimum observé vaut la commission + 0,01 USD. Conséquence pour le niveau 2 :
 
-- **Plancher chez Deriv** : dès que la position est en gain, le moteur resserre le stop loss vers ce minimum, un déplacement par seconde au plus. Si SafeTrade tombe, la position sort près de -(commission), glissement en plus, et non à -50 USD. Le plancher fonctionne sans le moteur, une fois posé. À confirmer : le niveau minimal lorsqu'il est demandé en cours de position.
+- **Plancher chez Deriv** : dès que la position est en gain, le moteur resserre le stop loss vers ce minimum, un déplacement par seconde au plus. Si SafeTrade tombe, la position sort près de -(commission), glissement en plus, et non à -50 USD. Le plancher fonctionne sans le moteur, une fois posé : position clôturée par Deriv à -0,24 au lieu de -0,50, moteur coupé ([moteur-trading.md](moteur-trading.md)). Le minimum annoncé est arrondi : 0,21 refusé, 0,22 accepté à ×400.
 - **Gain sécurisé par le moteur** : le cliquet en zone de gain se fait par `sell`, sur le flux de la position. **Il ne fonctionne que si SafeTrade est opérationnel.** En cas de panne, le gain non encaissé peut disparaître, seul le plancher reste.
 - **Take profit** facultatif chez Deriv, seul moyen d'encaisser un gain sans le moteur, mais il plafonne le gain s'il est utilisé seul.
 

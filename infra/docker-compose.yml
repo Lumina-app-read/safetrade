@@ -94,6 +94,32 @@ services:
       backend:
         condition: service_healthy
 
+  # Moteur de trading : seul processus qui émet des ordres, compte démo uniquement.
+  engine:
+    build: ../backend
+    image: safetradev2-backend:dev
+    container_name: safetradev2-engine
+    command: ["python", "-m", "app.trading.worker"]
+    environment:
+      SAFETRADE_ENVIRONMENT: development
+      SAFETRADE_REAL_ACCOUNT_ENABLED: "false"
+      SAFETRADE_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      SAFETRADE_REDIS_URL: redis://redis:6379/0
+      SAFETRADE_DERIV_APP_ID: ${SAFETRADE_DERIV_APP_ID:-}
+      SAFETRADE_ENCRYPTION_KEY: ${SAFETRADE_ENCRYPTION_KEY:?générer la clé, voir infra/.env.example}
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.market.health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    stop_grace_period: 10s
+    networks: [safetradev2]
+    depends_on:
+      backend:
+        condition: service_healthy
+
   frontend:
     build:
       context: ../frontend

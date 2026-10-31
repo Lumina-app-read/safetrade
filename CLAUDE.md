@@ -81,7 +81,7 @@ Objectif : un vrai produit SaaS de trading professionnel et international, pas u
 ## Docker : isolation absolue (règle permanente)
 
 - **Ne jamais supprimer, réinitialiser, renommer ni modifier** un conteneur, une base, un volume, un réseau ou une image qui n'appartient pas à SafeTrade V2 (MUYUEXCHANGE, MUYUSTORE, ancien SafeTrade `safetrade-api` et `safetrade-pg`, ou tout autre projet). Aucun `docker system prune`, `docker volume prune` ni commande globale.
-- Tout ce que crée SafeTrade V2 est préfixé `safetradev2` : projet Compose, base `safetradev2`, conteneurs `safetradev2-postgres`, `safetradev2-redis`, `safetradev2-backend`, `safetradev2-worker` et `safetradev2-frontend`, réseau `safetradev2-network`, volumes `safetradev2-postgres-data` et `safetradev2-redis-data`.
+- Tout ce que crée SafeTrade V2 est préfixé `safetradev2` : projet Compose, base `safetradev2`, conteneurs `safetradev2-postgres`, `safetradev2-redis`, `safetradev2-backend`, `safetradev2-worker`, `safetradev2-engine` et `safetradev2-frontend`, réseau `safetradev2-network`, volumes `safetradev2-postgres-data` et `safetradev2-redis-data`.
 - Avant de choisir ou de changer un port hôte : vérifier `netstat -ano | findstr LISTENING` et les ports réservés par **tous** les conteneurs, même arrêtés (`docker ps -a`). Entre conteneurs, toujours les ports standard des services.
 - Détails et relevé des ports : `docs/decisions/q14-isolation-docker.md`.
 
@@ -105,12 +105,13 @@ Objectif : un vrai produit SaaS de trading professionnel et international, pas u
 
 ## Mode de travail
 
-Directive du propriétaire du 30 octobre 2026, qui remplace la validation après chaque étape :
+Directive du propriétaire du 31 octobre 2026, qui remplace les précédentes :
 
-- Enchaîner les étapes de la section 20 dans l'ordre, dès que leurs dépendances sont satisfaites, sans demander de validation intermédiaire.
-- Interrompre le propriétaire uniquement pour : une décision commerciale ou stratégique que le cahier ne tranche pas, une question juridique, une dépense réelle ou une souscription externe, une action irréversible, une opération de production ou impliquant de vrais fonds, une information indispensable impossible à supposer.
-- Sinon : documenter le point bloquant dans `docs/decisions/`, adopter une hypothèse provisoire sûre, et avancer sur le travail indépendant.
-- Compte rendu concis à chaque jalon : réalisé, fichiers, tests et résultats, commit et branche, blocages, prochaine étape.
+- Développer par **blocs fonctionnels complets et intégrés**, de bout en bout, sans valider chaque petite étape. Regrouper le travail lié, ne pas répéter les analyses déjà faites.
+- Interrompre le propriétaire uniquement pour : une décision commerciale, réglementaire ou stratégique, une dépense externe, une action irréversible, une opération impliquant des fonds réels ou la production.
+- CI : classer un échec selon sa gravité. Corriger aussitôt sécurité, données, architecture et exécution ; documenter le mineur et continuer. Jamais de test désactivé. Une fonctionnalité dont un test essentiel échoue n'est pas validée.
+- Ne jamais présenter comme réelle une intégration qui n'a pas été essayée.
+- Rapport à la fin de chaque bloc, et seulement alors : ce qui a été développé, ce qui fonctionne et a été testé, les blocages, le commit et son état sur GitHub, la prochaine fonctionnalité concrète.
 
 ## Connexion au broker
 
@@ -119,6 +120,12 @@ Directive du propriétaire du 30 octobre 2026, qui remplace la validation après
 - `DerivConnection` ne renvoie jamais une requête. Une réponse d'achat perdue lève `OrderOutcomeUnknownError` : lire `statement` avant toute autre tentative.
 - Tests sur `tests/fake_deriv.py`, sans réseau.
 - Données de marché : worker `app/market/worker.py`, une connexion publique pour tout le serveur, puis Redis et flux SSE (`/market/stream`). Un seul worker actif (bail Redis vérifié à chaque écriture). Le statut d'un actif est calculé par le backend ; aucune ouverture sans `entry_refusal` nul (`app/market/quality.py`). Détails : `docs/decisions/q19-donnees-marche.md`.
+
+## Moteur de trading
+
+- Seul `safetradev2-engine` (`app/trading/worker.py`) émet des ordres ; l'API enregistre des demandes. Détails : `docs/decisions/moteur-trading.md`.
+- Tout ordre passe par `risk.order_refusal` et `entry_refusal`. Stop loss obligatoire, jamais retiré. Une position est écrite en base avant l'envoi.
+- Le mot d'ordre `stop_loss: null` est interdit : `DerivTrading.update_stop` le refuse.
 
 ## Git
 

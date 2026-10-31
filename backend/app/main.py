@@ -18,6 +18,7 @@ from app.deriv.router import router as deriv_router
 from app.errors import install_error_handlers
 from app.market.router import router as market_router
 from app.market.store import MarketStore, RedisMarketStore
+from app.trading.router import router as trading_router
 
 
 class Health(BaseModel):
@@ -86,6 +87,7 @@ def create_app(
     app.include_router(admin_router)
     app.include_router(deriv_router)
     app.include_router(market_router)
+    app.include_router(trading_router)
 
     @app.get("/health", response_model=Health, tags=["system"])
     def health() -> Health:

@@ -3,6 +3,7 @@
 import enum
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import (
@@ -13,9 +14,12 @@ from sqlalchemy import (
     ForeignKey,
     Identity,
     Index,
+    Integer,
     LargeBinary,
+    Numeric,
     String,
     Text,
+    UniqueConstraint,
     false,
     func,
     text,
@@ -226,3 +230,147 @@ class DerivConnectionRecord(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+Money = Numeric(14, 2)
+
+
+class BotState(enum.StrEnum):
+    STARTING = "starting"
+    ANALYZING = "analyzing"
+    POSITION_OPEN = "position_open"
+    PAUSED = "paused"
+    TARGET_REACHED = "target_reached"
+    LIMIT_REACHED = "limit_reached"
+    ERROR = "error"
+    STOPPING = "stopping"
+    STOPPED = "stopped"
+
+
+class PositionStatus(enum.StrEnum):
+    OPENING = "opening"  # enregistrée avant tout envoi
+    UNKNOWN = "unknown"  # envoyée, issue incertaine : statement obligatoire
+    OPEN = "open"
+    CLOSED = "closed"
+    VOID = "void"  # jamais exécutée
+
+
+class TradingSettings(Base):
+    """Paramètres de risque du client. Bornes appliquées par `app.trading.risk`."""
+
+    __tablename__ = "trading_settings"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    stake: Mapped[Decimal] = mapped_column(Money)
+    multiplier: Mapped[int] = mapped_column(Integer)
+    capital_pct: Mapped[Decimal] = mapped_column(Numeric(5, 2))
+    max_positions: Mapped[int] = mapped_column(Integer)
+    stop_loss_pct: Mapped[Decimal] = mapped_column(Numeric(5, 2))
+    session_target_pct: Mapped[Decimal] = mapped_column(Numeric(5, 2))
+    session_loss_pct: Mapped[Decimal] = mapped_column(Numeric(5, 2))
+    daily_target_pct: Mapped[Decimal] = mapped_column(Numeric(5, 2))
+    daily_loss_pct: Mapped[Decimal] = mapped_column(Numeric(5, 2))
+    max_consecutive_losses: Mapped[int] = mapped_column(Integer)
+    pause_minutes: Mapped[int] = mapped_column(Integer)
+    activation_r: Mapped[Decimal] = mapped_column(Numeric(6, 3))
+    locked_fraction: Mapped[Decimal] = mapped_column(Numeric(4, 3))
+    allowed_symbols: Mapped[list[str]] = mapped_column(JSONB)
+    timezone: Mapped[str] = mapped_column(String(64))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class BotSession(Base):
+    """Une exécution du bot. L'index partiel interdit deux bots actifs sur un compte."""
+
+    __tablename__ = "bot_sessions"
+    __table_args__ = (
+        Index(
+            "uq_bot_sessions_active_account",
+            "account_id",
+            unique=True,
+            postgresql_where=text("ended_at IS NULL"),
+        ),
+        Index("ix_bot_sessions_user_started", "user_id", "started_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    account_id: Mapped[str] = mapped_column(String(50))
+    account_kind: Mapped[str] = mapped_column(String(10))
+    symbol: Mapped[str] = mapped_column(String(30))
+    state: Mapped[str] = mapped_column(String(20), default=BotState.STARTING)
+    # Demande du client, lue et effacée par le moteur.
+    command: Mapped[str | None] = mapped_column(String(20))
+    stop_reason: Mapped[str | None] = mapped_column(String(50))
+    error_code: Mapped[str | None] = mapped_column(String(80))
+    start_balance: Mapped[Decimal | None] = mapped_column(Money)
+    paused_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class TradingPosition(Base):
+    """
+    Écrite avant tout envoi à Deriv. Un seul ordre en attente par compte : un second achat
+    est impossible tant qu'une issue reste inconnue, même après un redémarrage.
+    """
+
+    __tablename__ = "trading_positions"
+    __table_args__ = (
+        Index(
+            "uq_trading_positions_pending_account",
+            "account_id",
+            unique=True,
+            postgresql_where=text("status IN ('opening', 'unknown')"),
+        ),
+        Index("ix_trading_positions_session", "session_id", "status"),
+        Index("ix_trading_positions_user_closed", "user_id", "closed_at"),
+        UniqueConstraint("contract_id", name="uq_trading_positions_contract"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("bot_sessions.id"))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    account_id: Mapped[str] = mapped_column(String(50))
+    symbol: Mapped[str] = mapped_column(String(30))
+    direction: Mapped[str] = mapped_column(String(10))
+    stake: Mapped[Decimal] = mapped_column(Money)
+    multiplier: Mapped[int] = mapped_column(Integer)
+    stop_loss: Mapped[Decimal] = mapped_column(Money)
+    status: Mapped[str] = mapped_column(String(10), default=PositionStatus.OPENING)
+    contract_id: Mapped[int | None] = mapped_column(BigInteger)
+    buy_price: Mapped[Decimal | None] = mapped_column(Money)
+    commission: Mapped[Decimal | None] = mapped_column(Money)
+    current_stop: Mapped[Decimal | None] = mapped_column(Money)
+    current_profit: Mapped[Decimal | None] = mapped_column(Money)
+    peak_profit: Mapped[Decimal] = mapped_column(Money, default=Decimal(0))
+    close_requested: Mapped[bool] = mapped_column(server_default=false())
+    close_reason: Mapped[str | None] = mapped_column(String(50))
+    sell_price: Mapped[Decimal | None] = mapped_column(Money)
+    net_result: Mapped[Decimal | None] = mapped_column(Money)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class TradingDecision(Base):
+    """Journal des décisions avec leurs données d'entrée, en ajout seul."""
+
+    __tablename__ = "trading_decisions"
+    __table_args__ = (Index("ix_trading_decisions_session", "session_id", "id"),)
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(always=True), primary_key=True)
+    session_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("bot_sessions.id"))
+    position_id: Mapped[uuid.UUID | None]
+    kind: Mapped[str] = mapped_column(String(30))
+    code: Mapped[str | None] = mapped_column(String(80))
+    data: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
