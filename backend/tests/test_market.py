@@ -81,6 +81,8 @@ class FakeBroker:
             return {"active_symbols": self.rows}
         if call == "time":
             return {"time": 999}
+        if call == "contracts_for":
+            return {"contracts_for": {"available": []}}
         self.history.append(payload)
         return {"candles": self.candles}
 
@@ -445,7 +447,8 @@ def test_assets_and_candles_routes(signed_in: Callable[[MarketStore | None], Tes
     )
     invalid = client.get("/market/candles", params={"symbol": "A", "granularity": 7})
     assert error_code(invalid) == "market.invalid_granularity"
-    assert client.get("/market/candles", params={"symbol": "B"}).status_code == 503
+    pending = client.get("/market/candles", params={"symbol": "B"}).json()
+    assert (pending["candles"], pending["refreshing"]) == ([], True)
 
 
 @requires_db

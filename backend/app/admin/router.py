@@ -5,13 +5,15 @@ Les modules complets de la section 10 arrivent en phase 5.
 """
 
 from typing import Annotated
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, Query, Request
+from pydantic import BaseModel, Field
 from sqlalchemy import func, or_, select
 
-from app import audit
+from app import audit, site
 from app.authz import AdminUser, Permission, permissions_of, require_admin, require_permission
-from app.db.models import AuditLog, User
+from app.db.models import AuditLog, SiteSetting, User
 from app.deps import AppSettings, Db, check_origin, client_ip
 from app.errors import ApiError
 from app.market.router import asset_views
@@ -22,6 +24,21 @@ router = APIRouter(
     tags=["admin"],
     dependencies=[Depends(check_origin), Depends(require_admin)],
 )
+
+
+class SiteIn(BaseModel):
+    deriv_signup_url: str | None = Field(default=None, max_length=500)
+
+
+def clean_url(raw: str | None) -> str | None:
+    """Vide : le lien disparaît du site. Sinon, une adresse https sans identifiants."""
+    url = (raw or "").strip()
+    if not url:
+        return None
+    parts = urlsplit(url)
+    if parts.scheme != "https" or not parts.hostname or parts.username or " " in url:
+        raise ApiError(422, "admin.invalid_url")
+    return url
 
 
 @router.get("/me")
@@ -111,6 +128,40 @@ def read_audit(
     return {"entries": entries}
 
 
+@router.get("/site")
+def read_site(
+    db: Db, _: Annotated[User, Depends(require_permission(Permission.SETTINGS_WRITE))]
+) -> dict[str, str | None]:
+    return {"deriv_signup_url": site.deriv_signup_url(db)}
+
+
+@router.put("/site")
+def write_site(
+    body: SiteIn,
+    request: Request,
+    db: Db,
+    user: Annotated[User, Depends(require_permission(Permission.SETTINGS_WRITE))],
+) -> dict[str, str | None]:
+    url = clean_url(body.deriv_signup_url)
+    row = db.get(SiteSetting, site.DERIV_SIGNUP_URL)
+    if url is None and row is not None:
+        db.delete(row)
+    elif url is not None and row is None:
+        db.add(SiteSetting(key=site.DERIV_SIGNUP_URL, value=url, updated_by=user.id))
+    elif url is not None and row is not None:
+        row.value, row.updated_by = url, user.id
+    audit.record(
+        db,
+        "admin.site_settings",
+        "success",
+        actor_user_id=user.id,
+        ip_address=client_ip(request),
+        details={"deriv_signup_url": url},
+    )
+    db.commit()
+    return {"deriv_signup_url": url}
+
+
 @router.get("/monitoring/market")
 async def market_monitoring(
     request: Request,
@@ -124,6 +175,6 @@ async def market_monitoring(
     alerts = await store.get_alerts()
     return {
         "feed": await store.get_health(),
-        "assets": await asset_views(store, settings.market_symbols),
+        "assets": await asset_views(store),
         "alerts": alerts[:50],
     }

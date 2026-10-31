@@ -79,6 +79,8 @@ class User(Base):
     theme: Mapped[str] = mapped_column(String(5), default="auto", server_default="auto")
     # Fuseau du client : la « journée » des limites de risque se calcule dans ce fuseau (section 7).
     time_zone: Mapped[str] = mapped_column(String(64), default="UTC", server_default="UTC")
+    # Actifs de la barre de trading, dans l'ordre choisi. Vide : les actifs par défaut.
+    market_watchlist: Mapped[list[str] | None] = mapped_column(JSONB)
     # Double authentification : secret chiffré (AES-256-GCM, app/crypto.py), activée ou non,
     # et dernier pas de temps accepté (un même code ne sert jamais deux fois).
     totp_secret_encrypted: Mapped[str | None] = mapped_column(Text)
@@ -579,3 +581,16 @@ class AffiliateCommission(Base):
     available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     payout_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("affiliate_payouts.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class SiteSetting(Base):
+    """Réglages du site modifiables dans l'administration, sans changer le code."""
+
+    __tablename__ = "site_settings"
+
+    key: Mapped[str] = mapped_column(String(50), primary_key=True)
+    value: Mapped[str] = mapped_column(Text)
+    updated_by: Mapped[uuid.UUID | None]
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

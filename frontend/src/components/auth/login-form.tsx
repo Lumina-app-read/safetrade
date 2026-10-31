@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, KeyRound, Mail, ShieldCheck, Smartphone } from "lucide-react";
+import { ArrowLeft, ArrowRight, Mail, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -8,6 +8,7 @@ import { useState, type FormEvent } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { CodeInput } from "@/components/ui/code-input";
 import { Field } from "@/components/ui/field";
 import { PasswordField } from "@/components/ui/password-field";
 import type { Locale } from "@/i18n/config";
@@ -151,7 +152,8 @@ function MfaStep({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<ApiErr | null>(null);
   const v = messages.auth.validation;
-  const { field, validate } = useFormErrors({ code: recovery ? recoveryRule(v) : totpRule(v) });
+  const [attempt, setAttempt] = useState(0);
+  const { field, validate, change } = useFormErrors({ code: recovery ? recoveryRule(v) : totpRule(v) });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -163,6 +165,8 @@ function MfaStep({
     if (result.ok) return onSuccess(result.data.user?.role);
     setPending(false);
     setError(result);
+    // Code refusé : les cases se vident pour une nouvelle saisie.
+    setAttempt((value) => value + 1);
   }
 
   return (
@@ -176,30 +180,28 @@ function MfaStep({
       </div>
       {error && <Alert tone="error">{errorMessage(messages, error)}</Alert>}
       {recovery ? (
-        <Field
+        <CodeInput
+          key={attempt}
+          name="code"
           label={t.recoveryCode}
-          icon={KeyRound}
-          {...field("code")}
+          boxLabel={messages.auth.codeBox}
+          length={8}
+          groupAt={4}
+          kind="letters"
+          error={field("code").error}
+          onValueChange={(value) => change("code", value)}
           autoFocus
-          autoComplete="off"
-          autoCapitalize="characters"
-          spellCheck={false}
-          maxLength={9}
-          placeholder={t.recoveryPlaceholder}
-          enterKeyHint="go"
         />
       ) : (
-        <Field
+        <CodeInput
+          key={attempt}
+          name="code"
           label={t.code}
-          icon={Smartphone}
-          {...field("code")}
+          boxLabel={messages.auth.codeBox}
+          error={field("code").error}
+          onValueChange={(value) => change("code", value)}
           autoFocus
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          maxLength={7}
-          placeholder={t.codePlaceholder}
-          enterKeyHint="go"
-          className="[&_input]:tracking-[0.3em] [&_input]:tabular-nums"
+          autoSubmit
         />
       )}
       <Button type="submit" variant="accent" size="lg" pending={pending} className="w-full">

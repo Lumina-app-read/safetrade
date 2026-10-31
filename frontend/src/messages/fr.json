@@ -147,7 +147,8 @@
       "sent": "Demande prise en compte. Si cette adresse attend une confirmation, un nouveau lien vient de partir.",
       "wait": "Nouvel envoi possible dans {seconds} s",
       "hint": "Rien reçu ? Vérifiez vos courriers indésirables avant de renvoyer le lien."
-    }
+    },
+    "codeBox": "Caractère {n} sur {total}"
   },
   "errors": {
     "auth_invalid_credentials": "Adresse e-mail ou mot de passe incorrect.",
@@ -203,7 +204,9 @@
     "affiliate_already_applied": "Une demande existe déjà pour ce compte.",
     "affiliate_invalid_state": "Cette action n'est plus possible : la situation a changé.",
     "affiliate_not_found": "Affilié introuvable.",
-    "affiliate_nothing_to_pay": "Rien à verser pour le moment."
+    "affiliate_nothing_to_pay": "Rien à verser pour le moment.",
+    "trading_no_multipliers": "Deriv ne propose pas de multiplicateurs sur cet actif : le bot ne peut pas le trader.",
+    "admin_invalid_url": "Indiquez une adresse complète commençant par https://."
   },
   "fields": {
     "required": "Ce champ est obligatoire.",
@@ -594,7 +597,8 @@
         "error": "Incident en cours. Aucune nouvelle position.",
         "stopping": "Plus de nouvelle position. La session se termine à la clôture des positions.",
         "stopped": "Aucune activité."
-      }
+      },
+      "blockedContract": "Deriv ne propose pas de multiplicateurs sur cet actif : le bot ne peut pas le trader."
     },
     "positions": {
       "emptyTitle": "Aucune position ouverte",
@@ -798,6 +802,29 @@
       "ContractUpdateTooFrequent": "Mise à jour trop rapprochée, nouvel essai.",
       "InvalidtoSell": "Vente pas encore possible, nouvel essai.",
       "billing_expired": "Essai ou abonnement terminé : plus de nouvelle position."
+    },
+    "assets": {
+      "add": "Ajouter",
+      "title": "Actifs de ma barre",
+      "search": "Rechercher un actif",
+      "searchPlaceholder": "Boom, Jump, Step, Volatility",
+      "noResult": "Aucun actif ne correspond à cette recherche.",
+      "addAll": "Tout ajouter",
+      "removeAll": "Tout retirer",
+      "noBot": "Graphique seulement : pas de multiplicateurs",
+      "suddenNote": "Mouvements brusques : le glissement à la clôture peut être plus fort que sur les autres indices.",
+      "required": "Choisissez au moins un actif.",
+      "save": "Enregistrer ({count})",
+      "groups": {
+        "volatility": "Volatility",
+        "crashBoom": "Crash et Boom",
+        "jump": "Jump",
+        "step": "Step",
+        "range": "Range Break",
+        "baskets": "Paniers",
+        "daily": "Bull et Bear",
+        "other": "Autres marchés"
+      }
     }
   },
   "plans": {
@@ -970,6 +997,27 @@
         "admin": "Annulée par l'administration"
       },
       "days": "jours"
-    }
+    },
+    "summary": "Vos chiffres d'affiliation",
+    "share": "Partager mon lien",
+    "shareText": "Je vous recommande SafeTrade. Le trading comporte un risque de perte en capital."
+  },
+  "derivSignup": {
+    "title": "Vous n'avez pas de compte Deriv ?",
+    "body": "Créez-en un pour connecter SafeTrade. Vos fonds restent chez Deriv.",
+    "action": "Créer un compte Deriv",
+    "disclosure": "Lien partenaire : SafeTrade peut recevoir une commission de Deriv."
+  },
+  "adminSettings": {
+    "subtitle": "Réglages visibles sur tout le site.",
+    "partner": "Lien partenaire Deriv",
+    "partnerBody": "Ce lien alimente l'invitation à créer un compte Deriv, sur la page de trading, le tableau de bord, la page d'accueil et après l'inscription.",
+    "url": "Adresse du lien",
+    "urlPlaceholder": "https://",
+    "urlHint": "Laissez vide pour retirer l'invitation du site.",
+    "urlInvalid": "Indiquez une adresse complète commençant par https://.",
+    "save": "Enregistrer",
+    "saving": "Enregistrement",
+    "saved": "Lien enregistré. Il s'applique au prochain chargement des pages."
   }
 }

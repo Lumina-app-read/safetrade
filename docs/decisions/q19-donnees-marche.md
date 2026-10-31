@@ -12,7 +12,7 @@ Deriv (point public)  ->  worker safetradev2-worker  ->  Redis  ->  API  ->  nav
 - **Une seule connexion** pour tout le serveur : les prix ne consomment ni un jeton ni une connexion par utilisateur. L'API ne parle jamais à Deriv pour les prix.
 - **Server-Sent Events** plutôt que WebSocket : le flux va du serveur au navigateur uniquement, et il passe par la réécriture `/api` de Next.js avec le cookie de session (vérifié : ticks reçus au fil de l'eau). Aucune dépendance ajoutée.
 - `GET /market/assets`, `GET /market/candles`, `GET /market/stream` : session obligatoire. Un flux dure 5 minutes au plus puis le navigateur se reconnecte, ce qui revalide la session. 5 flux au plus par utilisateur et par instance d'API.
-- Actifs suivis : `SAFETRADE_MARKET_SYMBOLS`. Leur état, leur nom et leur précision viennent toujours de `active_symbols`, relu chaque minute.
+- Actifs suivis : `SAFETRADE_MARKET_SYMBOLS`, plus tous les indices synthétiques ([catalogue-actifs.md](catalogue-actifs.md)). Leur état, leur nom et leur précision viennent toujours de `active_symbols`, relu chaque minute.
 
 ## Statut d'un actif
 
@@ -33,7 +33,7 @@ Le backend calcule le statut, le front-end l'affiche. **Seul `live` autorisera u
 - Trou de plus de 15 s : événement `gap` et bougies de l'actif relues en priorité.
 - Flux muet plus de 30 s sur un marché ouvert, ou reprise refusée : réouverture.
 - Bougies : ordre strict et plus-haut, plus-bas cohérents, sinon non enregistrées.
-- Quatre intervalles (1, 5, 15 et 60 minutes), 500 bougies, un rafraîchissement toutes les 1,5 s : 40 appels par minute, sous les 176 du quota retenu.
+- Quatre intervalles (1, 5, 15 et 60 minutes), 500 bougies, une relecture toutes les 0,5 s au plus : 120 appels par minute, sous les 176 du quota retenu. Seuls les actifs demandés sont relus.
 
 ## Un seul worker actif
 

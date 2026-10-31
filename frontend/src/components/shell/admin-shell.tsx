@@ -54,7 +54,7 @@ const MODULES: Array<{ key: ModuleKey; icon: LucideIcon; permission?: string; pa
   { key: "payments", icon: Coins, permission: "payments.read" },
   { key: "affiliates", icon: UserCog, permission: "affiliates.read", path: "/affiliates" },
   { key: "risk", icon: Gauge, permission: "risk.write" },
-  { key: "settings", icon: Settings, permission: "settings.write" },
+  { key: "settings", icon: Settings, permission: "settings.write", path: "/settings" },
   { key: "team", icon: ShieldCheck, permission: "team.write" },
   { key: "audit", icon: ScrollText, permission: "audit.read" },
 ];
@@ -163,7 +163,7 @@ function AdminGate({ locale, messages, children }: { locale: Locale; messages: M
             <div className="flex h-16 items-center gap-3 px-5 sm:px-6">
               <span className="flex min-w-0 items-center gap-3 lg:hidden">
                 <Logo compact />
-                <span className="truncate text-label font-medium text-muted">{t.brand}</span>
+                <span className="truncate text-label font-medium text-muted max-sm:hidden">{t.brand}</span>
               </span>
               <div className="ml-auto flex items-center gap-2">
                 <ThemeToggle labels={messages.theme} />

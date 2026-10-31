@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartLine, CreditCard, Gift, History, LayoutDashboard, UserRound, type LucideIcon } from "lucide-react";
+import { ChartLine, CreditCard, Gift, History, LayoutDashboard, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -21,11 +21,8 @@ const NAV: NavItem[] = [
   { path: "/trading", label: "trading", icon: ChartLine },
   { path: "/history", label: "history", icon: History },
   { path: "/subscription", label: "subscription", short: "plan", icon: CreditCard },
+  { path: "/affiliate", label: "affiliate", icon: Gift },
 ];
-
-const ACCOUNT: NavItem = { path: "/account/security", label: "account", icon: UserRound };
-// Barre du haut uniquement : sur téléphone, le parrainage est dans le menu du compte.
-const AFFILIATE: NavItem = { path: "/affiliate", label: "affiliate", icon: Gift };
 
 /**
  * Coquille de l'espace client. Téléphone : barre compacte en haut et onglets en bas,
@@ -46,7 +43,7 @@ export function AppShell({ locale, messages, children }: { locale: Locale; messa
               <Logo compact />
             </Link>
             <nav aria-label={messages.nav.primary} className="mx-auto hidden items-center gap-1 lg:flex">
-              {[...NAV, AFFILIATE].map(({ path, label, icon: Icon }) => (
+              {NAV.map(({ path, label, icon: Icon }) => (
                 <Link
                   key={path}
                   href={`/${locale}${path}`}
@@ -78,7 +75,7 @@ export function AppShell({ locale, messages, children }: { locale: Locale; messa
           aria-label={messages.nav.primary}
           className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-line bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
         >
-          {[...NAV, ACCOUNT].map(({ path, label, short, icon: Icon }) => (
+          {NAV.map(({ path, label, short, icon: Icon }) => (
             <Link
               key={path}
               href={`/${locale}${path}`}

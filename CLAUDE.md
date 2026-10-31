@@ -52,6 +52,7 @@ Le backend est la seule source de vérité. Le front-end envoie des demandes et 
 - Grille de 8 px, cartes à 24 px de marge interne, coins de 8 à 12 px, bordures 1 px, ombres légères ou absentes.
 - Responsive : chaque écran est utilisable sur téléphone.
 - **Champs de saisie** (composant `Field`) : icône Lucide en tête, texte indicatif (placeholder) traduit, focus rouge de marque avec halo léger.
+- **Codes** (composant `CodeInput`) : une case par caractère, jamais un champ unique. Un code collé remplit toutes les cases.
 - **Formulaires** : `noValidate` et `useFormErrors` (`src/lib/use-form-errors.ts`), règles dans `src/lib/validation.ts`. Erreur en rouge sous le champ, jamais de bulle du navigateur ; le serveur revalide tout.
 - **Valeurs absentes** : jamais de long trait. Toujours un texte réel et traduit (« Aucun », « Non connecté », « En attente »), qui change quand la donnée arrive. Un test le vérifie (`design-rules.test.ts`).
 - **Équilibre rouge et anthracite** (décision du propriétaire) : ni tout rouge ni tout noir. Anthracite pour la navigation, la validation et les grandes surfaces ; rouge pour les actions de trading, l'appel d'action unique d'un panneau et les éléments sélectionnés.
@@ -124,6 +125,7 @@ Directive du propriétaire du 31 octobre 2026, qui remplace les précédentes :
 - `DerivConnection` ne renvoie jamais une requête. Une réponse d'achat perdue lève `OrderOutcomeUnknownError` : lire `statement` avant toute autre tentative.
 - Tests sur `tests/fake_deriv.py`, sans réseau.
 - Données de marché : worker `app/market/worker.py`, une connexion publique pour tout le serveur, puis Redis et flux SSE (`/market/stream`). Un seul worker actif (bail Redis vérifié à chaque écriture). Le statut d'un actif est calculé par le backend ; aucune ouverture sans `entry_refusal` nul (`app/market/quality.py`). Détails : `docs/decisions/q19-donnees-marche.md`.
+- Catalogue lu chez Deriv (tous les indices synthétiques), jamais écrit en dur. Ticks sur tout le catalogue ; bougies seulement pour les actifs demandés (`store.demand`). Détails : `docs/decisions/catalogue-actifs.md`.
 
 ## Moteur de trading
 

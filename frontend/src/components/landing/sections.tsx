@@ -34,6 +34,7 @@ import type { Messages } from "@/i18n/messages";
 import { cn } from "@/lib/cn";
 
 import { SECTIONS } from "./anchors";
+import { DerivSignup } from "@/components/deriv-signup";
 import { Reveal } from "./reveal";
 import { TradingPreview } from "./trading-preview";
 
@@ -149,6 +150,9 @@ export function HowItWorks({ messages }: Props) {
           </Reveal>
         ))}
       </ol>
+      <div className="mt-6 empty:hidden">
+        <DerivSignup messages={messages} />
+      </div>
     </Section>
   );
 }

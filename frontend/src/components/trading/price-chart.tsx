@@ -16,6 +16,9 @@ type Bar = { time: UTCTimestamp; open: number; high: number; low: number; close:
 
 const VISIBLE_BARS = 90;
 const REFRESH_MS = 60000;
+// Actif tout juste demandé : le flux relit ses bougies en moins d'une seconde.
+const PENDING_RETRY_MS = 1500;
+const PENDING_RETRIES = 12;
 
 /** Couleurs lues dans les jetons du thème : le graphique suit le clair et le sombre. */
 function theme() {
@@ -110,9 +113,11 @@ export function PriceChart({ symbol, granularity, decimals, market, positions, l
     if (!ready) return;
     let stopped = false;
     let first = true;
+    let retries = 0;
+    let retry: ReturnType<typeof setTimeout> | undefined;
 
     async function load() {
-      const result = await api<{ candles: Candle[] }>(`/market/candles?symbol=${encodeURIComponent(symbol)}&granularity=${granularity}`);
+      const result = await api<{ candles: Candle[]; refreshing: boolean }>(`/market/candles?symbol=${encodeURIComponent(symbol)}&granularity=${granularity}`);
       if (stopped || !series.current) return;
       if (!result.ok) {
         if (first) setState("empty");
@@ -121,11 +126,16 @@ export function PriceChart({ symbol, granularity, decimals, market, positions, l
       const bars = result.data.candles.map((c) => ({ ...c, time: c.epoch as UTCTimestamp }));
       series.current.setData(bars);
       last.current = bars.at(-1) ?? null;
-      if (first) {
+      if (first && bars.length) {
         first = false;
         chart.current?.timeScale().setVisibleLogicalRange({ from: Math.max(0, bars.length - VISIBLE_BARS), to: bars.length + 4 });
       }
-      setState(bars.length ? "ready" : "empty");
+      const waiting = result.data.refreshing && retries < PENDING_RETRIES;
+      if (waiting) {
+        retries += 1;
+        retry = setTimeout(() => void load(), PENDING_RETRY_MS);
+      }
+      setState(bars.length ? "ready" : waiting ? "loading" : "empty");
     }
 
     void load();
@@ -133,6 +143,7 @@ export function PriceChart({ symbol, granularity, decimals, market, positions, l
     return () => {
       stopped = true;
       clearInterval(timer);
+      clearTimeout(retry);
     };
   }, [ready, symbol, granularity, version]);
 

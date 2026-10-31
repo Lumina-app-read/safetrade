@@ -17,6 +17,7 @@ import { cn } from "@/lib/cn";
 import { useFormErrors } from "@/lib/use-form-errors";
 import { requiredRule } from "@/lib/validation";
 
+import { DerivSignup } from "../deriv-signup";
 import type { DerivConnection } from "./types";
 
 type Failure = { code: string; retryAfter?: number };
@@ -54,6 +55,7 @@ function ConnectForm({ messages, onDone, invalid }: { messages: Messages; onDone
           <Link2 size={18} strokeWidth={1.5} aria-hidden />
           {t.open}
         </Button>
+        <DerivSignup messages={messages} variant="inline" />
       </div>
     );
   }

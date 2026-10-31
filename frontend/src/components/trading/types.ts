@@ -15,7 +15,10 @@ export type Asset = {
   symbol: string;
   name: string;
   market: string;
+  submarket: string | null;
   pip_size: number;
+  /** Deriv propose des multiplicateurs sur cet actif ; `null` : pas encore lu. */
+  multipliers: boolean | null;
   status: AssetStatus;
   tick: Tick | null;
 };

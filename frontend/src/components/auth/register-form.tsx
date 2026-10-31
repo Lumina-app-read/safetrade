@@ -7,6 +7,7 @@ import { useState, type FormEvent } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CodeInput } from "@/components/ui/code-input";
 import { Field } from "@/components/ui/field";
 import { PasswordField } from "@/components/ui/password-field";
 import type { Locale } from "@/i18n/config";
@@ -15,6 +16,7 @@ import { api, errorMessage } from "@/lib/api";
 import { useFormErrors } from "@/lib/use-form-errors";
 import { emailRule, newPasswordRule, requiredRule } from "@/lib/validation";
 
+import { DerivSignup } from "../deriv-signup";
 import { GoogleButton } from "./google-button";
 import { PasswordRules } from "./password-rules";
 import { ResendVerification } from "./resend-verification";
@@ -35,11 +37,11 @@ export function RegisterForm({ locale, messages, referral }: { locale: Locale; m
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [showCode, setShowCode] = useState(Boolean(referral));
   const v = messages.auth.validation;
-  const { errors, field, validate, setError: setFieldError } = useFormErrors({
+  const { errors, field, validate, change, setError: setFieldError } = useFormErrors({
     first_name: requiredRule(v.firstNameRequired),
     email: emailRule(v),
     password: newPasswordRule(v),
-    referral_code: (value) => (!value.trim() || /^[A-Za-z0-9]{4,16}$/.test(value.trim()) ? undefined : v.referralInvalid),
+    referral_code: (value) => (!value.trim() || /^[A-Za-z0-9]{8}$/.test(value.trim()) ? undefined : v.referralInvalid),
   });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -80,6 +82,9 @@ export function RegisterForm({ locale, messages, referral }: { locale: Locale; m
           <p className="mt-2 text-muted">{interpolate(t.successBody, { email: sentTo })}</p>
         </div>
         <ResendVerification email={sentTo} messages={messages} />
+        <div className="w-full empty:hidden">
+          <DerivSignup messages={messages} />
+        </div>
         <a
           href={`/${locale}/login`}
           className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-line bg-card text-label font-medium hover:bg-page"
@@ -132,18 +137,15 @@ export function RegisterForm({ locale, messages, referral }: { locale: Locale; m
         hint={<PasswordRules password={password} labels={t} invalid={Boolean(errors.password)} />}
       />
       {showCode ? (
-        <Field
+        <CodeInput
+          name="referral_code"
           label={t.referralCode}
-          icon={Gift}
-          placeholder={t.referralPlaceholder}
+          boxLabel={messages.auth.codeBox}
+          length={8}
+          kind="letters"
           defaultValue={referral}
-          maxLength={16}
-          autoComplete="off"
-          autoCapitalize="characters"
-          spellCheck={false}
-          enterKeyHint="next"
-          {...field("referral_code")}
-          aria-required={false}
+          error={errors.referral_code}
+          onValueChange={(value) => change("referral_code", value)}
         />
       ) : (
         <button

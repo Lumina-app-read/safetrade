@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownRight, ArrowUpRight, CircleAlert, FlaskConical, History, Layers, LoaderCircle, Lock, ScrollText, SlidersHorizontal, WifiOff, type LucideIcon } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, CircleAlert, FlaskConical, History, Layers, LoaderCircle, Lock, Plus, ScrollText, SlidersHorizontal, WifiOff, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { Badge, type BadgeTone } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import { formatters } from "@/i18n/format";
 import { interpolate, type Messages } from "@/i18n/messages";
 import { cn } from "@/lib/cn";
 
+import { AssetPicker } from "./asset-picker";
 import { BotPanel } from "./bot-panel";
 import { DerivPanel } from "./deriv-panel";
 import { HistoryPanel } from "./history-panel";
@@ -56,14 +57,18 @@ function Notice({ icon: Icon, tone, children }: { icon: LucideIcon; tone: "warn"
 
 function InstrumentStrip({
   market,
+  assets,
   selected,
   onSelect,
+  onAdd,
   locale,
   messages,
 }: {
   market: Market;
+  assets: Asset[];
   selected: string | null;
   onSelect: (symbol: string) => void;
+  onAdd: () => void;
   locale: Locale;
   messages: Messages;
 }) {
@@ -79,8 +84,9 @@ function InstrumentStrip({
     );
   }
   return (
-    <div role="listbox" aria-label={t.instruments} className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
-      {market.assets.map((asset) => {
+    <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
+      <div role="listbox" aria-label={t.instruments} className="flex gap-2">
+      {assets.map((asset) => {
         const tick = market.prices[asset.symbol] ?? asset.tick;
         const active = asset.symbol === selected;
         return (
@@ -106,6 +112,18 @@ function InstrumentStrip({
           </button>
         );
       })}
+      </div>
+      {/* Toujours visible, même au début d'une longue liste. */}
+      <div className="sticky right-0 shrink-0 bg-card pl-1">
+        <button
+          type="button"
+          onClick={onAdd}
+          className="flex min-h-16 w-24 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-muted/60 text-label font-medium text-accent-text transition-colors hover:border-accent"
+        >
+          <Plus size={18} strokeWidth={1.5} aria-hidden />
+          {t.assets.add}
+        </button>
+      </div>
     </div>
   );
 }
@@ -157,8 +175,8 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
   const t = messages.trading;
   const f = formatters(locale);
   const { user } = useSession();
-  const market = useMarket();
   const bot = usePolled<BotResponse>("/trading/bot", 2000);
+  const watchlist = usePolled<{ symbols: string[] }>("/market/watchlist", 0);
   const deriv = usePolled<DerivConnection>("/deriv/connection", 30000);
   const settings = usePolled<SettingsResponse>("/trading/settings", 0);
   const summary = usePolled<Summary>("/trading/summary", 4000);
@@ -168,10 +186,21 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
   const [granularity, setGranularity] = useState<number>(GRANULARITIES[0]);
   const [tab, setTab] = useState<Tab>("positions");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const session = bot.data?.session ?? null;
+  const watched = watchlist.data?.symbols;
+  const running = session?.symbol;
+  // L'actif d'un bot reste suivi, même retiré de la barre.
+  const streamed = useMemo(() => (watched ? [...new Set([...watched, ...(running ? [running] : [])])] : null), [watched, running]);
+  const market = useMarket(streamed);
+  const shown = useMemo(
+    () => (watched ?? []).map((value) => market.assets.find((a) => a.symbol === value)).filter((a): a is Asset => a !== undefined),
+    [watched, market.assets],
+  );
   const positions = useMemo(() => bot.data?.open_positions ?? [], [bot.data]);
-  const symbol = picked ?? session?.symbol ?? market.assets.find((a) => a.status === "live")?.symbol ?? market.assets[0]?.symbol ?? null;
+  const kept = shown.some((a) => a.symbol === picked) ? picked : null;
+  const symbol = kept ?? session?.symbol ?? shown.find((a) => a.status === "live")?.symbol ?? shown[0]?.symbol ?? null;
   const asset = market.assets.find((a) => a.symbol === symbol);
   const tick = symbol ? (market.prices[symbol] ?? asset?.tick ?? null) : null;
 
@@ -189,9 +218,11 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
       ? t.bot.blockedAsset
       : asset.status !== "live"
         ? interpolate(t.bot.blockedMarket, { name: asset.name, status: t.statuses[asset.status] })
-        : settings.data && !allowed.includes(asset.symbol)
-          ? t.bot.blockedAllowed
-          : null;
+        : asset.multipliers === false
+          ? t.bot.blockedContract
+          : settings.data && !allowed.includes(asset.symbol)
+            ? t.bot.blockedAllowed
+            : null;
 
   const frozen = asset?.status === "stale" || (asset?.status === "live" && tick !== null && now > 0 && now / 1000 - tick.received_at > FROZEN_SECONDS);
   const reload = () => {
@@ -297,7 +328,7 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
       </section>
 
         <Card className="flex min-w-0 flex-col gap-3 p-3 max-lg:order-2 sm:p-4 lg:col-start-1 lg:row-start-2">
-          <InstrumentStrip market={market} selected={symbol} onSelect={setPicked} locale={locale} messages={messages} />
+          <InstrumentStrip market={market} assets={shown} selected={symbol} onSelect={setPicked} onAdd={() => setPickerOpen(true)} locale={locale} messages={messages} />
           <div className="flex flex-wrap items-center justify-between gap-2 px-1">
             {asset ? <Quote key={asset.symbol} asset={asset} price={tick?.quote ?? null} locale={locale} messages={messages} /> : <span />}
             <div role="radiogroup" aria-label={t.chart.interval} className="flex rounded-lg border border-line p-0.5">
@@ -382,7 +413,26 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
 
       <Dialog open={settingsOpen} onClose={() => setSettingsOpen(false)} title={t.settings.title} closeLabel={t.close}>
         {settings.data && (
-          <SettingsForm data={settings.data} assets={market.assets} locale={locale} messages={messages} onSaved={settings.reload} />
+          <SettingsForm
+            data={settings.data}
+            assets={market.assets.filter((a) => a.multipliers !== false && (allowed.includes(a.symbol) || watched?.includes(a.symbol)))}
+            locale={locale}
+            messages={messages}
+            onSaved={settings.reload}
+          />
+        )}
+      </Dialog>
+      <Dialog open={pickerOpen} onClose={() => setPickerOpen(false)} title={t.assets.title} closeLabel={t.close}>
+        {watched && (
+          <AssetPicker
+            assets={market.assets}
+            watched={watched}
+            messages={messages}
+            onSaved={() => {
+              setPickerOpen(false);
+              watchlist.reload();
+            }}
+          />
         )}
       </Dialog>
     </div>

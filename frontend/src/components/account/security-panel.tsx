@@ -4,7 +4,6 @@ import {
   Check,
   Copy,
   Download,
-  KeyRound,
   LaptopMinimal,
   LockKeyhole,
   LogOut,
@@ -20,7 +19,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Field } from "@/components/ui/field";
+import { CodeInput } from "@/components/ui/code-input";
 import { PasswordField } from "@/components/ui/password-field";
 import type { Locale } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
@@ -112,6 +111,7 @@ function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled:
   const setupForm = useFormErrors({ code: totpRule(v) });
   const disableForm = useFormErrors({ password: currentPasswordRule(v), code: requiredRule(v.codeRequired) });
   const { copied, copy } = useCopy();
+  const [disableRecovery, setDisableRecovery] = useState(false);
 
   async function start() {
     setPending(true);
@@ -211,15 +211,13 @@ function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled:
                 <StepNumber n={2} />
                 {t.step2}
               </p>
-              <Field
+              <CodeInput
+                name="code"
                 label={messages.auth.mfa.code}
-                icon={Smartphone}
-                {...setupForm.field("code")}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={7}
-                placeholder={messages.auth.mfa.codePlaceholder}
-                className="[&_input]:tracking-[0.3em] [&_input]:tabular-nums"
+                boxLabel={messages.auth.codeBox}
+                error={setupForm.field("code").error}
+                onValueChange={(value) => setupForm.change("code", value)}
+                autoSubmit
               />
             </li>
           </ol>
@@ -279,7 +277,24 @@ function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled:
             showLabel={messages.auth.showPassword}
             hideLabel={messages.auth.hidePassword}
           />
-          <Field label={t.code} icon={KeyRound} {...disableForm.field("code")} autoComplete="one-time-code" maxLength={9} />
+          <CodeInput
+            key={disableRecovery ? "recovery" : "app"}
+            name="code"
+            label={disableRecovery ? messages.auth.mfa.recoveryCode : messages.auth.mfa.code}
+            boxLabel={messages.auth.codeBox}
+            length={disableRecovery ? 8 : 6}
+            groupAt={disableRecovery ? 4 : undefined}
+            kind={disableRecovery ? "letters" : "digits"}
+            error={disableForm.field("code").error}
+            onValueChange={(value) => disableForm.change("code", value)}
+          />
+          <button
+            type="button"
+            className="min-h-11 self-start text-label font-medium text-accent-text underline-offset-4 hover:underline"
+            onClick={() => setDisableRecovery((value) => !value)}
+          >
+            {disableRecovery ? messages.auth.mfa.useApp : messages.auth.mfa.useRecovery}
+          </button>
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button size="lg" onClick={() => setStage("idle")}>
               {t.cancel}

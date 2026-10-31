@@ -55,10 +55,16 @@ export function useFormErrors(rules: Record<string, Rule>) {
     return first === null;
   }
 
+  /** Valeur d'un champ composé (cases d'un code) : même suivi qu'une frappe. */
+  function change(name: string, value: string) {
+    edited.current.add(name);
+    if (errors[name]) check(name, value);
+  }
+
   /** Erreur renvoyée par le serveur pour un champ précis. */
   function setError(name: string, message: string) {
     setErrors((current) => ({ ...current, [name]: message }));
   }
 
-  return { errors, field, validate, setError };
+  return { errors, field, validate, setError, change };
 }

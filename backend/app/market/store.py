@@ -34,6 +34,8 @@ class MarketStore(Protocol):
     async def get_ticks(self, symbols: list[str]) -> dict[str, Data]: ...
     async def put_candles(self, symbol: str, granularity: int, candles: list[Data]) -> None: ...
     async def get_candles(self, symbol: str, granularity: int) -> Data | None: ...
+    async def demand(self, symbol: str) -> None: ...
+    async def get_demand(self, since: float) -> list[str]: ...
     async def publish(self, event: Data) -> None: ...
     async def put_health(self, health: Data) -> None: ...
     async def get_health(self) -> Data | None: ...
@@ -65,6 +67,7 @@ class MemoryMarketStore:
         self._assets: Data | None = None
         self._ticks: dict[str, Data] = {}
         self._candles: dict[tuple[str, int], Data] = {}
+        self._demand: dict[str, float] = {}
         self._listeners: list[asyncio.Queue[Data]] = []
         self._health: Data | None = None
         self._alerts: list[Data] = []
@@ -87,6 +90,12 @@ class MemoryMarketStore:
 
     async def get_candles(self, symbol: str, granularity: int) -> Data | None:
         return self._candles.get((symbol, granularity))
+
+    async def demand(self, symbol: str) -> None:
+        self._demand[symbol] = time.time()
+
+    async def get_demand(self, since: float) -> list[str]:
+        return [symbol for symbol, at in self._demand.items() if at >= since]
 
     async def publish(self, event: Data) -> None:
         for queue in self._listeners:
@@ -135,7 +144,10 @@ return 1
 
 
 class RedisMarketStore:
-    """Lecture seule sans `owner` ; avec `owner`, écrit tant que ce worker tient le bail."""
+    """
+    Lecture seule sans `owner` ; avec `owner`, écrit tant que ce worker tient le bail.
+    `demand` fait exception : c'est une requête vers le flux, pas une donnée de marché.
+    """
 
     def __init__(self, client: Redis, owner: str | None = None) -> None:
         self._client = client
@@ -183,6 +195,13 @@ class RedisMarketStore:
 
     async def get_candles(self, symbol: str, granularity: int) -> Data | None:
         return await self._read(f"market:candles:{symbol}:{granularity}")
+
+    async def demand(self, symbol: str) -> None:
+        await self._client.zadd("market:demand", {symbol: time.time()})
+
+    async def get_demand(self, since: float) -> list[str]:
+        rows = await self._client.zrangebyscore("market:demand", since, "+inf")
+        return [raw.decode() for raw in rows]
 
     async def publish(self, event: Data) -> None:
         await self._write(LEASE_KEY, "", json.dumps(event))

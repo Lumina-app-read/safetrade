@@ -34,7 +34,7 @@ from app.db.models import (
 from app.deps import AppSettings, Db, check_origin, client_ip
 from app.deriv import service as deriv_service
 from app.errors import ApiError
-from app.market.router import Market, asset_views
+from app.market.router import Catalog, Market, asset_views
 from app.trading import exits, risk
 from app.trading.execution import consecutive_losses, day_net, session_net
 
@@ -62,7 +62,7 @@ class SettingsIn(BaseModel):
     pause_minutes: int
     activation_r: Decimal
     locked_fraction: Decimal
-    allowed_symbols: list[str] = Field(min_length=1, max_length=50)
+    allowed_symbols: list[str] = Field(min_length=1, max_length=60)
     timezone: str = Field(max_length=64)
 
 
@@ -221,14 +221,18 @@ def read_settings(db: Db, app: AppSettings, session: CurrentSession) -> dict[str
 
 @router.put("/settings")
 def write_settings(
-    body: SettingsIn, request: Request, db: Db, app: AppSettings, session: CurrentSession
+    body: SettingsIn,
+    request: Request,
+    db: Db,
+    session: CurrentSession,
+    known: Catalog,
 ) -> dict[str, object]:
     user = session.user
     values = body.model_dump()
     bad = risk.out_of_range(values)
     if body.timezone not in available_timezones():
         bad.append("timezone")
-    if any(symbol not in app.market_symbols for symbol in body.allowed_symbols):
+    if any(symbol not in known for symbol in body.allowed_symbols):
         bad.append("allowed_symbols")
     if bad:
         raise ApiError(422, "trading.invalid_settings", fields=bad)
@@ -327,10 +331,13 @@ async def start(
     store: Market,
 ) -> dict[str, object]:
     # Marché vérifié au démarrage ; chaque ordre le revérifie ensuite côté moteur.
-    views = await asset_views(store, app.market_symbols)
+    views = await asset_views(store)
     asset = next((a for a in views if a["symbol"] == body.symbol), None)
     if asset is None or asset["status"] != "live":
         raise ApiError(409, "trading.market_not_live")
+    # Le moteur ne passe que des multiplicateurs : Bear et Bull Market n'en proposent pas.
+    if asset["multipliers"] is False:
+        raise ApiError(409, "trading.no_multipliers")
     row = await run_in_threadpool(
         _create_session, db, session.user, app, body.symbol, client_ip(request)
     )

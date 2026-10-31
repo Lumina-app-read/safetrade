@@ -147,7 +147,8 @@
       "sent": "Request received. If this address is awaiting confirmation, a new link has just been sent.",
       "wait": "You can resend in {seconds} s",
       "hint": "Nothing received? Check your spam folder before resending the link."
-    }
+    },
+    "codeBox": "Character {n} of {total}"
   },
   "errors": {
     "auth_invalid_credentials": "Incorrect email address or password.",
@@ -203,7 +204,9 @@
     "affiliate_already_applied": "An application already exists for this account.",
     "affiliate_invalid_state": "This action is no longer possible: the situation has changed.",
     "affiliate_not_found": "Affiliate not found.",
-    "affiliate_nothing_to_pay": "Nothing to pay at the moment."
+    "affiliate_nothing_to_pay": "Nothing to pay at the moment.",
+    "trading_no_multipliers": "Deriv does not offer multipliers on this asset: the bot cannot trade it.",
+    "admin_invalid_url": "Enter a full address starting with https://."
   },
   "fields": {
     "required": "This field is required.",
@@ -594,7 +597,8 @@
         "error": "Incident in progress. No new position.",
         "stopping": "No new position. The session ends when positions are closed.",
         "stopped": "No activity."
-      }
+      },
+      "blockedContract": "Deriv does not offer multipliers on this asset: the bot cannot trade it."
     },
     "positions": {
       "emptyTitle": "No open position",
@@ -798,6 +802,29 @@
       "ContractUpdateTooFrequent": "Update too soon, retrying.",
       "InvalidtoSell": "Sale not possible yet, retrying.",
       "billing_expired": "Trial or subscription ended: no new position."
+    },
+    "assets": {
+      "add": "Add",
+      "title": "Assets in my bar",
+      "search": "Search for an asset",
+      "searchPlaceholder": "Boom, Jump, Step, Volatility",
+      "noResult": "No asset matches this search.",
+      "addAll": "Add all",
+      "removeAll": "Remove all",
+      "noBot": "Chart only: no multipliers",
+      "suddenNote": "Sudden moves: slippage at closing can be stronger than on other indices.",
+      "required": "Choose at least one asset.",
+      "save": "Save ({count})",
+      "groups": {
+        "volatility": "Volatility",
+        "crashBoom": "Crash and Boom",
+        "jump": "Jump",
+        "step": "Step",
+        "range": "Range Break",
+        "baskets": "Baskets",
+        "daily": "Bull and Bear",
+        "other": "Other markets"
+      }
     }
   },
   "plans": {
@@ -970,6 +997,27 @@
         "admin": "Cancelled by the team"
       },
       "days": "days"
-    }
+    },
+    "summary": "Your affiliate figures",
+    "share": "Share my link",
+    "shareText": "I recommend SafeTrade. Trading carries a risk of capital loss."
+  },
+  "derivSignup": {
+    "title": "No Deriv account yet?",
+    "body": "Create one to connect SafeTrade. Your funds stay with Deriv.",
+    "action": "Create a Deriv account",
+    "disclosure": "Partner link: SafeTrade may receive a commission from Deriv."
+  },
+  "adminSettings": {
+    "subtitle": "Settings visible across the site.",
+    "partner": "Deriv partner link",
+    "partnerBody": "This link powers the invitation to create a Deriv account, on the trading page, the dashboard, the home page and after sign-up.",
+    "url": "Link address",
+    "urlPlaceholder": "https://",
+    "urlHint": "Leave empty to remove the invitation from the site.",
+    "urlInvalid": "Enter a full address starting with https://.",
+    "save": "Save",
+    "saving": "Saving",
+    "saved": "Link saved. It applies the next time pages load."
   }
 }

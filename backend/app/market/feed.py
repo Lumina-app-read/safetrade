@@ -6,6 +6,10 @@ Marché fermé : Deriv refuse l'abonnement (`MarketIsClosed`). L'état vient don
 Après une coupure, `DerivConnection` rétablit les flux ; ici, les ticks reçus deux fois sont
 écartés, un trou est signalé et ses bougies relues. Un flux muet sur un marché ouvert, ou
 dont la reprise a été refusée, est rouvert.
+
+Le catalogue vient de Deriv : tous les indices synthétiques, plus les actifs par défaut. Les
+ticks suivent tout le catalogue ; les bougies, seulement les actifs par défaut et ceux qu'un
+graphique ou un bot demande (`store.demand`), pour rester sous le quota.
 """
 
 import asyncio
@@ -25,11 +29,21 @@ logger = logging.getLogger("safetrade.market")
 
 GRANULARITIES = (60, 300, 900, 3600)
 CANDLE_COUNT = 500
+# Marchés du catalogue. Les actifs par défaut s'y ajoutent, quel que soit leur marché.
+CATALOG_MARKETS = ("synthetic_index",)
 ASSETS_SECONDS = 60.0
+# `contracts_for` : un actif par cycle, relu rarement, car l'offre change peu.
+CONTRACTS_SECONDS = 6 * 3600.0
+MULTIPLIER_CONTRACTS = {"MULTUP", "MULTDOWN"}
 # Cycle peu coûteux : les appels à Deriv restent espacés par ASSETS_SECONDS.
 SYNC_SECONDS = 1.0
-# Une bougie toutes les 1,5 s au plus : 40 appels par minute, loin du quota de ce groupe.
-CANDLE_PAUSE_SECONDS = 1.5
+# Une bougie toutes les 0,5 s au plus : 120 appels par minute, sous les 176 de ce groupe.
+CANDLE_PAUSE_SECONDS = 0.5
+# Âge maximal par intervalle. 3,5 appels par minute et par actif : 34 actifs suivis au plus.
+# `candles_refusal` tolère une période de retard : 30 s suffisent pour les bougies d'une minute.
+CANDLE_REFRESH_SECONDS = {60: 30.0, 300: 60.0, 900: 120.0, 3600: 300.0}
+# Un actif demandé reste suivi ce temps : le graphique relit ses bougies chaque minute.
+DEMAND_SECONDS = 150.0
 # Au-delà, deux ticks consécutifs ne sont pas continus (actifs mesurés : 1 à 2 s).
 GAP_SECONDS = 15
 REPORT_SECONDS = 5.0
@@ -86,6 +100,21 @@ def valid_candles(candles: Any) -> bool:
     return coherent and all(a < b for a, b in itertools.pairwise(epochs))
 
 
+def next_candles(
+    symbols: Sequence[str], read_at: dict[tuple[str, int], float], now: float
+) -> tuple[str, int] | None:
+    """Bougies les plus en retard parmi les actifs suivis, ou None si tout est à jour."""
+    best = None
+    lateness = 0.0
+    for symbol in symbols:
+        for granularity in GRANULARITIES:
+            late = now - read_at.get((symbol, granularity), 0.0)
+            late -= CANDLE_REFRESH_SECONDS[granularity]
+            if late >= 0 and (best is None or late > lateness):
+                best, lateness = (symbol, granularity), late
+    return best
+
+
 class MarketFeed:
     def __init__(
         self,
@@ -99,6 +128,11 @@ class MarketFeed:
         self._broker = broker
         self._store = store
         self._symbols = list(symbols)
+        self._catalog = list(symbols)
+        self._hot = set(symbols)
+        self._multipliers: dict[str, bool] | None = None
+        self._contracts_read_at: dict[str, float] = {}
+        self._candles_read_at: dict[tuple[str, int], float] = {}
         self._clock = clock
         self._candle_pause = candle_pause
         self._streams: dict[str, Subscription] = {}
@@ -160,8 +194,9 @@ class MarketFeed:
         if self._assets_read_at is None or now - self._assets_read_at >= ASSETS_SECONDS:
             await self.probe()
             await self.refresh_assets()
-        for symbol in self._symbols:
+        for symbol in self._catalog:
             await self._align(symbol, now)
+        await self.refresh_contracts(now)
 
     async def probe(self) -> None:
         """Latence réelle et écart d'horloge avec Deriv."""
@@ -173,25 +208,60 @@ class MarketFeed:
     async def refresh_assets(self) -> None:
         response = await self._broker.request("active_symbols", {"active_symbols": "brief"})
         known = {row["underlying_symbol"]: row for row in response["active_symbols"]}
+        if self._multipliers is None:
+            # Après un redémarrage, les contrats déjà lus restent valables.
+            state = await self._store.get_assets()
+            self._multipliers = {
+                asset["symbol"]: asset["multipliers"]
+                for asset in (state or {}).get("assets", [])
+                if asset.get("multipliers") is not None
+            }
+        wanted = sorted(
+            {s for s, row in known.items() if row["market"] in CATALOG_MARKETS}
+            | (set(self._symbols) & known.keys())
+        )
         assets = [
             {
                 "symbol": symbol,
-                "name": row["underlying_symbol_name"],
-                "market": row["market"],
-                "pip_size": row["pip_size"],
-                "exchange_is_open": bool(row["exchange_is_open"]),
-                "is_trading_suspended": bool(row["is_trading_suspended"]),
+                "name": known[symbol]["underlying_symbol_name"],
+                "market": known[symbol]["market"],
+                "submarket": known[symbol].get("submarket"),
+                "pip_size": known[symbol]["pip_size"],
+                "exchange_is_open": bool(known[symbol]["exchange_is_open"]),
+                "is_trading_suspended": bool(known[symbol]["is_trading_suspended"]),
+                "multipliers": self._multipliers.get(symbol),
             }
-            for symbol in self._symbols
-            if (row := known.get(symbol)) is not None
+            for symbol in wanted
         ]
         for symbol in set(self._symbols) - known.keys():
             logger.warning("actif absent", extra={"event": "market.unknown", "symbol": symbol})
+        self._catalog = wanted
         self._open = {
             a["symbol"] for a in assets if a["exchange_is_open"] and not a["is_trading_suspended"]
         }
         await self._store.put_assets(assets)
         self._assets_read_at = self._clock()
+
+    async def refresh_contracts(self, now: float) -> None:
+        """Le bot exige des multiplicateurs : Deriv dit lesquels des actifs les proposent."""
+        symbol = next(
+            (
+                s
+                for s in self._catalog
+                if s not in self._contracts_read_at
+                or now - self._contracts_read_at[s] >= CONTRACTS_SECONDS
+            ),
+            None,
+        )
+        if symbol is None:
+            return
+        # Noté avant l'appel : un refus durable ne bloque pas les autres actifs.
+        self._contracts_read_at[symbol] = now
+        response = await self._broker.request("contracts_for", {"contracts_for": symbol})
+        offered = response.get("contracts_for", {}).get("available", [])
+        kinds = {contract.get("contract_type") for contract in offered}
+        if self._multipliers is not None:
+            self._multipliers[symbol] = kinds >= MULTIPLIER_CONTRACTS
 
     async def _align(self, symbol: str, now: float) -> None:
         stream = self._streams.get(symbol)
@@ -257,14 +327,26 @@ class MarketFeed:
             await self._store.publish(
                 {"type": "gap", "symbol": symbol, "from": previous, "to": tick["epoch"]}
             )
-            self._urgent.extend((symbol, g) for g in GRANULARITIES)
+            if symbol in self._hot:
+                self._urgent.extend((symbol, g) for g in GRANULARITIES)
 
     async def refresh_next_candles(self) -> None:
         if not self._broker.connected:
             return
-        if not self._urgent:
-            self._urgent.extend((s, g) for s in self._symbols for g in GRANULARITIES)
-        symbol, granularity = self._urgent.popleft()
+        now = self._clock()
+        demanded = await self._store.get_demand(now - DEMAND_SECONDS)
+        hot = [*self._symbols, *(s for s in demanded if s not in self._symbols)]
+        hot = [s for s in hot if s in self._catalog]
+        self._hot = set(hot)
+        target = (
+            self._urgent.popleft()
+            if self._urgent
+            else next_candles(hot, self._candles_read_at, now)
+        )
+        if target is None:
+            return
+        symbol, granularity = target
+        self._candles_read_at[target] = now
         response = await self._broker.request(
             "ticks_history",
             {

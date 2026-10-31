@@ -23,6 +23,7 @@ from app.deriv.router import router as deriv_router
 from app.errors import install_error_handlers
 from app.market.router import router as market_router
 from app.market.store import MarketStore, RedisMarketStore
+from app.site import router as site_router
 from app.trading.router import router as trading_router
 
 
@@ -96,6 +97,7 @@ def create_app(
     app.include_router(affiliate_router)
     app.include_router(deriv_router)
     app.include_router(market_router)
+    app.include_router(site_router)
     app.include_router(trading_router)
     app.include_router(billing_router)
     app.include_router(billing_webhooks)

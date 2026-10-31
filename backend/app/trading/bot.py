@@ -465,6 +465,8 @@ class BotRunner:
     ) -> None:
         now = self._clock()
         now_ts = now.timestamp()
+        # Garde les bougies de cet actif à jour, même sans graphique ouvert.
+        await self._market.demand(session.symbol)
         snapshot = await read_snapshot(self._market, session.symbol, strategy.GRANULARITY, now_ts)
         refusal = entry_refusal(snapshot, now_ts, strategy.NEEDED_CANDLES)
         if refusal:

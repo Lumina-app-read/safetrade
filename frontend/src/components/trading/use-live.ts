@@ -79,14 +79,22 @@ type GapListener = (symbol: string) => void;
  * Prix en direct par SSE. Le serveur ferme le flux toutes les 5 minutes et le navigateur se
  * reconnecte : une coupure n'est annoncée que si elle dure, pour éviter un faux signal.
  */
-export function useMarket() {
+export function useMarket(symbols: string[] | null) {
   const assets = usePolled<{ assets: Asset[] }>("/market/assets", 15000);
   const [prices, setPrices] = useState<Record<string, Tick>>({});
   const [stream, setStream] = useState<StreamState>("connecting");
   const tickListeners = useRef(new Set<TickListener>());
   const gapListeners = useRef(new Set<GapListener>());
+  const watched = symbols?.join(",") ?? null;
 
   useEffect(() => {
+    // Les actifs affichés ne sont pas encore connus : rien à écouter.
+    if (watched === null) return;
+    const query = watched
+      .split(",")
+      .filter(Boolean)
+      .map((symbol) => `symbols=${encodeURIComponent(symbol)}`)
+      .join("&");
     let source: EventSource | null = null;
     let grace: ReturnType<typeof setTimeout> | undefined;
     let retry: ReturnType<typeof setTimeout> | undefined;
@@ -98,7 +106,7 @@ export function useMarket() {
     }
 
     function open() {
-      source = new EventSource("/api/market/stream");
+      source = new EventSource(`/api/market/stream?${query}`);
       source.onopen = () => {
         clearTimeout(grace);
         setStream("live");
@@ -137,7 +145,7 @@ export function useMarket() {
       clearTimeout(retry);
       source?.close();
     };
-  }, []);
+  }, [watched]);
 
   const onTick = useCallback((listen: TickListener) => {
     const listeners = tickListeners.current;

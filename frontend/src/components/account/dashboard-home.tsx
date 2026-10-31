@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { DerivSignup } from "@/components/deriv-signup";
 import { useSession } from "@/components/shell/session";
 import { Badge } from "@/components/ui/badge";
 import { Card, SectionTitle } from "@/components/ui/card";
@@ -135,6 +136,12 @@ export function DashboardHome({ locale, messages }: { locale: Locale; messages: 
           </Stat>
         </div>
       </div>
+
+      {!connection && !deriv.loading && (
+        <div className="mt-4 empty:hidden">
+          <DerivSignup messages={messages} />
+        </div>
+      )}
 
       <SectionTitle className="flex items-center justify-between">
         {t.stepsTitle}

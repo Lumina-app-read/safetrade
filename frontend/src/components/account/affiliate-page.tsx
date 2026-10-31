@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, Check, Copy, Gift, Hourglass, Landmark, MessageSquareText, ReceiptText, TriangleAlert, UserPlus, Users, type LucideIcon } from "lucide-react";
+import { BadgeCheck, Check, Copy, Gift, Hourglass, Landmark, MessageSquareText, ReceiptText, Share2, TriangleAlert, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 
 import { Alert } from "@/components/ui/alert";
@@ -14,6 +14,7 @@ import type { Locale } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { interpolate, type Messages } from "@/i18n/messages";
 import { api, errorMessage } from "@/lib/api";
+import { cn } from "@/lib/cn";
 import { useFormErrors } from "@/lib/use-form-errors";
 
 import { usePolled } from "../trading/use-live";
@@ -127,7 +128,7 @@ function ApplyForm({ messages, onDone }: { messages: Messages; onDone: () => voi
   );
 }
 
-function CopyRow({ label, value, large, messages }: { label: string; value: string; large?: boolean; messages: Messages }) {
+function CopyButton({ value, label, messages }: { value: string; label: string; messages: Messages }) {
   const t = messages.affiliate;
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -144,27 +145,67 @@ function CopyRow({ label, value, large, messages }: { label: string; value: stri
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="min-w-0 flex-1 basis-48">
-        <p className="text-small text-muted">{label}</p>
-        <p className={large ? "text-h2 tracking-[0.08em] tabular-nums select-all" : "font-medium break-all select-all"}>{value}</p>
-      </div>
-      <Button size="lg" aria-label={`${t.copy} : ${label}`} onClick={copy}>
-        {copied ? <Check size={18} strokeWidth={1.5} aria-hidden /> : <Copy size={18} strokeWidth={1.5} aria-hidden />}
-        <span role="status">{copied ? t.copied : t.copy}</span>
-      </Button>
-    </div>
+    <button
+      type="button"
+      onClick={copy}
+      aria-label={`${copied ? t.copied : t.copy} : ${label}`}
+      className="inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-line bg-card text-label font-medium transition-colors hover:bg-page sm:w-auto sm:px-3"
+    >
+      {copied ? <Check size={18} strokeWidth={1.5} aria-hidden className="text-gain" /> : <Copy size={18} strokeWidth={1.5} aria-hidden />}
+      <span className="max-sm:hidden">{copied ? t.copied : t.copy}</span>
+    </button>
   );
 }
 
-function Kpi({ label, text, value, accent }: { label: string; text: string; value?: ReactNode; accent?: boolean }) {
+/** Code et lien sur une seule ligne chacun, quelle que soit la largeur de l'écran. */
+function ShareCard({ code, link, messages }: { code: string; link: string; messages: Messages }) {
+  const t = messages.affiliate;
+
+  async function share() {
+    // Feuille de partage du téléphone ; annulée par le client : rien à signaler.
+    await navigator.share({ title: "SafeTrade", text: t.shareText, url: link }).catch(() => undefined);
+  }
+
   return (
-    <Card className="flex min-w-0 flex-col gap-1 p-4 sm:p-5">
-      <span className="text-small text-muted">{label}</span>
-      <span className={accent ? "text-gain" : undefined}>
-        <FitValue text={text}>{value}</FitValue>
+    <Card className="flex flex-col gap-4 p-4 sm:p-6">
+      <span className="flex items-center gap-2 text-small text-gain">
+        <BadgeCheck size={16} strokeWidth={1.5} aria-hidden />
+        {t.active}
       </span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-small text-muted">{t.code}</p>
+          <p className="text-h2 tracking-[0.08em] select-all">{code}</p>
+        </div>
+        <CopyButton value={code} label={t.code} messages={messages} />
+      </div>
+      <div>
+        <p className="mb-1.5 text-small text-muted">{t.link}</p>
+        <div className="flex items-center gap-2">
+          <p title={link} className="flex h-11 min-w-0 flex-1 items-center rounded-lg bg-page px-3">
+            <span className="truncate select-all">{link}</span>
+          </p>
+          <CopyButton value={link} label={t.link} messages={messages} />
+        </div>
+      </div>
+      {typeof navigator !== "undefined" && "share" in navigator && (
+        <Button variant="accent" size="lg" className="w-full sm:hidden" onClick={share}>
+          <Share2 size={18} strokeWidth={1.5} aria-hidden />
+          {t.share}
+        </Button>
+      )}
     </Card>
+  );
+}
+
+function Figure({ label, text, wide, gain }: { label: string; text: string; wide?: boolean; gain?: boolean }) {
+  return (
+    <div className={cn("flex min-w-0 flex-col gap-1 bg-card p-4 sm:p-5", wide && "max-lg:col-span-2")}>
+      <span className="text-small text-muted">{label}</span>
+      <span className={gain ? "text-gain" : undefined}>
+        <FitValue text={text} />
+      </span>
+    </div>
   );
 }
 
@@ -189,13 +230,13 @@ function Activity({ view, locale, messages }: { view: View; locale: Locale; mess
 
   return (
     <>
-      <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-5 max-lg:[&>:last-child]:col-span-2">
-        <Kpi label={t.referrals} text={f.number(totals.referrals)} />
-        <Kpi label={t.converted} text={f.number(totals.converted)} />
-        <Kpi label={t.held} text={amount(totals.held)} />
-        <Kpi label={t.available} text={amount(totals.available)} accent={Number(totals.available) > 0} />
-        <Kpi label={t.paid} text={amount(totals.paid)} />
-      </div>
+      <section aria-label={t.summary} className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line shadow-card lg:grid-cols-5">
+        <Figure label={t.available} text={amount(totals.available)} wide gain={Number(totals.available) > 0} />
+        <Figure label={t.held} text={amount(totals.held)} />
+        <Figure label={t.paid} text={amount(totals.paid)} />
+        <Figure label={t.referrals} text={f.number(totals.referrals)} />
+        <Figure label={t.converted} text={f.number(totals.converted)} />
+      </section>
 
       <SectionTitle>{t.referrals}</SectionTitle>
       <Card className="p-4 sm:p-5">
@@ -320,16 +361,9 @@ export function AffiliatePage({ locale, messages }: { locale: Locale; messages: 
 
       {view?.status === "approved" && view.code && view.link && (
         <>
-          <Card className="mt-6 flex flex-col gap-4 p-5 sm:p-6">
-            <span className="flex items-center gap-2 text-small text-gain">
-              <BadgeCheck size={16} strokeWidth={1.5} aria-hidden />
-              {t.active}
-            </span>
-            <CopyRow label={t.code} value={view.code} large messages={messages} />
-            <div className="border-t border-line pt-4">
-              <CopyRow label={t.link} value={view.link} messages={messages} />
-            </div>
-          </Card>
+          <div className="mt-6">
+            <ShareCard code={view.code} link={view.link} messages={messages} />
+          </div>
           <Activity view={view} locale={locale} messages={messages} />
           <p className="mt-6 flex items-start gap-2 text-small text-muted">
             <TriangleAlert size={16} strokeWidth={1.5} aria-hidden className="mt-px shrink-0 text-warn" />

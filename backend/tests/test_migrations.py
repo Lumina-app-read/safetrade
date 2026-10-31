@@ -39,6 +39,7 @@ TABLES = {
     "referrals",
     "affiliate_payouts",
     "affiliate_commissions",
+    "site_settings",
 }
 
 
