@@ -26,6 +26,7 @@ import { formatters } from "@/i18n/format";
 import { interpolate, type Messages } from "@/i18n/messages";
 import { cn } from "@/lib/cn";
 
+import { planLabel } from "./current-plan";
 import type { BotResponse, DerivConnection, Summary } from "../trading/types";
 import { usePolled } from "../trading/use-live";
 
@@ -57,6 +58,8 @@ export function DashboardHome({ locale, messages }: { locale: Locale; messages: 
   const account = connection?.accounts.find((a) => a.account_id === connection.selected.account_id);
   const session = bot.data?.session ?? null;
   const trading = `/${locale}/trading`;
+  // Ne jamais annoncer « non connecté » tant que Deriv n'a pas répondu.
+  const checking = deriv.loading || (deriv.error !== null && !deriv.data);
 
   const steps: Array<{ label: string; done: boolean; icon: LucideIcon; href?: string }> = [
     { label: t.stepEmail, done: true, icon: MailCheck },
@@ -104,23 +107,23 @@ export function DashboardHome({ locale, messages }: { locale: Locale; messages: 
             {t.bannerMode}
           </span>
           <div className="relative">
-            <h2 className="text-h2">{connection ? t.bannerConnected : t.bannerTitle}</h2>
-            <p className="mt-2 max-w-md text-on-anthracite/75">{connection ? t.bannerConnectedBody : t.bannerBody}</p>
+            <h2 className="text-h2">{connection ? t.bannerConnected : checking ? t.bannerChecking : t.bannerTitle}</h2>
+            <p className="mt-2 max-w-md text-on-anthracite/75">{connection || checking ? t.bannerConnectedBody : t.bannerBody}</p>
           </div>
         </section>
 
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          <Stat label={t.balance} icon={Wallet} hint={account ? t.balanceDemo : t.balanceEmpty}>
-            {account ? f.money(Number(account.balance), account.currency) : "—"}
+          <Stat label={t.balance} icon={Wallet} hint={account ? t.balanceDemo : checking ? t.balanceChecking : t.balanceEmpty}>
+            {account ? f.money(Number(account.balance), account.currency) : deriv.loading ? messages.trading.loading : checking ? t.unavailable : t.notConnected}
           </Stat>
           <Stat label={t.today} icon={ChartLine} hint={summary.data?.trades ? t.todayReal : t.todayEmpty}>
-            {summary.data?.trades ? <SignedAmount value={Number(summary.data.day_net)} formatted={f.money(Number(summary.data.day_net))} /> : "—"}
+            {summary.data ? <SignedAmount value={Number(summary.data.day_net)} formatted={f.money(Number(summary.data.day_net))} /> : messages.trading.loading}
           </Stat>
           <Stat label={t.bot} icon={Bot} hint={session ? session.symbol : t.botEmpty}>
             <Badge tone="neutral">{messages.trading.bot.states[session?.state ?? "stopped"]}</Badge>
           </Stat>
-          <Stat label={t.access} icon={CreditCard} hint={t.accessEmpty}>
-            —
+          <Stat label={t.access} icon={CreditCard} hint={user.subscription === "none" ? t.accessNone : t.accessActive}>
+            {planLabel(messages, user.subscription)}
           </Stat>
         </div>
       </div>

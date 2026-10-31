@@ -53,6 +53,7 @@ Le backend est la seule source de vérité. Le front-end envoie des demandes et 
 - Responsive : chaque écran est utilisable sur téléphone.
 - **Champs de saisie** (composant `Field`) : icône Lucide en tête, texte indicatif (placeholder) traduit, focus rouge de marque avec halo léger.
 - **Formulaires** : `noValidate` et `useFormErrors` (`src/lib/use-form-errors.ts`), règles dans `src/lib/validation.ts`. Erreur en rouge sous le champ, jamais de bulle du navigateur ; le serveur revalide tout.
+- **Valeurs absentes** : jamais de long trait. Toujours un texte réel et traduit (« Aucun », « Non connecté », « En attente »), qui change quand la donnée arrive. Un test le vérifie (`design-rules.test.ts`).
 - **Thème dans les barres** : un seul bouton (`ThemeToggle`) dont l'icône montre le mode affiché (soleil en clair, lune en sombre) ; sans choix enregistré, le thème suit le système. Le choix « automatique » explicite sera proposé dans le profil (section 15). Décision du propriétaire du 30 octobre 2026.
 - **Langue** : menu déroulant (`LanguageSelect`) avec drapeaux en SVG (`public/flags`, jamais d'emoji) et nom de chaque langue ; le bouton affiche le drapeau et le code (FR, EN).
 

@@ -199,14 +199,13 @@
     "bannerTitle": "Aucun compte Deriv connecté",
     "bannerBody": "Connectez votre compte démo depuis la page Trading. Vos fonds restent toujours chez Deriv.",
     "balance": "Solde Deriv",
-    "balanceEmpty": "Compte non connecté",
+    "balanceEmpty": "Connectez votre compte Deriv",
     "today": "Résultat du jour",
-    "todayEmpty": "Aucune session aujourd'hui",
+    "todayEmpty": "Aucune position clôturée aujourd'hui",
     "bot": "État du bot",
     "botStopped": "Arrêté",
     "botEmpty": "Aucune activité",
     "access": "Abonnement",
-    "accessEmpty": "Bientôt disponible",
     "stepsTitle": "Premiers pas",
     "stepsProgress": "{done} sur {total}",
     "stepEmail": "Adresse e-mail confirmée",
@@ -219,7 +218,13 @@
     "bannerConnected": "Compte Deriv connecté",
     "bannerConnectedBody": "Vos fonds restent chez Deriv. Le compte réel reste verrouillé.",
     "balanceDemo": "Compte démo, fonds fictifs",
-    "todayReal": "Positions clôturées aujourd'hui"
+    "todayReal": "Positions clôturées aujourd'hui",
+    "notConnected": "Non connecté",
+    "accessNone": "Aucune formule active",
+    "accessActive": "Formule active",
+    "bannerChecking": "Vérification de votre compte Deriv",
+    "balanceChecking": "Lecture auprès de Deriv",
+    "unavailable": "Indisponible"
   },
   "landing": {
     "nav": {
@@ -437,8 +442,6 @@
   },
   "soon": {
     "title": "Cette section arrive bientôt",
-    "tradingBody": "Vous y suivrez le marché, votre bot et vos positions en direct, une fois votre compte Deriv connecté.",
-    "historyBody": "Vous y retrouverez vos trades, vos résultats par jour et par actif, et le journal des décisions.",
     "subscriptionBody": "Vous y gérerez votre formule, vos paiements et vos reçus.",
     "back": "Retour au tableau de bord"
   },
@@ -501,7 +504,11 @@
       "day": "Résultat du jour",
       "winRate": "Taux de réussite",
       "sample": "Positions clôturées : {count}",
-      "noTrades": "Aucune position clôturée"
+      "noTrades": "Calculé dès la première clôture",
+      "notConnected": "Non connecté",
+      "noSession": "Aucune session",
+      "noPosition": "Aucune position",
+      "unavailable": "Indisponible"
     },
     "tabs": {
       "label": "Détails du trading",
@@ -596,7 +603,8 @@
       "activation": "Protection du gain dès",
       "locked": "Sortie du moteur à",
       "stopSpot": "Cours du stop",
-      "lockedNote": "Ce niveau est exécuté par le moteur : il ne vaut que si SafeTrade fonctionne."
+      "lockedNote": "Ce niveau est exécuté par le moteur : il ne vaut que si SafeTrade fonctionne.",
+      "awaiting": "En attente"
     },
     "closeReasons": {
       "deriv": "Clôturée par Deriv",
@@ -629,7 +637,10 @@
       "direction": "Sens",
       "stake": "Mise",
       "net": "Résultat net",
-      "exit": "Sortie"
+      "exit": "Sortie",
+      "noGain": "Aucun gain",
+      "noLoss": "Aucune perte",
+      "noDate": "Date inconnue"
     },
     "journal": {
       "showIdle": "Afficher aussi les analyses sans signal",
@@ -769,6 +780,18 @@
       "LimitOrderAmountTooLow": "Niveau sous le minimum de Deriv : nouvel essai un cran plus haut, le stop actuel reste en place.",
       "ContractUpdateTooFrequent": "Mise à jour trop rapprochée, nouvel essai.",
       "InvalidtoSell": "Vente pas encore possible, nouvel essai."
+    }
+  },
+  "plans": {
+    "current": "Formule actuelle",
+    "active": "Active",
+    "inactive": "Inactive",
+    "levels": {
+      "none": "Aucun",
+      "trial": "Essai",
+      "weekly": "Hebdomadaire",
+      "monthly": "Mensuel",
+      "annual": "Annuel"
     }
   }
 }

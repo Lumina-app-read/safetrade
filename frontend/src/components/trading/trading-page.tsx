@@ -267,16 +267,16 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
       <section aria-label={t.kpi.title} className="grid min-w-0 grid-cols-2 gap-3 max-lg:order-4 lg:col-span-2 lg:grid-cols-4">
         <Kpi label={t.kpi.balance} hint={kind === "demo" ? t.kpi.demoFunds : undefined}>
-          {balance ? f.money(Number(balance.balance), balance.currency) : "—"}
+          {balance ? f.money(Number(balance.balance), balance.currency) : deriv.loading ? t.loading : deriv.error && !deriv.data ? t.kpi.unavailable : t.kpi.notConnected}
         </Kpi>
         <Kpi label={t.kpi.session}>
-          {session ? <SignedAmount value={Number(session.session_net)} formatted={f.money(Number(session.session_net))} /> : "—"}
+          {session ? <SignedAmount value={Number(session.session_net)} formatted={f.money(Number(session.session_net))} /> : t.kpi.noSession}
         </Kpi>
         <Kpi label={t.kpi.day}>
-          {summary.data ? <SignedAmount value={Number(summary.data.day_net)} formatted={f.money(Number(summary.data.day_net))} /> : "—"}
+          {summary.data ? <SignedAmount value={Number(summary.data.day_net)} formatted={f.money(Number(summary.data.day_net))} /> : t.loading}
         </Kpi>
         <Kpi label={t.kpi.winRate} hint={summary.data?.trades ? interpolate(t.kpi.sample, { count: summary.data.trades }) : t.kpi.noTrades}>
-          {summary.data?.win_rate != null ? f.percent(summary.data.win_rate) : "—"}
+          {summary.data?.win_rate != null ? f.percent(summary.data.win_rate) : summary.data ? t.kpi.noPosition : t.loading}
         </Kpi>
       </section>
 

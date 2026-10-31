@@ -7,12 +7,13 @@ import { cn } from "@/lib/cn";
  * jamais la couleur seule (section 15). Le texte est déjà formaté selon la langue.
  */
 export function SignedAmount({ value, formatted }: { value: number; formatted: string }) {
-  const up = value >= 0;
+  if (value === 0) return <span className="tabular-nums">{formatted}</span>;
+  const up = value > 0;
   const Icon = up ? TrendingUp : TrendingDown;
   return (
     <span className={cn("inline-flex items-center gap-1 tabular-nums", up ? "text-gain" : "text-loss")}>
       <Icon size={16} strokeWidth={1.5} aria-hidden />
-      {up && value > 0 ? "+" : ""}
+      {up ? "+" : ""}
       {formatted}
     </span>
   );

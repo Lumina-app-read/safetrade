@@ -79,8 +79,9 @@ services:
 
   # Flux de marché : une seule connexion publique à Deriv, sans jeton.
   worker:
-    build: ../backend
+    # Même image que le service backend, construite une seule fois par lui.
     image: safetradev2-backend:dev
+    pull_policy: never
     container_name: safetradev2-worker
     command: ["python", "-m", "app.market.worker"]
     environment:
@@ -103,8 +104,9 @@ services:
 
   # Moteur de trading : seul processus qui émet des ordres, compte démo uniquement.
   engine:
-    build: ../backend
+    # Même image que le service backend, construite une seule fois par lui.
     image: safetradev2-backend:dev
+    pull_policy: never
     container_name: safetradev2-engine
     command: ["python", "-m", "app.trading.worker"]
     environment:

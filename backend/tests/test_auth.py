@@ -264,3 +264,18 @@ def test_ip_limit_ignores_shared_internal_addresses(migrated_engine: Engine) -> 
     # Adresse publique : bloquée dès le seuil atteint.
     assert attempt(unique_email(), "93.184.216.34") == "auth.invalid_credentials"
     assert attempt(unique_email(), "93.184.216.34") == "auth.too_many_attempts"
+
+
+def test_me_reports_the_current_subscription_level(
+    client: TestClient, migrated_engine: Engine
+) -> None:
+    email = unique_email()
+    register(client, email)
+    with migrated_engine.begin() as connection:
+        connection.execute(
+            text("UPDATE users SET email_verified_at = now() WHERE email = :e"), {"e": email}
+        )
+    assert (
+        client.post("/auth/login", json={"email": email, "password": PASSWORD}).status_code == 200
+    )
+    assert client.get("/auth/me").json()["user"]["subscription"] == "none"

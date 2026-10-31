@@ -31,6 +31,12 @@ describe("règles de design (section 15)", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("aucun long trait à la place d'une valeur : toujours un texte réel", () => {
+    const messages = [join(SRC, "messages", "fr.json"), join(SRC, "messages", "en.json")];
+    const offenders = [...sources, ...messages].filter((f) => /[\u2013\u2014]/.test(readFileSync(f, "utf8")));
+    expect(offenders).toEqual([]);
+  });
+
   it("aucune graisse supérieure à 500", () => {
     const pattern = /font-(semibold|bold|extrabold|black)\b|font-weight:\s*[6-9]00|font-\[[6-9]00\]/;
     const offenders = [...sources, GLOBALS].filter((f) => pattern.test(readFileSync(f, "utf8")));

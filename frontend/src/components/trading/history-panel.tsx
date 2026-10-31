@@ -47,7 +47,6 @@ function Statistic({ label, children }: { label: string; children: ReactNode }) 
 function PerformanceBlock({ summary, locale, messages }: { summary: Summary; locale: Locale; messages: Messages }) {
   const t = messages.trading.history;
   const f = formatters(locale);
-  const money = (value: string | null) => (value === null ? "—" : f.money(Number(value)));
   return (
     <div className="flex flex-col gap-3 rounded-lg bg-page p-4">
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -55,8 +54,8 @@ function PerformanceBlock({ summary, locale, messages }: { summary: Summary; loc
           <SignedAmount value={Number(summary.total_net)} formatted={f.money(Number(summary.total_net))} />
         </Statistic>
         <Statistic label={t.trades}>{`${summary.trades} (${summary.wins} / ${summary.losses})`}</Statistic>
-        <Statistic label={t.averageGain}>{money(summary.average_gain)}</Statistic>
-        <Statistic label={t.averageLoss}>{money(summary.average_loss)}</Statistic>
+        <Statistic label={t.averageGain}>{summary.average_gain === null ? t.noGain : f.money(Number(summary.average_gain))}</Statistic>
+        <Statistic label={t.averageLoss}>{summary.average_loss === null ? t.noLoss : f.money(Number(summary.average_loss))}</Statistic>
       </dl>
       <ResultCurve summary={summary} label={t.curve} />
       <p className="text-small text-muted">{t.sampleNote}</p>
@@ -87,7 +86,7 @@ export function HistoryPanel({ assets, locale, messages }: { assets: Asset[]; lo
     );
   }
 
-  const stamp = (value: string | null) => (value ? `${f.date(value)} ${f.time(value)}` : "—");
+  const stamp = (value: string | null) => (value ? `${f.date(value)} ${f.time(value)}` : t.noDate);
   const direction = (row: Position) => {
     const Icon = row.direction === "up" ? ArrowUpRight : ArrowDownRight;
     return (

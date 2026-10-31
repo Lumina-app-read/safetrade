@@ -199,14 +199,13 @@
     "bannerTitle": "No Deriv account connected",
     "bannerBody": "Connect your demo account from the Trading page. Your funds always stay at Deriv.",
     "balance": "Deriv balance",
-    "balanceEmpty": "Account not connected",
+    "balanceEmpty": "Connect your Deriv account",
     "today": "Today's result",
-    "todayEmpty": "No session today",
+    "todayEmpty": "No position closed today",
     "bot": "Bot status",
     "botStopped": "Stopped",
     "botEmpty": "No activity",
     "access": "Subscription",
-    "accessEmpty": "Coming soon",
     "stepsTitle": "Getting started",
     "stepsProgress": "{done} of {total}",
     "stepEmail": "Email address confirmed",
@@ -219,7 +218,13 @@
     "bannerConnected": "Deriv account connected",
     "bannerConnectedBody": "Your funds stay at Deriv. The real account stays locked.",
     "balanceDemo": "Demo account, virtual funds",
-    "todayReal": "Positions closed today"
+    "todayReal": "Positions closed today",
+    "notConnected": "Not connected",
+    "accessNone": "No active plan",
+    "accessActive": "Active plan",
+    "bannerChecking": "Checking your Deriv account",
+    "balanceChecking": "Reading from Deriv",
+    "unavailable": "Unavailable"
   },
   "landing": {
     "nav": {
@@ -437,8 +442,6 @@
   },
   "soon": {
     "title": "This section is coming soon",
-    "tradingBody": "This is where you will follow the market, your bot and your positions live, once your Deriv account is connected.",
-    "historyBody": "This is where you will find your trades, your results by day and by asset, and the decision log.",
     "subscriptionBody": "This is where you will manage your plan, payments and receipts.",
     "back": "Back to the dashboard"
   },
@@ -501,7 +504,11 @@
       "day": "Today's result",
       "winRate": "Win rate",
       "sample": "Closed positions: {count}",
-      "noTrades": "No closed position"
+      "noTrades": "Calculated after the first close",
+      "notConnected": "Not connected",
+      "noSession": "No session",
+      "noPosition": "No position",
+      "unavailable": "Unavailable"
     },
     "tabs": {
       "label": "Trading details",
@@ -596,7 +603,8 @@
       "activation": "Gain protection from",
       "locked": "Engine exit at",
       "stopSpot": "Stop price",
-      "lockedNote": "This level is executed by the engine: it only holds while SafeTrade is running."
+      "lockedNote": "This level is executed by the engine: it only holds while SafeTrade is running.",
+      "awaiting": "Pending"
     },
     "closeReasons": {
       "deriv": "Closed by Deriv",
@@ -629,7 +637,10 @@
       "direction": "Direction",
       "stake": "Stake",
       "net": "Net result",
-      "exit": "Exit"
+      "exit": "Exit",
+      "noGain": "No gain",
+      "noLoss": "No loss",
+      "noDate": "Unknown date"
     },
     "journal": {
       "showIdle": "Also show analyses without a signal",
@@ -769,6 +780,18 @@
       "LimitOrderAmountTooLow": "Level below the Deriv minimum: retrying one notch higher, the current stop stays in place.",
       "ContractUpdateTooFrequent": "Update too soon, retrying.",
       "InvalidtoSell": "Sale not possible yet, retrying."
+    }
+  },
+  "plans": {
+    "current": "Current plan",
+    "active": "Active",
+    "inactive": "Inactive",
+    "levels": {
+      "none": "None",
+      "trial": "Trial",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "annual": "Annual"
     }
   }
 }

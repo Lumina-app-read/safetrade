@@ -20,8 +20,7 @@ import { useNow } from "./use-live";
 const POINTS = 120;
 
 function elapsed(from: string | null, now: number): string {
-  if (!from || !now) return "—";
-  const seconds = Math.max(0, Math.floor((now - new Date(from).getTime()) / 1000));
+  const seconds = from && now ? Math.max(0, Math.floor((now - new Date(from).getTime()) / 1000)) : 0;
   const m = Math.floor(seconds / 60);
   const s = String(seconds % 60).padStart(2, "0");
   return m >= 60 ? `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}` : `${m}:${s}`;
@@ -74,7 +73,8 @@ function PositionCard({
   const f = formatters(locale);
   const [closing, setClosing] = useState(false);
   const [failure, setFailure] = useState<{ code: string } | null>(null);
-  const money = (value: string | null) => (value === null ? "—" : f.money(Number(value)));
+  // Valeur pas encore fournie par Deriv, juste après l'ouverture.
+  const money = (value: string | null) => (value === null ? t.awaiting : f.money(Number(value)));
   const profit = Number(position.current_profit ?? 0);
   const protection = position.protection;
   const decimals = asset ? priceDecimals(asset.pip_size) : 2;
@@ -124,7 +124,7 @@ function PositionCard({
         <div>
           <p className="text-small text-muted">{t.net}</p>
           <p className="text-kpi font-medium">
-            {position.current_profit === null ? "—" : <SignedAmount value={profit} formatted={f.money(profit)} />}
+            {position.current_profit === null ? t.awaiting : <SignedAmount value={profit} formatted={f.money(profit)} />}
           </p>
         </div>
         <Sparkline values={history} label={t.evolution} />
@@ -134,7 +134,7 @@ function PositionCard({
         <Fact label={t.stake}>{money(position.buy_price ?? position.stake)}</Fact>
         <Fact label={t.commission}>{money(position.commission)}</Fact>
         <Fact label={t.peak}>{money(position.peak_profit)}</Fact>
-        <Fact label={t.entry}>{position.entry_spot ? f.price(Number(position.entry_spot), decimals) : "—"}</Fact>
+        <Fact label={t.entry}>{position.entry_spot ? f.price(Number(position.entry_spot), decimals) : t.awaiting}</Fact>
       </dl>
 
       <div className="rounded-lg bg-page p-3">
@@ -144,11 +144,11 @@ function PositionCard({
         </p>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
           <Fact label={protection?.floor_active ? t.floorActive : t.stopAtDeriv}>-{money(position.current_stop ?? position.stop_loss)}</Fact>
-          <Fact label={t.worstCase}>{protection ? `-${money(protection.worst_case_loss)}` : "—"}</Fact>
+          <Fact label={t.worstCase}>{protection ? `-${money(protection.worst_case_loss)}` : t.awaiting}</Fact>
           <Fact label={protection?.ratchet_active ? t.locked : t.activation}>
             {protection?.ratchet_active ? money(protection.locked_level) : money(protection?.activation_level ?? null)}
           </Fact>
-          <Fact label={t.stopSpot}>{position.stop_spot ? f.price(Number(position.stop_spot), decimals) : "—"}</Fact>
+          <Fact label={t.stopSpot}>{position.stop_spot ? f.price(Number(position.stop_spot), decimals) : t.awaiting}</Fact>
         </dl>
         {protection?.ratchet_active && <p className="mt-2 text-small text-muted">{t.lockedNote}</p>}
       </div>

@@ -380,6 +380,8 @@ def user_view(user: User) -> dict[str, str | uuid.UUID | bool]:
         "theme": user.theme,
         "email_verified": user.email_verified_at is not None,
         "mfa_enabled": user.totp_enabled_at is not None,
+        # Formules : étape 4.1. Valeurs prévues : none, trial, weekly, monthly, annual.
+        "subscription": "none",
     }
 
 
