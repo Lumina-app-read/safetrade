@@ -70,6 +70,24 @@ services:
       redis:
         condition: service_healthy
 
+  # Flux de marché : une seule connexion publique à Deriv, sans jeton.
+  worker:
+    image: safetradev2-backend:dev
+    pull_policy: never
+    container_name: safetradev2-worker
+    command: ["python", "-m", "app.market.worker"]
+    environment:
+      SAFETRADE_ENVIRONMENT: development
+      SAFETRADE_REDIS_URL: redis://redis:6379/0
+    # Pas de serveur HTTP ici : le contrôle de l'API hérité de l'image ne s'applique pas.
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+    networks: [safetradev2]
+    depends_on:
+      backend:
+        condition: service_healthy
+
   frontend:
     build:
       context: ../frontend

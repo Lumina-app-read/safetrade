@@ -19,6 +19,17 @@ class Settings(BaseSettings):
     redis_url: SecretStr | None = None
     # Identifiant de l'application enregistrée chez Deriv (en-tête Deriv-App-ID).
     deriv_app_id: str | None = None
+    # Actifs suivis ; leur état et leurs bornes viennent toujours de Deriv.
+    market_symbols: list[str] = [
+        "1HZ75V",
+        "1HZ100V",
+        "R_100",
+        "cryBTCUSD",
+        "cryETHUSD",
+        "frxXAUUSD",
+    ]
+    # Durée d'un flux vers le navigateur, qui se reconnecte ensuite.
+    market_stream_seconds: int = 300
 
     # Adresse publique du front-end, pour les liens envoyés par e-mail.
     public_app_url: str = "http://127.0.0.1:13000"

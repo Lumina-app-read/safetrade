@@ -154,7 +154,11 @@
     "deriv_unavailable": "Deriv ne répond pas pour le moment. Réessayez dans quelques instants.",
     "deriv_real_disabled": "Le compte réel n'est pas encore disponible. Utilisez le compte démo.",
     "deriv_not_connected": "Aucun compte Deriv n'est connecté.",
-    "deriv_account_unknown": "Ce compte n'existe pas sur votre connexion Deriv."
+    "deriv_account_unknown": "Ce compte n'existe pas sur votre connexion Deriv.",
+    "market_unavailable": "Les données de marché sont indisponibles pour le moment.",
+    "market_unknown_symbol": "Cet actif n'est pas proposé.",
+    "market_invalid_granularity": "Cet intervalle n'est pas proposé.",
+    "market_too_many_streams": "Trop de flux ouverts. Fermez un onglet puis réessayez."
   },
   "fields": {
     "required": "Ce champ est obligatoire.",

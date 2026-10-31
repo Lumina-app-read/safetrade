@@ -92,7 +92,7 @@ Tous les bots partagent l'adresse du serveur. Après un redémarrage, 300 bots d
 ## Données de marché
 
 - `ticks`, `ticks_history` (`style: candles`, `granularity` en secondes), `trading_times` et `contracts_for` répondent sans authentification sur le point public [mesuré].
-- Le point public peut donc alimenter l'analyse sans jeton, avec une connexion partagée par actif plutôt qu'une par utilisateur.
+- Le point public alimente tout le serveur avec une seule connexion, sans jeton : voir [q19](q19-donnees-marche.md).
 
 ## Reste à vérifier sur compte démo
 

@@ -11,7 +11,7 @@ Quel hébergement (fournisseur cloud, région) ?
 
 - Serveur cloud sous Docker.
 - Région européenne en hypothèse.
-- Latence vers Deriv mesurée à l'étape 2.5.
+- Latence vers Deriv : 342 ms en médiane depuis le poste de développement ([q19](q19-donnees-marche.md)). À mesurer depuis les serveurs candidats avant de choisir.
 - Fournisseur choisi selon le budget du propriétaire.
 
 ## Conséquences

@@ -81,7 +81,7 @@ Objectif : un vrai produit SaaS de trading professionnel et international, pas u
 ## Docker : isolation absolue (règle permanente)
 
 - **Ne jamais supprimer, réinitialiser, renommer ni modifier** un conteneur, une base, un volume, un réseau ou une image qui n'appartient pas à SafeTrade V2 (MUYUEXCHANGE, MUYUSTORE, ancien SafeTrade `safetrade-api` et `safetrade-pg`, ou tout autre projet). Aucun `docker system prune`, `docker volume prune` ni commande globale.
-- Tout ce que crée SafeTrade V2 est préfixé `safetradev2` : projet Compose, base `safetradev2`, conteneurs `safetradev2-postgres`, `safetradev2-redis`, `safetradev2-backend` et `safetradev2-frontend`, réseau `safetradev2-network`, volumes `safetradev2-postgres-data` et `safetradev2-redis-data`.
+- Tout ce que crée SafeTrade V2 est préfixé `safetradev2` : projet Compose, base `safetradev2`, conteneurs `safetradev2-postgres`, `safetradev2-redis`, `safetradev2-backend`, `safetradev2-worker` et `safetradev2-frontend`, réseau `safetradev2-network`, volumes `safetradev2-postgres-data` et `safetradev2-redis-data`.
 - Avant de choisir ou de changer un port hôte : vérifier `netstat -ano | findstr LISTENING` et les ports réservés par **tous** les conteneurs, même arrêtés (`docker ps -a`). Entre conteneurs, toujours les ports standard des services.
 - Détails et relevé des ports : `docs/decisions/q14-isolation-docker.md`.
 
@@ -118,6 +118,7 @@ Directive du propriétaire du 30 octobre 2026, qui remplace la validation après
 - Quotas : `app/broker/quotas.py`, REST et WebSocket séparés, par groupe d'appels, partagés entre les bots via Redis (80 % des limites officielles). Les sorties gardent du budget quand les entrées sont plafonnées.
 - `DerivConnection` ne renvoie jamais une requête. Une réponse d'achat perdue lève `OrderOutcomeUnknownError` : lire `statement` avant toute autre tentative.
 - Tests sur `tests/fake_deriv.py`, sans réseau.
+- Données de marché : worker `app/market/worker.py`, une connexion publique pour tout le serveur, puis Redis et flux SSE (`/market/stream`). Le statut d'un actif (`asset_status`) est calculé par le backend ; seul `live` autorisera le trading. Détails : `docs/decisions/q19-donnees-marche.md`.
 
 ## Git
 

@@ -1,3 +1,5 @@
+from collections import Counter
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 from redis import Redis
@@ -14,6 +16,8 @@ from app.config import Settings, get_settings
 from app.db.session import get_engine
 from app.deriv.router import router as deriv_router
 from app.errors import install_error_handlers
+from app.market.router import router as market_router
+from app.market.store import MarketStore, RedisMarketStore
 
 
 class Health(BaseModel):
@@ -28,6 +32,7 @@ def create_app(
     mailer: Mailer | None = None,
     failures: FailureCounter | None = None,
     deriv: DerivRest | None = None,
+    market: MarketStore | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
     is_dev = settings.environment == "development"
@@ -71,11 +76,16 @@ def create_app(
             real_account_enabled=settings.real_account_enabled,
         )
     app.state.deriv = deriv
+    if market is None and settings.redis_url:
+        market = RedisMarketStore(AsyncRedis.from_url(settings.redis_url.get_secret_value()))
+    app.state.market = market
+    app.state.market_streams = Counter()
 
     install_error_handlers(app)
     app.include_router(auth_router)
     app.include_router(admin_router)
     app.include_router(deriv_router)
+    app.include_router(market_router)
 
     @app.get("/health", response_model=Health, tags=["system"])
     def health() -> Health:

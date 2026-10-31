@@ -154,7 +154,11 @@
     "deriv_unavailable": "Deriv is not responding right now. Try again shortly.",
     "deriv_real_disabled": "The real account is not available yet. Use the demo account.",
     "deriv_not_connected": "No Deriv account is connected.",
-    "deriv_account_unknown": "This account does not exist on your Deriv connection."
+    "deriv_account_unknown": "This account does not exist on your Deriv connection.",
+    "market_unavailable": "Market data is unavailable right now.",
+    "market_unknown_symbol": "This asset is not offered.",
+    "market_invalid_granularity": "This interval is not offered.",
+    "market_too_many_streams": "Too many open streams. Close a tab and try again."
   },
   "fields": {
     "required": "This field is required.",
