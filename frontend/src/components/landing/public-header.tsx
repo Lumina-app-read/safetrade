@@ -60,7 +60,7 @@ export function PublicHeader({
           <a href={`/${locale}`} aria-label={t.home} className="shrink-0">
             <Logo />
           </a>
-          <nav className="mx-auto hidden items-center gap-1 lg:flex">
+          <nav className="mx-auto hidden items-center gap-1 xl:flex">
             {SECTIONS.map((id) => (
               <a
                 key={id}
@@ -71,7 +71,7 @@ export function PublicHeader({
               </a>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-2 lg:ml-0">
+          <div className="ml-auto flex items-center gap-2 xl:ml-0">
             <ThemeToggle labels={messages.theme} />
             <div className="max-[379px]:hidden">
               <LanguageSelect current={locale} labels={messages.language} />
@@ -96,7 +96,7 @@ export function PublicHeader({
             </a>
             <button
               type="button"
-              className="grid size-10 place-items-center rounded-lg border border-line lg:hidden"
+              className="grid size-10 place-items-center rounded-lg border border-line xl:hidden"
               aria-label={open ? t.closeMenu : t.openMenu}
               aria-expanded={open}
               aria-controls="mobile-menu"
@@ -116,7 +116,7 @@ export function PublicHeader({
       <div
         id="mobile-menu"
         hidden={!open}
-        className="fixed inset-x-0 top-16 bottom-0 z-20 animate-fade overflow-y-auto border-t border-line bg-card lg:hidden"
+        className="fixed inset-x-0 top-16 bottom-0 z-20 animate-fade overflow-y-auto border-t border-line bg-card xl:hidden"
       >
         <nav className="flex flex-col px-5 py-4">
           {SECTIONS.map((id, i) => (

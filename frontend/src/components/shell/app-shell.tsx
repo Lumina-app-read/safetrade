@@ -38,7 +38,7 @@ export function AppShell({ locale, messages, children }: { locale: Locale; messa
     <SessionGate locale={locale} messages={messages}>
       <div className="min-h-dvh bg-page">
         <header className="sticky top-0 z-20 border-b border-line bg-card/90 backdrop-blur-xl">
-          <div className={`mx-auto flex h-16 ${width} items-center gap-3 px-5 sm:px-6`}>
+          <div className={`mx-auto flex h-16 ${width} items-center gap-2 px-4 sm:gap-3 sm:px-6`}>
             <Link href={`/${locale}/dashboard`} aria-label={messages.nav.dashboard}>
               <Logo compact />
             </Link>

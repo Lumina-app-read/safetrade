@@ -164,7 +164,7 @@ function MfaCard({ messages, enabled, onChange }: { messages: Messages; enabled:
   }
 
   return (
-    <Card className="flex flex-col gap-5 max-sm:-mx-5 max-sm:rounded-none max-sm:border-x-0 max-sm:px-5">
+    <Card className="flex flex-col gap-5 p-4 sm:p-6">
       <CardHeader
         icon={enabled ? ShieldCheck : LockKeyhole}
         title={t.mfaTitle}
@@ -367,7 +367,7 @@ function SessionsCard({
   }
 
   return (
-    <Card className="flex flex-col gap-5 max-sm:-mx-5 max-sm:rounded-none max-sm:border-x-0 max-sm:px-5">
+    <Card className="flex flex-col gap-5 p-4 sm:p-6">
       <CardHeader icon={LaptopMinimal} title={t.sessionsTitle} body={t.sessionsBody} />
       {error && <Alert tone="error">{errorMessage(messages, error)}</Alert>}
       {notice && <Alert tone="success">{notice}</Alert>}

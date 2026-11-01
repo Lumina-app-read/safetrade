@@ -25,3 +25,9 @@ Aucune modification de code n'est nécessaire.
 - Les images sont affichées avec des coins arrondis de 16 px et recadrées pour respecter les proportions.
 - Toute capture contenant des chiffres doit montrer la mention « Données de démonstration » ou des données réelles et vérifiables. Jamais de performance simulée présentée comme réelle.
 - Le texte alternatif de chaque image est traduit dans `src/messages/{fr,en}.json` (clés `landing.images`).
+
+## Icône de l'application
+
+Source du propriétaire : `public/icons/icon.png`, 1920 × 1920 px, coins transparents. Elle servira à l'écran de démarrage de la future application.
+
+Le logo du site reste le composant `Logo`, qui s'adapte à toutes les tailles. L'icône ne sert qu'au navigateur et aux téléphones : `src/app/favicon.ico` (16, 32 et 48 px), `src/app/icon.png` (192 px) et `src/app/apple-icon.png` (180 px, sans transparence, car iOS la peindrait en noir). Ces trois fichiers sont déclinés de la source : les refaire si elle change.

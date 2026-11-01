@@ -81,6 +81,7 @@ Objectif : un vrai produit SaaS de trading professionnel et international, pas u
 - **Images** : deux à quatre au maximum sur la page publique, déposées par le propriétaire dans `frontend/public/images/` (chemins et dimensions documentés dans `frontend/public/images/README.md`). Le composant d'image accepte PNG, JPG, JPEG, WebP et SVG et affiche un repli élégant tant que le fichier manque. Préférer les illustrations CSS et les compositions d'interface aux images.
 - **Système de composants** réutilisable : pas de composant dupliqué ni de style dispersé ; tout passe par les jetons de thème.
 - **Vérification avant « terminé »** dans le navigateur : téléphone 360, 375, 390 et 430 px, tablette, ordinateur 1366 et 1920 px ; interactions, animations, formulaires, clair et sombre, FR et EN, accessibilité (clavier, contrastes, libellés) et performances.
+- **Mesure du débordement** : jamais `scrollWidth` contre `innerWidth` en émulation mobile, car `innerWidth` grandit avec la page. Ouvrir la page dans un cadre de largeur fixe et comparer chaque élément à cette largeur, fenêtres ouvertes comprises.
 - Les choix esthétiques relèvent du jugement du développeur : pas de validation demandée au propriétaire.
 
 ## Docker : isolation absolue (règle permanente)

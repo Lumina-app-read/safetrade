@@ -342,7 +342,7 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
                   role="radio"
                   aria-checked={granularity === value}
                   onClick={() => setGranularity(value)}
-                  className="min-h-9 min-w-11 rounded-md px-2 text-label font-medium text-muted transition-colors aria-checked:bg-primary aria-checked:text-on-primary"
+                  className="min-h-11 min-w-11 rounded-md px-2 text-label font-medium text-muted transition-colors aria-checked:bg-primary aria-checked:text-on-primary"
                 >
                   {t.chart.intervals[String(value) as keyof typeof t.chart.intervals]}
                 </button>
