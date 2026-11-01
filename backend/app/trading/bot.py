@@ -477,7 +477,8 @@ class BotRunner:
         if candle == self._last_candle:
             return  # une décision par bougie close
         self._last_candle = candle
-        signal = strategy.evaluate(closed[-strategy.NEEDED_CANDLES :])
+        multiplier = risk.multiplier_for(settings.multiplier, snapshot.multiplier_range)
+        signal = strategy.evaluate(closed[-strategy.NEEDED_CANDLES :], multiplier)
         await self._journal.note(self.session_id, "signal", signal.reason, signal.data)
         if signal.direction is None:
             return
@@ -509,5 +510,4 @@ class BotRunner:
             await self._refuse(refusal, {"balance": str(balance)})
             return
         self._last_refusal = None
-        multiplier = risk.multiplier_for(settings.multiplier, snapshot.multiplier_range)
         await self._executor.open_position(session, settings, signal.direction, multiplier)

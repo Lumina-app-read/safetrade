@@ -216,23 +216,25 @@ def candles_from(closes: list[float]) -> list[dict[str, Any]]:
 
 def test_cross_up_and_down() -> None:
     falling = [100 - i * 0.1 for i in range(36)]
-    assert strategy.evaluate(candles_from([*falling, 110.0])).direction == "up"
+    assert strategy.evaluate(candles_from([*falling, 110.0]), 100).direction == "up"
     rising = [100 + i * 0.1 for i in range(36)]
-    assert strategy.evaluate(candles_from([*rising, 90.0])).direction == "down"
+    assert strategy.evaluate(candles_from([*rising, 90.0]), 100).direction == "down"
 
 
 def test_no_cross_waits() -> None:
     rising = [100 + i * 0.1 for i in range(37)]
-    signal = strategy.evaluate(candles_from(rising))
+    signal = strategy.evaluate(candles_from(rising), 100)
     assert (signal.direction, signal.reason) == (None, "strategy.no_cross")
 
 
 def test_flat_market_waits() -> None:
     rows = [
-        {"epoch": 60 * i, "open": 100.0, "high": 100.0, "low": 100.0, "close": 100.0}
+        {"epoch": 60 * i, "open": 100.0, "high": 100.005, "low": 99.995, "close": 100.0}
         for i in range(37)
     ]
-    assert strategy.evaluate(rows).reason == "strategy.flat_market"
+    assert strategy.evaluate(rows, 100).reason == "strategy.flat_market"
+    # Le même marché vaut plus à fort multiplicateur : Step Index se trade à partir de 750.
+    assert strategy.evaluate(rows, 750).reason != "strategy.flat_market"
 
 
 def test_needed_candles_are_enough_for_the_indicators() -> None:

@@ -2,7 +2,7 @@
 Stratégie version 1 : croisement de moyennes mobiles, filtré par la volatilité.
 
 Déterministe et volontairement simple : elle sert à faire fonctionner le moteur en démo.
-Elle n'est pas présentée comme rentable (CLAUDE.md, interdit 8). Le banc d'essai vient après.
+Le banc d'essai ne lui trouve aucun avantage sur le tirage au sort (docs/decisions/banc-essai.md).
 """
 
 import itertools
@@ -14,8 +14,9 @@ from app.market.store import Data
 FAST = 9
 SLOW = 21
 ATR_PERIOD = 14
-# Variation moyenne minimale, en fraction du cours : marché trop plat sinon.
-MIN_ATR_RATIO = 0.0002
+# Une bougie moyenne doit valoir au moins 2 % de la mise, multiplicateur compris : marché trop
+# plat sinon. Un seuil en pourcentage du cours bloquait Step Index en permanence (banc d'essai).
+MIN_CANDLE_VALUE = 0.02
 NEEDED_CANDLES = SLOW + ATR_PERIOD + 2
 GRANULARITY = 60
 
@@ -50,19 +51,21 @@ def atr(candles: Sequence[Data], period: int) -> float:
     return float(sum(recent) / len(recent))
 
 
-def evaluate(closed: Sequence[Data]) -> Signal:
+def evaluate(closed: Sequence[Data], multiplier: int) -> Signal:
     """`closed` : bougies closes, vérifiées par `entry_refusal`."""
     closes = [c["close"] for c in closed]
     fast, slow = ema(closes, FAST), ema(closes, SLOW)
     volatility = atr(closed, ATR_PERIOD)
+    candle_value = volatility / closes[-1] * multiplier
     data = {
         "close": closes[-1],
         "ema_fast": round(fast[-1], 5),
         "ema_slow": round(slow[-1], 5),
         "atr": round(volatility, 5),
+        "candle_value": round(candle_value, 4),
         "candle": closed[-1]["epoch"],
     }
-    if volatility / closes[-1] < MIN_ATR_RATIO:
+    if candle_value < MIN_CANDLE_VALUE:
         return Signal(None, "strategy.flat_market", data)
     if fast[-2] <= slow[-2] and fast[-1] > slow[-1]:
         return Signal("up", "strategy.cross_up", data)

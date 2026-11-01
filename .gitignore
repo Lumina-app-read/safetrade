@@ -25,6 +25,9 @@ htmlcov/
 node_modules/
 coverage/
 
+# Historique de marché du banc d'essai : volumineux, retéléchargeable
+.backtest/
+
 # Journaux et fichiers temporaires
 *.log
 *.tmp
