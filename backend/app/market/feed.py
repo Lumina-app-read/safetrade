@@ -16,7 +16,6 @@ import asyncio
 import contextlib
 import itertools
 import logging
-import re
 import time
 from collections import Counter, deque
 from collections.abc import Awaitable, Callable, Sequence
@@ -37,7 +36,6 @@ ASSETS_SECONDS = 60.0
 CONTRACTS_SECONDS = 6 * 3600.0
 CONTRACTS_RETRY_SECONDS = 60.0
 MULTIPLIER_CONTRACTS = {"MULTUP", "MULTDOWN"}
-ACCEPTED_MULTIPLIERS = re.compile(r"Accepts ([\d,]+)")
 # Cycle peu coûteux : les appels à Deriv restent espacés par ASSETS_SECONDS.
 SYNC_SECONDS = 1.0
 # Une bougie toutes les 0,5 s au plus : 120 appels par minute, sous les 176 de ce groupe.
@@ -269,37 +267,11 @@ class MarketFeed:
         allowed = next(
             (c.get("multiplier_range") for c in offered if c.get("contract_type") == "MULTUP"), None
         )
-        usable = allowed if allowed and kinds >= MULTIPLIER_CONTRACTS else []
-        if usable:
-            usable = await self._quoted_multipliers(symbol, usable)
         if self._multipliers is not None:
             # Liste propre à chaque actif : 100 existe sur Volatility 100, pas sur Step Index 100.
-            self._multipliers[symbol] = usable
+            # `contracts_for` fait foi ; un devis sur le point public, non (catalogue-actifs.md).
+            self._multipliers[symbol] = (allowed or []) if kinds >= MULTIPLIER_CONTRACTS else []
             self._contracts_read_at[symbol] = now
-
-    async def _quoted_multipliers(self, symbol: str, announced: list[int]) -> list[int]:
-        """
-        `contracts_for` annonce parfois une liste que le devis refuse (mesuré sur Range Break
-        et Volatility 15 et 30 (1s)) : un devis, jamais un achat, donne la liste qui fait foi.
-        """
-        try:
-            await self._broker.request(
-                "proposal",
-                {
-                    "proposal": 1,
-                    "amount": 1,
-                    "basis": "stake",
-                    "contract_type": "MULTUP",
-                    "currency": "USD",
-                    "multiplier": min(announced),
-                    "underlying_symbol": symbol,
-                },
-            )
-        except ApiRejectedError as exc:
-            found = ACCEPTED_MULTIPLIERS.search(exc.message)
-            if found:
-                return [int(value) for value in found.group(1).split(",") if value]
-        return announced
 
     async def _align(self, symbol: str, now: float) -> None:
         stream = self._streams.get(symbol)

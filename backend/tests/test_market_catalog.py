@@ -13,7 +13,7 @@ from sqlalchemy.orm import sessionmaker
 from app.admin.router import clean_url
 from app.auth.mailer import MemoryMailer
 from app.auth.rate_limit import MemoryFailureCounter
-from app.broker.base import ApiRejectedError, Message, RequestTimeoutError
+from app.broker.base import Message, RequestTimeoutError
 from app.config import Settings
 from app.db.models import AuditLog, UserRole
 from app.errors import ApiError
@@ -54,24 +54,17 @@ ROWS = [
 
 
 class Contracts(FakeBroker):
-    """Comme chez Deriv : pas de multiplicateurs sur Bull Market, liste démentie sur Jump 10."""
+    """Comme chez Deriv : pas de multiplicateurs sur Bull Market."""
 
     def __init__(self, rows: list[dict[str, Any]]) -> None:
         super().__init__(rows)
         self.asked: list[str] = []
-        self.quoted: list[Message] = []
+        self.calls: list[str] = []
 
     async def request(self, call: str, payload: Message) -> Message:
         if self.fail_with:
             raise self.fail_with
-        if call == "proposal":
-            self.quoted.append(payload)
-            if payload["underlying_symbol"] == "JD10":
-                raise ApiRejectedError(
-                    "ContractBuyValidationError",
-                    "Multiplier is not in acceptable range. Accepts 400,1000,2000.",
-                )
-            return {"proposal": {}}
+        self.calls.append(call)
         if call != "contracts_for":
             return await super().request(call, payload)
         symbol = payload["contracts_for"]
@@ -121,11 +114,9 @@ def test_multipliers_come_from_deriv_one_symbol_per_cycle() -> None:
         found = {a["symbol"]: a["multipliers"] for a in state["assets"]}
         assert found == {"BOOM500": True, "JD10": True, "RDBULL": False}
         assert state["assets"][0]["multiplier_range"] == [20, 750]
-        # Le devis l'emporte sur la liste annoncée.
-        assert state["assets"][1]["multiplier_range"] == [400, 1000, 2000]
         assert state["assets"][2]["multiplier_range"] == []
-        assert "buy" not in str(broker.quoted)
-        assert all(q["proposal"] == 1 for q in broker.quoted)
+        # Le point public renvoie de faux refus de devis : le flux n'en demande jamais.
+        assert "proposal" not in broker.calls
 
     asyncio.run(main())
 

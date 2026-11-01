@@ -13,7 +13,7 @@ Demande du propriétaire du 31 octobre 2026.
 - **Deriv n'accepte que cinq valeurs par actif, différentes d'un actif à l'autre** : 40 à 400 sur Volatility 100, 750 à 7500 sur Step Index 100. Le réglage du client ne peut donc pas s'appliquer partout.
 - `risk.multiplier_for` : le plus proche du réglage sans le dépasser, sinon le plus petit proposé. La valeur utilisée est écrite sur la position avant l'envoi, et le client la voit avant de démarrer (`GET /trading/multiplier`).
 - Sur Step Index 100, le ×100 demandé devient ×750 : à mise égale, la position est 7,5 fois plus exposée. La perte reste bornée par le stop loss et la mise.
-- `contracts_for` se trompe parfois : Volatility 15 et 30 (1s), Range Break 100 et 200 y annoncent une liste que le devis refuse, en donnant la bonne dans son message. Le flux demande donc un devis, jamais un achat, et ce devis fait foi.
+- **`contracts_for` fait foi ; un devis sur le point public, non.** Mesuré le 1er novembre 2026 sur le compte démo : 39 actifs ouverts acceptés et aucun refus avec les listes de `contracts_for`. Le point public, lui, a répondu `400, 1000, 2000, 3000, 4000` pour Volatility 15 et 30 (1s) et Range Break, alors que le compte démo refuse ×400 sur trois d'entre eux. Un devis ne vaut donc preuve que sur un compte connecté.
 
 ## Charge
 
@@ -31,7 +31,7 @@ Demande du propriétaire du 31 octobre 2026.
 
 - `users.market_watchlist` : liste et ordre choisis par le client (`GET` et `PUT /market/watchlist`). Vide : actifs par défaut.
 - Décision du propriétaire du 31 octobre 2026 : **tout actif compatible est autorisé par défaut** (`trading_settings.all_symbols`). Le client peut encore restreindre à une liste dans ses paramètres (section 7).
-- Crash, Boom et Jump bougent par à-coups : le sélecteur le signale. Aucune stratégie n'est calibrée pour eux, et le bot n'y a pas été essayé en démo. Les plages de multiplicateurs varient par actif et sont lues dans chaque `proposal`.
+- Crash, Boom et Jump bougent par à-coups : le sélecteur le signale. Aucune stratégie n'est calibrée pour eux. Essai réel en démo le 1er novembre 2026, signal forcé, un contrat de 1 USD fictif par indice : ouverture, clôture et arrêt corrects sur Step Index 100 (×750), Boom 500 (×100), Boom 50 (×500), Jump 10 (×100), Jump 75 (×75), Volatility 15 (1s) (×300), Volatility 30 (1s) (×140) et Range Break 100 (×100). Ce n'est ni un backtest ni une preuve de rentabilité.
 
 ## Lien partenaire Deriv
 
