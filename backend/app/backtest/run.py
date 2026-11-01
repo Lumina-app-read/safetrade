@@ -6,6 +6,7 @@ Rapport du banc d'essai : réglages choisis sur 70 % de l'historique, jugés sur
 `.backtest/meta.json` donne, par actif, le multiplicateur, la commission et le stop minimum lus
 sur un devis du compte démo, par exemple :
 `{"stpRNG": {"multiplier": 750, "commission": 0.02, "stop_min": 0.1}}`.
+Marché fermé, donc sans devis : `"assumed": true` signale une commission supposée.
 """
 
 import argparse
@@ -54,6 +55,7 @@ def study(job: tuple[str, Path, dict[str, Any]]) -> dict[str, Any]:
         "ticks": len(times),
         "first": times[0],
         "last": times[-1],
+        "assumed": meta.get("assumed", False),
         "result": walk_forward(times, prices, base),
     }
 
@@ -101,9 +103,9 @@ def whole_lines(studies: list[dict[str, Any]], field: str) -> list[str]:
     return [*lines, line("**Ensemble**", summarize(pooled), fees / max(len(pooled), 1))]
 
 
-def render(studies: list[dict[str, Any]]) -> str:
+def render(studies: list[dict[str, Any]], title: str = "stratégie version 1") -> str:
     rows = [
-        "# Banc d'essai, stratégie version 1",
+        f"# Banc d'essai, {title}",
         "",
         f"Rapport généré le {datetime.now(UTC).strftime('%d/%m/%Y')} par `app.backtest.run`.",
         "",
@@ -146,8 +148,8 @@ def render(studies: list[dict[str, Any]]) -> str:
         "",
         "## Réglages actuels du moteur, sur tout l'historique",
         "",
-        "Ces réglages n'ont pas été choisis sur ces données : les 7 jours comptent, sans biais",
-        "d'optimisation. C'est le plus grand échantillon de ce rapport.",
+        "Ces réglages n'ont pas été choisis sur ces données : tout l'historique compte, sans",
+        "biais d'optimisation. C'est le plus grand échantillon de ce rapport.",
         "",
         HEADER,
         RULE,
@@ -182,14 +184,17 @@ def render(studies: list[dict[str, Any]]) -> str:
         "",
         "## Données",
         "",
-        "| Actif | Ticks | Du | Au | Sorties sur le contrôle |",
-        "| --- | --- | --- | --- | --- |",
+        "| Actif | Ticks | Du | Au | Multiplicateur | Commission | Sorties sur le contrôle |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
     ]
     for item in studies:
+        chosen = item["result"].chosen
+        fee = f"{chosen.commission:.2f}".replace(".", ",")
+        fee += " (hypothèse)" if item["assumed"] else " (devis)"
         reasons = ", ".join(f"{k} {v}" for k, v in sorted(item["result"].test.reasons.items()))
         rows.append(
             f"| {item['symbol']} | {item['ticks']} | {day(item['first'])} | {day(item['last'])} | "
-            f"{reasons or 'aucune'} |"
+            f"{chosen.multiplier} | {fee} | {reasons or 'aucune'} |"
         )
     return "\n".join(rows) + "\n"
 
@@ -199,13 +204,14 @@ def main() -> None:
     parser.add_argument("--directory", type=Path, default=DATA_DIR)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--symbols", nargs="*")
+    parser.add_argument("--title", default="stratégie version 1")
     args = parser.parse_args()
     meta = json.loads((args.directory / "meta.json").read_text(encoding="utf-8"))
     symbols = args.symbols or sorted(meta)
     jobs = [(symbol, args.directory, meta[symbol]) for symbol in symbols]
     with Pool() as pool:
         studies = pool.map(study, jobs)
-    args.output.write_text(render(studies), encoding="utf-8", newline="\n")
+    args.output.write_text(render(studies, args.title), encoding="utf-8", newline="\n")
     print(args.output)
 
 

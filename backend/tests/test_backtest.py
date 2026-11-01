@@ -210,9 +210,11 @@ def test_report_never_claims_profitability() -> None:
         "ticks": len(times),
         "first": times[0],
         "last": times[-1],
+        "assumed": True,
         "result": walk_forward(times, prices, params),
     }
     text = render([study])
     assert "ne présente aucune stratégie comme rentable" in text
+    assert "0,02 (hypothèse)" in text
     assert "Échantillon insuffisant" in text
     assert "Positif" not in text

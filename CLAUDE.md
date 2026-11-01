@@ -134,7 +134,7 @@ Directive du propriétaire du 31 octobre 2026, qui remplace les précédentes :
 - Tout ordre passe par `risk.order_refusal` et `entry_refusal`. Stop loss obligatoire, jamais retiré. Une position est écrite en base avant l'envoi.
 - Les multiplicateurs permis changent par actif : toujours passer par `risk.multiplier_for`, jamais le réglage brut.
 - Le mot d'ordre `stop_loss: null` est interdit : `DerivTrading.update_stop` le refuse.
-- Banc d'essai : `app/backtest/`, rejeu tick par tick du code du moteur. Toute stratégie y passe avant d'être évaluée. Première mesure : aucun avantage sur le tirage au sort. Détails : `docs/decisions/banc-essai.md`.
+- Banc d'essai : `app/backtest/`, rejeu tick par tick du code du moteur. Toute stratégie y passe avant d'être évaluée. Mesures de novembre 2026, indices synthétiques et marchés réels : aucun avantage sur le tirage au sort. Détails : `docs/decisions/banc-essai.md`.
 
 ## Abonnements et paiements
 

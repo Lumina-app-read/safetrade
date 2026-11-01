@@ -19,11 +19,31 @@
 - La perte correspond surtout aux frais : -0,02 USD par position avant frais, -0,05 USD après.
 - L'optimisation n'a rien sauvé. Sur Volatility 100, le meilleur des 27 réglages passe de +0,03 USD à -0,11 USD sur la période de contrôle. C'est le comportement attendu d'un réglage ajusté au hasard.
 
+## Marchés réels : même verdict
+
+Mesure du 1er novembre 2026 sur 14 jours : bitcoin, ether, or, EUR/USD, GBP/USD et USD/JPY. Résultats complets : [banc-essai-marches-reels.md](banc-essai-marches-reels.md).
+
+| Mesure, mise de 1 USD | Stratégie | Sens tiré au sort |
+| --- | --- | --- |
+| Positions | 972 | 961 |
+| Par position | -0,06 USD | -0,05 USD |
+| Intervalle à 95 % | [-0,08 ; -0,04] | [-0,07 ; -0,03] |
+| Avant frais | -0,01 USD | -0,01 USD |
+| Réussite | 15,2 % | 16,9 % |
+| Réussite d'équilibre | 24,0 % | 25,4 % |
+
+- Ici non plus, le signal ne fait pas mieux que le hasard, et la perte vient presque entièrement des frais.
+- **Forex à ×100 : 87 à 96 % du temps bloqué** par le filtre, une bougie n'y valant que 1 % de la mise. Il a donc été testé à ×500, qui est aussi plus risqué.
+- **Commissions de l'or et du forex supposées** : 0,02 USD, la plus basse observée, car ces marchés étaient fermés lors de la mesure. L'hypothèse avantage la stratégie : une commission réelle plus haute aggraverait le résultat. À remplacer par un devis à la réouverture.
+- Le bitcoin ressort à peine différent de zéro, sur 66 positions seulement. Il ne faut pas en tirer de conclusion, et l'optimisation par actif y varie autant que le hasard.
+
+Cette mesure juge **cette stratégie**, un croisement de moyennes mobiles sur des bougies d'une minute. Elle ne dit pas qu'aucune stratégie ne peut fonctionner sur ces marchés, ni que deux semaines suffisent à le prouver.
+
 ## Pourquoi ce résultat n'étonne pas
 
 Les indices synthétiques de Deriv sont produits par un générateur aléatoire, non par un marché. Sur un cours sans mémoire, aucune règle d'entrée ni de sortie ne peut créer d'espérance positive : couper vite ou laisser courir change la forme des résultats, pas leur moyenne. Reste alors le coût de chaque position.
 
-Ce raisonnement explique la mesure, il ne la remplace pas. Une autre stratégie ou un autre marché devront repasser au banc. Les marchés réels (forex, or) ont une autre nature, sans que rien ne prouve qu'ils se prêtent mieux à une stratégie.
+Ce raisonnement vaut pour les indices synthétiques. Il explique la mesure, il ne la remplace pas : toute autre stratégie devra repasser au banc.
 
 ## Ce que le banc a corrigé
 
