@@ -48,11 +48,17 @@ def floor_stop(commission: Decimal) -> Decimal:
 
 
 def decide(view: PositionView, params: ExitParams) -> ExitAction:
+    """
+    Rien ne bouge avant le seuil d'activation : le stop loss du client reste entier. Un plancher
+    posé dès le premier centime de gain transformait le stop en un stop de quelques centimes,
+    que le bruit du marché touchait en quelques secondes (constat du 4 novembre 2026).
+    """
     peak = max(view.peak_profit, view.profit)
-    if peak >= activation_level(view, params):
-        locked = peak * params.locked_fraction
-        if view.profit <= locked:
-            return ExitAction("sell", reason="ratchet")
+    if peak < activation_level(view, params):
+        return ExitAction("hold")
+    locked = peak * params.locked_fraction
+    if view.profit <= locked:
+        return ExitAction("sell", reason="ratchet")
     if view.profit > 0:
         floor = view.stop_minimum or floor_stop(view.commission)
         # Le stop ne s'éloigne jamais : seul un resserrement est envoyé.

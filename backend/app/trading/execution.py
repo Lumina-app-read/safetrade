@@ -132,6 +132,15 @@ def consecutive_losses(db: DbSession, session_id: uuid.UUID, since: datetime | N
     return count
 
 
+def deriv_close_reason(row: TradingPosition, sell_price: Decimal) -> str:
+    """Stop loss du client, plancher de protection, ou mise entièrement perdue (stop out)."""
+    if sell_price <= 0:
+        return "stop_out"
+    if row.current_stop is not None and row.current_stop < row.stop_loss:
+        return "floor"
+    return "stop_loss"
+
+
 class Executor:
     def __init__(self, journal: Journal, trading: DerivTrading, guard: Guard) -> None:
         self._journal = journal
@@ -264,7 +273,8 @@ class Executor:
             row.sell_price = sell_price
             row.net_result = sell_price - buy_price
             row.current_profit = row.net_result
-            row.close_reason = row.close_reason or "deriv"
+            # Sans vente du moteur, Deriv a clôturé : on dit pourquoi, d'après le stop en place.
+            row.close_reason = row.close_reason or deriv_close_reason(row, sell_price)
             sold_at = contract.get("sell_time")
             row.closed_at = (
                 datetime.fromtimestamp(int(sold_at), UTC) if sold_at else datetime.now(UTC)
