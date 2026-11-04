@@ -1,3 +1,4 @@
+import { RiskWarning } from "@/components/site/site-messages";
 import {
   ArrowRight,
   BarChart3,
@@ -429,18 +430,25 @@ export function Footer({ locale, messages }: Props) {
           </div>
           <div>
             <h2 className="text-small font-medium tracking-[0.08em] text-muted uppercase">{t.legal}</h2>
-            {/* Pages légales publiées à l'étape 8.3, après avis juridique. */}
-            <ul className="mt-4 flex flex-col gap-2.5 text-muted">
-              {[t.legalNotice, t.terms, t.privacy, t.riskWarning].map((item) => (
-                <li key={item} className="flex flex-wrap items-center gap-x-2">
-                  {item}
-                  <span className="text-small">· {t.soon}</span>
+            <ul className="mt-4 flex flex-col gap-2.5">
+              {(
+                [
+                  ["legal-notice", t.legalNotice],
+                  ["terms", t.terms],
+                  ["privacy", t.privacy],
+                  ["risk", t.riskWarning],
+                ] as const
+              ).map(([slug, label]) => (
+                <li key={slug}>
+                  <a href={`/${locale}/legal/${slug}`} className="hover:text-accent-text">
+                    {label}
+                  </a>
                 </li>
               ))}
             </ul>
           </div>
         </div>
-        <p className="mt-12 border-t border-line pt-6 text-small text-muted">{t.disclaimer}</p>
+        <RiskWarning locale={locale} fallback={t.disclaimer} className="mt-12 border-t border-line pt-6 text-small text-muted" />
         <p className="mt-4 text-small text-muted">{t.rights}</p>
       </div>
     </footer>

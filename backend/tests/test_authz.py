@@ -31,6 +31,7 @@ KEY = base64.b64encode(os.urandom(32)).decode()
 PUBLIC_ROUTES = {
     ("GET", "/health"),
     ("GET", "/site/config"),
+    ("GET", "/site/legal"),
     ("POST", "/auth/register"),
     ("POST", "/auth/verify-email"),
     ("POST", "/auth/verify-email/resend"),

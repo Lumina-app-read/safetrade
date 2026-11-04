@@ -610,3 +610,28 @@ class SiteSetting(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class LegalDocument(Base):
+    """
+    Texte légal publié : une ligne par version, jamais modifiée. La version en vigueur est la
+    plus récente ; les anciennes restent consultables, comme preuve de ce qui était affiché.
+    """
+
+    __tablename__ = "legal_documents"
+    __table_args__ = (
+        UniqueConstraint("kind", "locale", "version", name="uq_legal_documents_version"),
+        CheckConstraint("kind IN ('legal_notice', 'terms', 'privacy', 'risk')", name="kind"),
+        CheckConstraint("locale IN ('fr', 'en')", name="locale"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    kind: Mapped[str] = mapped_column(String(20))
+    locale: Mapped[str] = mapped_column(String(2))
+    version: Mapped[int] = mapped_column(Integer)
+    title: Mapped[str] = mapped_column(String(150))
+    body: Mapped[str] = mapped_column(Text)
+    published_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
+    published_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )

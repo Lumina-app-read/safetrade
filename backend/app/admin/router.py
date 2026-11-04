@@ -284,7 +284,8 @@ async def market_monitoring(
 
 
 # Modules complets de la section 10, protégés par les dépendances de ce routeur.
-from app.admin import accounts, operations  # noqa: E402
+from app.admin import accounts, operations, site_admin  # noqa: E402
 
 router.include_router(accounts.router)
 router.include_router(operations.router)
+router.include_router(site_admin.router)

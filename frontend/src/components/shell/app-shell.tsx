@@ -12,6 +12,8 @@ import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/messages";
 import { isAdminRole } from "@/lib/roles";
 
+import { SiteAnnouncement } from "@/components/site/site-messages";
+
 import { SessionGate, useSession } from "./session";
 import { UserMenu } from "./user-menu";
 
@@ -87,6 +89,7 @@ export function AppShell({ locale, messages, children }: { locale: Locale; messa
           </div>
         </header>
 
+        <SiteAnnouncement locale={locale} />
         {/* Marge basse sur téléphone : les onglets fixes ne masquent jamais le contenu. */}
         <main
           key={pathname}

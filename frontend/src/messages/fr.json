@@ -236,7 +236,15 @@
     "risk_global_halt": "Le trading est suspendu par l'équipe SafeTrade.",
     "risk_symbol_disabled": "Cet actif est désactivé par l'équipe SafeTrade.",
     "risk_global_max_stake": "Mise au-dessus du plafond fixé par SafeTrade.",
-    "risk_global_max_positions": "Nombre de positions au plafond fixé par SafeTrade."
+    "risk_global_max_positions": "Nombre de positions au plafond fixé par SafeTrade.",
+    "legal_not_published": "Ce document n'est pas encore publié.",
+    "settings_encryption_unavailable": "La clé de chiffrement du serveur manque.",
+    "settings_key_not_found": "Cette clé n'est pas réglable ici.",
+    "settings_key_invalid": "Collez une valeur sans espace.",
+    "settings_email_not_found": "Ce message n'existe pas.",
+    "settings_email_invalid": "Vérifiez les champs du message.",
+    "settings_invalid_placeholder": "Une variable entre accolades n'est pas permise à cet endroit.",
+    "settings_legal_conflict": "Une autre version vient d'être publiée. Rechargez la page."
   },
   "fields": {
     "required": "Ce champ est obligatoire.",
@@ -1056,7 +1064,125 @@
     "urlInvalid": "Indiquez une adresse complète commençant par https://.",
     "save": "Enregistrer",
     "saving": "Enregistrement",
-    "saved": "Lien enregistré. Il s'applique au prochain chargement des pages."
+    "saved": "Lien enregistré. Il s'applique au prochain chargement des pages.",
+    "tabsLabel": "Sections des réglages",
+    "tabs": {
+      "partner": "Lien Deriv",
+      "messages": "Messages",
+      "legal": "Textes légaux",
+      "emails": "E-mails types",
+      "keys": "Clés des services"
+    },
+    "messages": {
+      "announcement": "Bandeau d'annonce",
+      "announcementBody": "Affiché en haut de la page d'accueil et de l'espace client, par exemple pour une maintenance.",
+      "enabled": "Afficher le bandeau",
+      "tone": "Ton",
+      "tones": {
+        "info": "Information",
+        "warning": "Alerte"
+      },
+      "textFr": "Texte en français",
+      "textEn": "Texte en anglais",
+      "warning": "Avertissement de risque",
+      "warningBody": "Remplace l'avertissement par défaut du pied de page et de la page de trading. Laissez les deux champs vides pour revenir au texte par défaut.",
+      "save": "Enregistrer les messages",
+      "saving": "Enregistrement",
+      "saved": "Messages enregistrés. Ils s'affichent au prochain chargement des pages."
+    },
+    "legal": {
+      "body": "Chaque publication crée une nouvelle version ; les anciennes restent conservées et ne peuvent pas être modifiées. Un titre par ligne commençant par #, une liste par lignes commençant par -, une ligne vide entre deux paragraphes.",
+      "kinds": {
+        "legal_notice": "Mentions légales",
+        "terms": "Conditions d'utilisation",
+        "privacy": "Confidentialité",
+        "risk": "Avertissement sur les risques"
+      },
+      "langs": {
+        "fr": "Français",
+        "en": "English"
+      },
+      "current": "Version {version} en ligne depuis le {date}, publiée par {email}.",
+      "none": "Aucune version publiée dans cette langue.",
+      "unknown": "inconnu",
+      "title": "Titre",
+      "text": "Texte",
+      "textHint": "50 caractères au moins. Faites relire les textes par un juriste avant publication.",
+      "titleInvalid": "Indiquez un titre d'au moins trois caractères.",
+      "bodyInvalid": "Indiquez un texte d'au moins 50 caractères.",
+      "publish": "Publier une nouvelle version",
+      "publishing": "Publication",
+      "published": "Nouvelle version publiée.",
+      "view": "Voir la page publique",
+      "history": "Versions publiées : {count}",
+      "versionLine": "Version {version}, {date}, par {email}"
+    },
+    "emails": {
+      "body": "Textes envoyés aux clients. La mise en page, les liens et l'expéditeur ne changent pas. Une variable entre accolades n'est acceptée que dans la note, et seulement si le texte d'origine l'emploie.",
+      "names": {
+        "verify_email": "Vérification de l'e-mail",
+        "already_registered": "Adresse déjà inscrite",
+        "reset_password": "Mot de passe oublié",
+        "payment_received": "Paiement reçu",
+        "affiliate_approved": "Affiliation acceptée",
+        "affiliate_refused": "Affiliation refusée",
+        "affiliate_payout": "Versement d'affiliation",
+        "subscription_expiring": "Fin d'accès proche",
+        "admin_access": "Entrée dans l'administration",
+        "admin_locked": "Administration bloquée",
+        "password_changed": "Mot de passe modifié"
+      },
+      "changed": "Texte modifié",
+      "original": "Texte d'origine",
+      "subject": "Objet",
+      "titleField": "Titre du message",
+      "lines": "Paragraphes",
+      "linesHint": "Une ligne vide entre deux paragraphes, six au plus.",
+      "action": "Texte du bouton",
+      "note": "Note de fin",
+      "noteHint": "Variables permises : {names}.",
+      "noteNoVars": "Aucune variable dans ce message.",
+      "required": "Ce champ est obligatoire.",
+      "preview": "Aperçu",
+      "previewTitle": "Aperçu avec des valeurs d'exemple",
+      "save": "Enregistrer le texte",
+      "saving": "Enregistrement",
+      "saved": "Texte enregistré. Il s'applique aux prochains envois, dans la minute.",
+      "reset": "Revenir au texte d'origine",
+      "confirmReset": "Confirmer le retour"
+    },
+    "keys": {
+      "encrypted": "Les clés enregistrées ici sont chiffrées sur le serveur et ne sont plus jamais affichées. Une clé enregistrée ici remplace la variable du serveur ; la retirer fait revenir la variable.",
+      "noEncryption": "La clé de chiffrement du serveur manque : aucune clé ne peut être enregistrée ici.",
+      "names": {
+        "chariow_api_key": "Clé d'API Chariow",
+        "chariow_webhook_secret": "Secret des notifications Chariow",
+        "chariow_product_weekly": "Produit Chariow hebdomadaire",
+        "chariow_product_monthly": "Produit Chariow mensuel",
+        "chariow_product_annual": "Produit Chariow annuel",
+        "deriv_app_id": "Application Deriv",
+        "smtp_password": "Mot de passe d'envoi des e-mails",
+        "encryption_key": "Clé de chiffrement du serveur"
+      },
+      "configured": "Configurée",
+      "missing": "Absente",
+      "fromAdmin": "Enregistrée ici le {date} par {email}.",
+      "fromEnvironment": "Lue dans la configuration du serveur.",
+      "notSet": "Non configurée.",
+      "unknown": "inconnu",
+      "set": "Enregistrer une valeur",
+      "replace": "Remplacer la valeur",
+      "secretPlaceholder": "Collez la nouvelle clé",
+      "valuePlaceholder": "Par exemple : prd_abc123",
+      "valueInvalid": "Collez une valeur sans espace.",
+      "save": "Enregistrer",
+      "saving": "Enregistrement",
+      "remove": "Retirer la valeur enregistrée ici",
+      "confirmRemove": "Confirmer le retrait",
+      "environment": "Clés du serveur",
+      "environmentBody": "Lues au démarrage du serveur : elles se changent dans sa configuration, pas ici.",
+      "footnote": "État lu le {date}. Aucune valeur secrète n'est envoyée à ce navigateur."
+    }
   },
   "adminEntry": {
     "eyebrow": "Administration",
@@ -1343,5 +1469,18 @@
     "system": "Système",
     "noIp": "Adresse inconnue",
     "more": "Entrées plus anciennes"
+  },
+  "legalPage": {
+    "back": "Retour à l'accueil",
+    "titles": {
+      "legal_notice": "Mentions légales",
+      "terms": "Conditions d'utilisation",
+      "privacy": "Politique de confidentialité",
+      "risk": "Avertissement sur les risques"
+    },
+    "version": "Version {version}, publiée le {date}",
+    "otherLanguage": "Texte disponible en anglais seulement",
+    "notPublished": "Ce document n'est pas encore publié.",
+    "loading": "Chargement"
   }
 }

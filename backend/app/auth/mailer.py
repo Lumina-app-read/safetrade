@@ -13,11 +13,11 @@ import smtplib
 import ssl
 import threading
 import time
-from collections.abc import Sequence
-from dataclasses import dataclass, field
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass, field, replace
 from email.message import EmailMessage
 from email.utils import formataddr, formatdate, make_msgid
-from typing import Protocol
+from typing import Any, Protocol
 
 from app.config import Settings
 
@@ -303,9 +303,41 @@ def _html_page(
     )
 
 
+# Textes modifiés dans l'administration (app/email_templates.py), lus à la place des défauts.
+TemplateSource = Callable[[], dict[str, dict[str, dict[str, Any]]]]
+_source: TemplateSource | None = None
+
+
+def set_template_source(source: TemplateSource | None) -> None:
+    global _source
+    _source = source
+
+
+def template_for(template: str, lang: str) -> Template:
+    base = TEMPLATES[template][lang]
+    if _source is None:
+        return base
+    try:
+        changed = _source().get(template, {}).get(lang)
+    except Exception:
+        # Base indisponible : le texte par défaut part, jamais un e-mail perdu.
+        logger.warning("textes d'e-mail illisibles", extra={"event": "mail.templates_unreadable"})
+        return base
+    if not changed:
+        return base
+    return replace(
+        base,
+        subject=changed.get("subject", base.subject),
+        title=changed.get("title", base.title),
+        lines=tuple(changed.get("lines", base.lines)),
+        note=changed.get("note", base.note),
+        action=changed.get("action", base.action) if base.action else None,
+    )
+
+
 def render(template: str, locale: str, to: str, **values: object) -> Email:
     lang = "en" if locale == "en" else "fr"
-    item = TEMPLATES[template][lang]
+    item = template_for(template, lang)
     greeting = GREETING[lang].format(**values)
     note = item.note.format(**values)
     link = str(values.get("link", ""))

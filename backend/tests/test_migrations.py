@@ -40,6 +40,7 @@ TABLES = {
     "affiliate_payouts",
     "affiliate_commissions",
     "site_settings",
+    "legal_documents",
 }
 
 

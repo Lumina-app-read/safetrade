@@ -236,7 +236,15 @@
     "risk_global_halt": "Trading is suspended by the SafeTrade team.",
     "risk_symbol_disabled": "This asset is disabled by the SafeTrade team.",
     "risk_global_max_stake": "Stake above the cap set by SafeTrade.",
-    "risk_global_max_positions": "Position count at the cap set by SafeTrade."
+    "risk_global_max_positions": "Position count at the cap set by SafeTrade.",
+    "legal_not_published": "This document is not published yet.",
+    "settings_encryption_unavailable": "The server encryption key is missing.",
+    "settings_key_not_found": "This key cannot be set here.",
+    "settings_key_invalid": "Paste a value without spaces.",
+    "settings_email_not_found": "This message does not exist.",
+    "settings_email_invalid": "Check the message fields.",
+    "settings_invalid_placeholder": "A placeholder in braces is not allowed here.",
+    "settings_legal_conflict": "Another version was just published. Reload the page."
   },
   "fields": {
     "required": "This field is required.",
@@ -1056,7 +1064,125 @@
     "urlInvalid": "Enter a full address starting with https://.",
     "save": "Save",
     "saving": "Saving",
-    "saved": "Link saved. It applies the next time pages load."
+    "saved": "Link saved. It applies the next time pages load.",
+    "tabsLabel": "Settings sections",
+    "tabs": {
+      "partner": "Deriv link",
+      "messages": "Messages",
+      "legal": "Legal texts",
+      "emails": "Email templates",
+      "keys": "Service keys"
+    },
+    "messages": {
+      "announcement": "Announcement banner",
+      "announcementBody": "Shown at the top of the home page and the client space, for example for maintenance.",
+      "enabled": "Show the banner",
+      "tone": "Tone",
+      "tones": {
+        "info": "Information",
+        "warning": "Alert"
+      },
+      "textFr": "French text",
+      "textEn": "English text",
+      "warning": "Risk warning",
+      "warningBody": "Replaces the default warning in the footer and on the trading page. Leave both fields empty to return to the default text.",
+      "save": "Save the messages",
+      "saving": "Saving",
+      "saved": "Messages saved. They show on the next page load."
+    },
+    "legal": {
+      "body": "Each publication creates a new version; earlier ones are kept and cannot be changed. One heading per line starting with #, one list per lines starting with -, an empty line between paragraphs.",
+      "kinds": {
+        "legal_notice": "Legal notice",
+        "terms": "Terms of use",
+        "privacy": "Privacy",
+        "risk": "Risk warning"
+      },
+      "langs": {
+        "fr": "Français",
+        "en": "English"
+      },
+      "current": "Version {version} online since {date}, published by {email}.",
+      "none": "No version published in this language.",
+      "unknown": "unknown",
+      "title": "Title",
+      "text": "Text",
+      "textHint": "At least 50 characters. Have the texts reviewed by a lawyer before publishing.",
+      "titleInvalid": "Enter a title of at least three characters.",
+      "bodyInvalid": "Enter a text of at least 50 characters.",
+      "publish": "Publish a new version",
+      "publishing": "Publishing",
+      "published": "New version published.",
+      "view": "See the public page",
+      "history": "Published versions: {count}",
+      "versionLine": "Version {version}, {date}, by {email}"
+    },
+    "emails": {
+      "body": "Texts sent to clients. Layout, links and sender do not change. A placeholder in braces is accepted in the closing note only, and only if the original text uses it.",
+      "names": {
+        "verify_email": "Email verification",
+        "already_registered": "Address already registered",
+        "reset_password": "Forgotten password",
+        "payment_received": "Payment received",
+        "affiliate_approved": "Affiliation accepted",
+        "affiliate_refused": "Affiliation refused",
+        "affiliate_payout": "Affiliate payout",
+        "subscription_expiring": "Access ending soon",
+        "admin_access": "Administration entry",
+        "admin_locked": "Administration locked",
+        "password_changed": "Password changed"
+      },
+      "changed": "Edited text",
+      "original": "Original text",
+      "subject": "Subject",
+      "titleField": "Message title",
+      "lines": "Paragraphs",
+      "linesHint": "An empty line between paragraphs, six at most.",
+      "action": "Button text",
+      "note": "Closing note",
+      "noteHint": "Allowed placeholders: {names}.",
+      "noteNoVars": "No placeholder in this message.",
+      "required": "This field is required.",
+      "preview": "Preview",
+      "previewTitle": "Preview with sample values",
+      "save": "Save the text",
+      "saving": "Saving",
+      "saved": "Text saved. It applies to the next emails, within a minute.",
+      "reset": "Return to the original text",
+      "confirmReset": "Confirm the return"
+    },
+    "keys": {
+      "encrypted": "Keys saved here are encrypted on the server and never shown again. A key saved here replaces the server variable; removing it brings the variable back.",
+      "noEncryption": "The server encryption key is missing: no key can be saved here.",
+      "names": {
+        "chariow_api_key": "Chariow API key",
+        "chariow_webhook_secret": "Chariow notification secret",
+        "chariow_product_weekly": "Chariow weekly product",
+        "chariow_product_monthly": "Chariow monthly product",
+        "chariow_product_annual": "Chariow annual product",
+        "deriv_app_id": "Deriv application",
+        "smtp_password": "Email sending password",
+        "encryption_key": "Server encryption key"
+      },
+      "configured": "Configured",
+      "missing": "Missing",
+      "fromAdmin": "Saved here on {date} by {email}.",
+      "fromEnvironment": "Read from the server configuration.",
+      "notSet": "Not configured.",
+      "unknown": "unknown",
+      "set": "Save a value",
+      "replace": "Replace the value",
+      "secretPlaceholder": "Paste the new key",
+      "valuePlaceholder": "For example: prd_abc123",
+      "valueInvalid": "Paste a value without spaces.",
+      "save": "Save",
+      "saving": "Saving",
+      "remove": "Remove the value saved here",
+      "confirmRemove": "Confirm removal",
+      "environment": "Server keys",
+      "environmentBody": "Read when the server starts: they change in its configuration, not here.",
+      "footnote": "Status read on {date}. No secret value is sent to this browser."
+    }
   },
   "adminEntry": {
     "eyebrow": "Administration",
@@ -1343,5 +1469,18 @@
     "system": "System",
     "noIp": "Unknown address",
     "more": "Older entries"
+  },
+  "legalPage": {
+    "back": "Back to home",
+    "titles": {
+      "legal_notice": "Legal notice",
+      "terms": "Terms of use",
+      "privacy": "Privacy policy",
+      "risk": "Risk warning"
+    },
+    "version": "Version {version}, published on {date}",
+    "otherLanguage": "Text available in French only",
+    "notPublished": "This document is not published yet.",
+    "loading": "Loading"
   }
 }

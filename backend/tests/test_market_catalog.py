@@ -333,14 +333,14 @@ def test_partner_link_is_public_and_set_by_an_administrator(
     visitor = make_client()
     url = "https://track.deriv.com/_x/1/"
     assert boss.put("/admin/site", json={"deriv_signup_url": url}).status_code == 200
-    assert visitor.get("/site/config").json() == {"deriv_signup_url": url}
+    assert visitor.get("/site/config").json()["deriv_signup_url"] == url
     refused = boss.put("/admin/site", json={"deriv_signup_url": "http://evil.example"})
     assert (refused.status_code, refused.json()["error"]) == (422, "admin.invalid_url")
-    assert visitor.get("/site/config").json() == {"deriv_signup_url": url}
+    assert visitor.get("/site/config").json()["deriv_signup_url"] == url
     with factory() as db:
         assert db.scalars(select(AuditLog).where(AuditLog.action == "admin.site_settings")).first()
     assert boss.put("/admin/site", json={"deriv_signup_url": ""}).status_code == 200
-    assert visitor.get("/site/config").json() == {"deriv_signup_url": None}
+    assert visitor.get("/site/config").json()["deriv_signup_url"] is None
 
 
 @pytest.fixture

@@ -6,10 +6,11 @@ from redis import Redis
 from redis.asyncio import Redis as AsyncRedis
 from sqlalchemy.orm import sessionmaker
 
+from app import email_templates
 from app.admin.router import router as admin_router
 from app.affiliate.admin import router as affiliate_admin_router
 from app.affiliate.router import router as affiliate_router
-from app.auth.mailer import LogMailer, Mailer, build_mailer
+from app.auth.mailer import LogMailer, Mailer, build_mailer, set_template_source
 from app.auth.rate_limit import FailureCounter, MemoryFailureCounter, RedisFailureCounter
 from app.auth.router import router as auth_router
 from app.billing.gateway import build_gateways
@@ -89,6 +90,8 @@ def create_app(
     app.state.market = market
     app.state.market_streams = Counter()
     app.state.gateways = build_gateways(settings)
+    # Textes d'e-mail modifiés dans l'administration, relus au plus une fois par minute.
+    set_template_source(email_templates.CachedSource(app.state.session_factory))
 
     install_error_handlers(app)
     app.include_router(auth_router)

@@ -19,8 +19,9 @@ from sqlalchemy import func, or_, select
 from app import audit
 from app.authz import Permission, permissions_of, require_permission
 from app.billing import service as billing
-from app.billing.gateway import GatewayUnavailableError, PaymentGateway
+from app.billing.gateway import GatewayUnavailableError
 from app.billing.router import _apply_state
+from app.billing.router import gateways as billing_gateways
 from app.db.models import (
     AuditLog,
     BotSession,
@@ -241,7 +242,7 @@ async def check_payment(
     order = db.get(PaymentOrder, order_id)
     if order is None:
         raise ApiError(404, "admin.order_not_found")
-    found: dict[str, PaymentGateway] = request.app.state.gateways
+    found = await run_in_threadpool(billing_gateways, request, db, settings)
     gateway = found.get(order.provider)
     if gateway is None or not order.provider_ref:
         raise ApiError(409, "admin.order_not_checkable")

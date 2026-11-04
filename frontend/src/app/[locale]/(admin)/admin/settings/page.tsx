@@ -7,5 +7,5 @@ import { getMessages } from "@/i18n/messages";
 export default async function Page({ params }: PageProps<"/[locale]/admin/settings">) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return <AdminSettings messages={getMessages(locale)} />;
+  return <AdminSettings locale={locale} messages={getMessages(locale)} />;
 }
