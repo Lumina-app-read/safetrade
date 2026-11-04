@@ -5,6 +5,8 @@
 
 import { interpolate, type Messages } from "@/i18n/messages";
 
+export const ADMIN_REAUTH = "admin.reauth_required";
+
 export type ApiResult<T> =
   | { ok: true; data: T }
   | { ok: false; code: string; status: number; retryAfter?: number; fields?: string[] };
@@ -24,6 +26,8 @@ export async function api<T>(path: string, init?: { method?: string; body?: unkn
   if (response.status === 204) return { ok: true, data: undefined as T };
   const payload = (await response.json().catch(() => ({}))) as { error?: string; fields?: string[] } & T;
   if (response.ok) return { ok: true, data: payload };
+  // Accès administrateur expiré pendant la navigation : la coquille affiche la seconde connexion.
+  if (payload.error === ADMIN_REAUTH && typeof window !== "undefined") window.dispatchEvent(new Event(ADMIN_REAUTH));
   const retry = Number(response.headers.get("retry-after"));
   return {
     ok: false,

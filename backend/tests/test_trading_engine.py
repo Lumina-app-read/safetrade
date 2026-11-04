@@ -36,6 +36,7 @@ from app.db.models import (
     BotState,
     DerivConnectionRecord,
     PositionStatus,
+    SiteSetting,
     Subscription,
     TradingDecision,
     TradingPosition,
@@ -44,7 +45,7 @@ from app.db.models import (
 )
 from app.main import create_app
 from app.market.store import MemoryMarketStore
-from app.trading import risk, strategy
+from app.trading import controls, risk, strategy
 from app.trading.bot import BotRunner
 from app.trading.execution import Executor, Journal
 from tests.conftest import requires_db
@@ -985,3 +986,71 @@ def test_expired_access_cannot_start_a_bot(api: Any, migrated_engine: Engine) ->
 
 def test_buy_row_shape() -> None:
     assert Buy(1, Decimal(1), 2, "x").contract_id == 1
+
+
+@pytest.fixture
+def global_controls(world: World) -> Iterator[Callable[[controls.Controls], None]]:
+    """Contrôles globaux posés pour un test, puis effacés : ils valent pour tout le serveur."""
+
+    def apply(value: controls.Controls) -> None:
+        with world.factory.begin() as db:
+            controls.write(db, value, uuid.uuid4())
+
+    yield apply
+    with world.factory.begin() as db:
+        row = db.get(SiteSetting, controls.KEY)
+        if row is not None:
+            db.delete(row)
+
+
+def test_global_halt_stops_bots_and_keeps_protecting_positions(
+    world: World, global_controls: Callable[[controls.Controls], None]
+) -> None:
+    runner, contract_id = open_one(world)
+    global_controls(controls.Controls(halted=True))
+    steps(world, 2, runner)
+    session = world.session()
+    assert (session.state, session.stop_reason) == (BotState.STOPPING, "risk.global_halt")
+    assert world.broker.sells == []
+    world.broker.close(contract_id, 0.9)
+    steps(world, 2, runner)
+    assert world.session().state == BotState.STOPPED
+    assert world.broker.buys == 1
+
+
+@pytest.mark.parametrize(
+    ("value", "code"),
+    [
+        (controls.Controls(max_stake=Decimal("0.5")), "risk.global_max_stake"),
+        (controls.Controls(disabled_symbols=(SYMBOL,)), "risk.symbol_disabled"),
+    ],
+)
+def test_global_limits_refuse_new_positions(
+    world: World,
+    global_controls: Callable[[controls.Controls], None],
+    value: controls.Controls,
+    code: str,
+) -> None:
+    global_controls(value)
+    steps(world, 3)
+    assert world.broker.buys == 0
+    with world.factory() as db:
+        codes = set(
+            db.scalars(
+                select(TradingDecision.code).where(TradingDecision.session_id == world.session_id)
+            )
+        )
+    assert code in codes
+
+
+def test_global_controls_never_loosen_client_limits() -> None:
+    assert (
+        controls.entry_refusal(
+            controls.Controls(), symbol=SYMBOL, stake=Decimal(1), open_positions=0
+        )
+        is None
+    )
+    tight = controls.Controls(max_positions=1)
+    assert controls.entry_refusal(tight, symbol=SYMBOL, stake=Decimal(1), open_positions=1) == (
+        "risk.global_max_positions"
+    )

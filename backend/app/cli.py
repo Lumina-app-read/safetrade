@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session as DbSession
 
 from app import audit
 from app.auth import security
-from app.authz import ADMIN_ROLES
+from app.auth.admin_access import ADMIN_ROLES
 from app.db.models import User, UserRole
 from app.db.session import get_engine
 

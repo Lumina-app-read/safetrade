@@ -20,7 +20,8 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
-from app.auth.mailer import build_mailer
+from app import email_templates, service_keys
+from app.auth.mailer import build_mailer, set_template_source
 from app.billing.gateway import build_gateways
 from app.billing.notices import remind_expiring
 from app.billing.router import reconcile
@@ -151,11 +152,13 @@ class Engine:
     async def billing(self) -> None:
         """Rapprochement des paiements et rappels d'échéance, à côté des sessions."""
         mailer = build_mailer(self._settings)
-        gateways = build_gateways(self._settings)
+        set_template_source(email_templates.CachedSource(self._factory))
         while True:
             await asyncio.sleep(BILLING_SECONDS)
             now = datetime.now(UTC)
             try:
+                # Clés relues à chaque tour : un changement dans l'administration vaut ici aussi.
+                gateways = build_gateways(await asyncio.to_thread(self._keys))
                 for gateway in gateways.values():
                     if mailer is not None:
                         await reconcile(self._factory, gateway, mailer, self._settings, now)
@@ -165,6 +168,10 @@ class Engine:
                     )
             except SQLAlchemyError:
                 logger.exception("tâche d'abonnement", extra={"event": "billing.task_failed"})
+
+    def _keys(self) -> Settings:
+        with self._factory() as db:
+            return service_keys.effective(db, self._settings)
 
     async def stop(self) -> None:
         for task in self._running.values():

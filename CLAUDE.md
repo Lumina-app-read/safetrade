@@ -25,7 +25,7 @@ Le backend est la seule source de vérité. Le front-end envoie des demandes et 
 
 - [ ] Toute entrée est revalidée côté serveur (schémas Pydantic stricts) ; requêtes SQL paramétrées uniquement.
 - [ ] Contrôle d'accès vérifié à chaque requête ; un client ne voit que ses propres données ; rôles administrateur au moindre privilège.
-  - Mise en œuvre : `backend/app/authz.py`. Routes privées : dépendance `CurrentSession`. Administration : routeur `/admin` protégé au niveau du routeur (`require_admin` : rôle administrateur **et** double authentification), puis `require_permission(...)` par route. Rôles et permissions : `ROLE_PERMISSIONS`.
+  - Mise en œuvre : `backend/app/authz.py`. Routes privées : dépendance `CurrentSession`. Administration : routeur `/admin` protégé au niveau du routeur (`require_admin` : rôle administrateur, double authentification **et** seconde connexion ouverte sur la session par `POST /auth/admin/enter`), puis `require_permission(...)` par route. Rôles et permissions : `ROLE_PERMISSIONS`. Tout le monde arrive sur l'espace client ; parcours et freins : `docs/decisions/acces-admin.md` ; modules et droits : `docs/decisions/interface-admin.md`. Contrôles globaux du trading (arrêt d'urgence, plafonds, actifs désactivés) : `app/trading/controls.py`, appliqués par le moteur en plus du module de risque.
   - `tests/test_authz.py` parcourt toutes les routes (schéma OpenAPI) : une route non listée dans `PUBLIC_ROUTES` doit refuser l'accès sans session, toute route `/admin` doit refuser un client.
   - Créer un administrateur : `docker exec -it safetradev2-backend python -m app.cli create-admin --email ... --role super_admin` (mot de passe demandé de façon masquée).
 - [ ] Mots de passe hachés en Argon2id ; politique de mot de passe robuste.

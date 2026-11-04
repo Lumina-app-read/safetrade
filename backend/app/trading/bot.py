@@ -32,7 +32,7 @@ from app.db.models import (
 )
 from app.market.quality import closed_candles, entry_refusal, read_snapshot
 from app.market.store import MarketStore
-from app.trading import exits, risk, strategy
+from app.trading import controls, exits, risk, strategy
 from app.trading.execution import (
     Executor,
     Journal,
@@ -417,6 +417,12 @@ class BotRunner:
             session.state = BotState.STOPPING
             await self._journal.note(self.session_id, "limit", "billing.expired")
             return
+        if (await self._journal.run(controls.read)).halted:
+            # Arrêt d'urgence global : comme une fin d'accès, les positions gardent leur stop.
+            await self._set(state=BotState.STOPPING, stop_reason="risk.global_halt")
+            session.state = BotState.STOPPING
+            await self._journal.note(self.session_id, "limit", "risk.global_halt")
+            return
         if state not in (BotState.ANALYZING, BotState.POSITION_OPEN):
             return
         start = session.start_balance or Decimal(0)
@@ -505,7 +511,12 @@ class BotRunner:
             symbol_allowed=settings.allows(session.symbol),
             connected=self._trading.connected,
         )
-        refusal = risk.order_refusal(check)
+        refusal = risk.order_refusal(check) or controls.entry_refusal(
+            await self._journal.run(controls.read),
+            symbol=session.symbol,
+            stake=settings.stake,
+            open_positions=len(positions),
+        )
         if refusal:
             await self._refuse(refusal, {"balance": str(balance)})
             return

@@ -1,31 +1,13 @@
 "use client";
 
 import { ExternalLink, UserPlus } from "lucide-react";
-import { useEffect, useState } from "react";
 
 import { Card } from "@/components/ui/card";
 import type { Messages } from "@/i18n/messages";
-import { api } from "@/lib/api";
-
-let config: Promise<string | null> | null = null;
-
-function readSignupUrl(): Promise<string | null> {
-  config ??= api<{ deriv_signup_url: string | null }>("/site/config").then((result) => (result.ok ? result.data.deriv_signup_url : null));
-  return config;
-}
+import { useSiteConfig } from "@/lib/site-config";
 
 function useSignupUrl(): string | null {
-  const [url, setUrl] = useState<string | null>(null);
-  useEffect(() => {
-    let active = true;
-    void readSignupUrl().then((value) => {
-      if (active) setUrl(value);
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
-  return url;
+  return useSiteConfig()?.deriv_signup_url ?? null;
 }
 
 /**

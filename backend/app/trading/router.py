@@ -35,7 +35,7 @@ from app.deps import AppSettings, Db, check_origin, client_ip
 from app.deriv import service as deriv_service
 from app.errors import ApiError
 from app.market.router import Catalog, Market, asset_views
-from app.trading import exits, risk
+from app.trading import controls, exits, risk
 from app.trading.execution import consecutive_losses, day_net, session_net
 
 router = APIRouter(prefix="/trading", tags=["trading"], dependencies=[Depends(check_origin)])
@@ -350,6 +350,9 @@ async def start(
     session: CurrentSession,
     store: Market,
 ) -> dict[str, object]:
+    global_refusal = await run_in_threadpool(_global_refusal, db, body.symbol)
+    if global_refusal:
+        raise ApiError(409, global_refusal)
     # Marché vérifié au démarrage ; chaque ordre le revérifie ensuite côté moteur.
     views = await asset_views(store)
     asset = next((a for a in views if a["symbol"] == body.symbol), None)
@@ -362,6 +365,15 @@ async def start(
         _create_session, db, session.user, app, body.symbol, client_ip(request)
     )
     return {"session": {"id": row.id, "state": row.state, "symbol": row.symbol}}
+
+
+def _global_refusal(db: DbSession, symbol: str) -> str | None:
+    found = controls.read(db)
+    if found.halted:
+        return "risk.global_halt"
+    if symbol in found.disabled_symbols:
+        return "risk.symbol_disabled"
+    return None
 
 
 def _send_command(db: DbSession, user: User, command: Command, ip: str | None) -> None:

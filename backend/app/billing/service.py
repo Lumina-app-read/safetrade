@@ -51,7 +51,7 @@ class Access:
 def latest(db: DbSession, user_id: uuid.UUID) -> Subscription | None:
     return db.scalars(
         select(Subscription)
-        .where(Subscription.user_id == user_id)
+        .where(Subscription.user_id == user_id, Subscription.revoked_at.is_(None))
         .order_by(Subscription.ends_at.desc())
     ).first()
 
@@ -99,6 +99,126 @@ def grant_trial(db: DbSession, user: User, now: datetime | None = None) -> None:
             ends_at=moment + timedelta(days=plan.duration_days),
         )
     )
+
+
+MAX_GRANT_DAYS = 366
+
+
+def grant(
+    db: DbSession,
+    admin: User,
+    user: User,
+    *,
+    plan_code: str,
+    days: int | None,
+    note: str,
+    ip: str | None,
+    now: datetime | None = None,
+) -> Subscription:
+    """
+    Accès accordé à la main, par exemple en attendant un paiement. Jamais de commission
+    d'affiliation : aucune somme n'a été encaissée. Réservé au super administrateur, qui peut
+    s'en accorder un (décision du propriétaire) ; le journal d'audit le montre.
+    """
+    plan = db.get(Plan, plan_code)
+    if plan is None or plan.code == TRIAL or not plan.active:
+        raise ApiError(422, "admin.invalid_plan")
+    length = plan.duration_days if days is None else days
+    if not 1 <= length <= MAX_GRANT_DAYS:
+        raise ApiError(422, "admin.invalid_days")
+    moment = now or datetime.now(UTC)
+    current = latest(db, user.id)
+    start = max(moment, current.ends_at) if current else moment
+    row = Subscription(
+        user_id=user.id,
+        plan_code=plan.code,
+        starts_at=start,
+        ends_at=start + timedelta(days=length),
+        granted_by=admin.id,
+        grant_note=note,
+    )
+    db.add(row)
+    db.flush()
+    audit.record(
+        db,
+        "admin.subscription.grant",
+        "success",
+        actor_user_id=admin.id,
+        target_type="user",
+        target_id=str(user.id),
+        ip_address=ip,
+        details={"subscription": str(row.id), "plan": plan.code, "days": length, "note": note},
+    )
+    return row
+
+
+def revoke(
+    db: DbSession,
+    admin: User,
+    user: User,
+    subscription_id: uuid.UUID,
+    *,
+    note: str,
+    ip: str | None,
+    now: datetime | None = None,
+) -> None:
+    """Retire un accès accordé à la main. Un accès payé ne se retire pas ici : il se rembourse."""
+    row = db.scalars(
+        select(Subscription)
+        .where(Subscription.id == subscription_id, Subscription.user_id == user.id)
+        .with_for_update()
+    ).first()
+    if row is None:
+        raise ApiError(404, "admin.subscription_not_found")
+    if row.granted_by is None:
+        raise ApiError(409, "admin.subscription_not_manual")
+    if row.revoked_at is not None:
+        raise ApiError(409, "admin.subscription_revoked")
+    current = latest(db, user.id)
+    if current is not None and current.id != row.id:
+        # Une période plus tardive s'enchaîne sur celle-ci : retirer d'abord la dernière.
+        raise ApiError(409, "admin.subscription_followed")
+    row.revoked_at = now or datetime.now(UTC)
+    row.revoked_by = admin.id
+    audit.record(
+        db,
+        "admin.subscription.revoke",
+        "success",
+        actor_user_id=admin.id,
+        target_type="user",
+        target_id=str(user.id),
+        ip_address=ip,
+        details={"subscription": str(row.id), "note": note},
+    )
+
+
+def history_view(db: DbSession, user: User) -> list[dict[str, Any]]:
+    rows = db.scalars(
+        select(Subscription)
+        .where(Subscription.user_id == user.id)
+        .order_by(Subscription.starts_at.desc())
+        .limit(50)
+    )
+    emails = {}
+    result = []
+    for row in rows:
+        source = "trial" if row.plan_code == TRIAL else "manual" if row.granted_by else "payment"
+        by = row.granted_by
+        if by is not None and by not in emails:
+            emails[by] = db.get_one(User, by).email
+        result.append(
+            {
+                "id": row.id,
+                "plan": row.plan_code,
+                "source": source,
+                "starts_at": row.starts_at,
+                "ends_at": row.ends_at,
+                "granted_by": emails.get(by) if by else None,
+                "note": row.grant_note,
+                "revoked_at": row.revoked_at,
+            }
+        )
+    return result
 
 
 def create_order(

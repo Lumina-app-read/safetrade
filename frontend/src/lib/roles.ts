@@ -5,7 +5,10 @@ export function isAdminRole(role: string | undefined): boolean {
   return role !== undefined && ADMIN_ROLES.includes(role);
 }
 
-/** Page d'arrivée après connexion selon le rôle. */
-export function homePath(locale: string, role: string | undefined): string {
-  return `/${locale}/${isAdminRole(role) ? "admin" : "dashboard"}`;
+/**
+ * Page d'arrivée après connexion : l'espace client pour tous, administrateurs compris.
+ * L'administration s'ouvre ensuite par une seconde connexion (bouton réservé aux administrateurs).
+ */
+export function homePath(locale: string): string {
+  return `/${locale}/dashboard`;
 }

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { PublicHeader } from "@/components/landing/public-header";
 import { Faq, Features, FinalCta, Footer, Hero, HowItWorks, Markets, Pricing, Security } from "@/components/landing/sections";
+import { SiteAnnouncement } from "@/components/site/site-messages";
 import { isLocale } from "@/i18n/config";
 import { getMessages } from "@/i18n/messages";
 
@@ -13,6 +14,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   const props = { locale, messages };
   return (
     <div className="bg-card">
+      <SiteAnnouncement locale={locale} />
       <PublicHeader {...props} />
       <main>
         <Hero {...props} />

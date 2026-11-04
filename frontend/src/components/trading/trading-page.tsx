@@ -1,5 +1,6 @@
 "use client";
 
+import { RiskWarning } from "@/components/site/site-messages";
 import { ArrowDownRight, ArrowUpRight, CircleAlert, FlaskConical, History, Layers, LoaderCircle, Lock, Plus, ScrollText, SlidersHorizontal, WifiOff, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
@@ -420,7 +421,7 @@ export function TradingPage({ locale, messages }: { locale: Locale; messages: Me
         </Card>
       </div>
 
-      <p className="text-small text-muted">{t.disclaimer}</p>
+      <RiskWarning locale={locale} fallback={t.disclaimer} className="text-small text-muted" />
 
       <Dialog open={settingsOpen} onClose={() => setSettingsOpen(false)} title={t.settings.title} closeLabel={t.close}>
         {settings.data && (

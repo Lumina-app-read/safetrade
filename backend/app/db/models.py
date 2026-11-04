@@ -119,6 +119,11 @@ class Session(Base):
     user_agent: Mapped[str | None] = mapped_column(String(512))
     # Empreinte du cookie d'appareil : sert à refuser l'auto-parrainage (section 13).
     device_hash: Mapped[bytes | None] = mapped_column(LargeBinary(32), index=True)
+    # Administration : ouverte par une seconde connexion, sur cette session seulement, et
+    # limitée dans le temps (app/auth/admin_access.py).
+    admin_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    admin_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    admin_ip: Mapped[str | None] = mapped_column(INET)
 
     user: Mapped[User] = relationship(back_populates="sessions")
 
@@ -456,6 +461,12 @@ class Subscription(Base):
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     reminded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Accès accordé à la main par un administrateur, avec son motif ; jamais pour un paiement.
+    granted_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
+    grant_note: Mapped[str | None] = mapped_column(String(300))
+    # Un accès retiré reste dans l'historique : il ne compte plus, il ne disparaît pas.
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -598,4 +609,29 @@ class SiteSetting(Base):
     updated_by: Mapped[uuid.UUID | None]
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class LegalDocument(Base):
+    """
+    Texte légal publié : une ligne par version, jamais modifiée. La version en vigueur est la
+    plus récente ; les anciennes restent consultables, comme preuve de ce qui était affiché.
+    """
+
+    __tablename__ = "legal_documents"
+    __table_args__ = (
+        UniqueConstraint("kind", "locale", "version", name="uq_legal_documents_version"),
+        CheckConstraint("kind IN ('legal_notice', 'terms', 'privacy', 'risk')", name="kind"),
+        CheckConstraint("locale IN ('fr', 'en')", name="locale"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    kind: Mapped[str] = mapped_column(String(20))
+    locale: Mapped[str] = mapped_column(String(2))
+    version: Mapped[int] = mapped_column(Integer)
+    title: Mapped[str] = mapped_column(String(150))
+    body: Mapped[str] = mapped_column(Text)
+    published_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
+    published_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
     )

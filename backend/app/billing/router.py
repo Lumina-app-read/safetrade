@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DbSession
 
+from app import service_keys
 from app.affiliate.service import fingerprint
 from app.auth.mailer import Mailer
 from app.auth.rate_limit import FailureCounter
@@ -24,6 +25,7 @@ from app.billing.gateway import (
     PaymentGateway,
     PaymentState,
     Quote,
+    build_gateways,
     valid_signature,
 )
 from app.config import Settings
@@ -50,9 +52,21 @@ class CheckoutIn(BaseModel):
     phone_country: str = Field(pattern=r"^[A-Z]{2}$")
 
 
-def gateways(request: Request) -> dict[str, PaymentGateway]:
-    found: dict[str, PaymentGateway] = request.app.state.gateways
-    return found
+def gateways(request: Request, db: Db, settings: AppSettings) -> dict[str, PaymentGateway]:
+    """
+    Fournisseurs du démarrage, ou reconstruits avec les clés réglées dans l'administration :
+    une clé changée vaut dès la requête suivante, sans redémarrage.
+    """
+    stamp = service_keys.fingerprint(db)
+    if stamp is None:
+        found: dict[str, PaymentGateway] = request.app.state.gateways
+        return found
+    cached = getattr(request.app.state, "admin_gateways", None)
+    if cached is None or cached[0] != stamp:
+        cached = (stamp, build_gateways(service_keys.effective(db, settings)))
+        request.app.state.admin_gateways = cached
+    built: dict[str, PaymentGateway] = cached[1]
+    return built
 
 
 Gateways = Annotated[dict[str, PaymentGateway], Depends(gateways)]
@@ -208,11 +222,12 @@ async def chariow_pulse(
     mailer: Annotated[Mailer, Depends(get_mailer)],
 ) -> dict[str, str]:
     """Signature vérifiée sur le corps brut, puis paiement confirmé auprès de Chariow."""
-    if settings.chariow_webhook_secret is None:
+    keys = await run_in_threadpool(service_keys.effective, db, settings)
+    if keys.chariow_webhook_secret is None:
         raise ApiError(503, "billing.provider_unavailable")
     raw = await request.body()
     signature = request.headers.get("x-chariow-signature")
-    secret = settings.chariow_webhook_secret.get_secret_value()
+    secret = keys.chariow_webhook_secret.get_secret_value()
     if not valid_signature(raw, signature, secret):
         raise ApiError(401, "billing.bad_signature")
     delivery = request.headers.get("x-pulse-delivery-id", "")

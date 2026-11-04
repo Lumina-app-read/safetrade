@@ -6,13 +6,16 @@ import { useState, type FormEvent } from "react";
 import { useAdmin } from "@/components/shell/admin-shell";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, SectionTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
+import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/messages";
 import { api, errorMessage } from "@/lib/api";
 import { useFormErrors } from "@/lib/use-form-errors";
 
 import { usePolled } from "../trading/use-live";
+
+import { EmailsPanel, KeysPanel, LegalPanel, MessagesPanel } from "./admin-site-settings";
 
 type Site = { deriv_signup_url: string | null };
 
@@ -64,11 +67,15 @@ function LinkForm({ current, messages }: { current: string | null; messages: Mes
   );
 }
 
-/** Réglages du site. Le backend revérifie la permission et valide le lien. */
-export function AdminSettings({ messages }: { messages: Messages }) {
+const TABS = ["partner", "messages", "legal", "emails", "keys"] as const;
+type Tab = (typeof TABS)[number];
+
+/** Réglages du site. Le backend revérifie la permission et valide chaque valeur. */
+export function AdminSettings({ locale, messages }: { locale: Locale; messages: Messages }) {
   const t = messages.adminSettings;
   const { permissions } = useAdmin();
   const allowed = permissions.includes("settings.write");
+  const [tab, setTab] = useState<Tab>("partner");
   const site = usePolled<Site>(allowed ? "/admin/site" : null, 0);
 
   return (
@@ -82,17 +89,39 @@ export function AdminSettings({ messages }: { messages: Messages }) {
       )}
       {allowed && (
         <>
-          <SectionTitle>{t.partner}</SectionTitle>
-          <Card className="p-5 sm:p-6">
-            <p className="mb-4 max-w-2xl text-muted">{t.partnerBody}</p>
-            {site.data ? (
-              <LinkForm current={site.data.deriv_signup_url} messages={messages} />
-            ) : site.error ? (
-              <Alert tone="error">{errorMessage(messages, site.error)}</Alert>
-            ) : (
-              <p className="text-muted">{messages.trading.loading}</p>
+          <div role="tablist" aria-label={t.tabsLabel} className="mt-6 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+            {TABS.map((key) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={tab === key}
+                onClick={() => setTab(key)}
+                className="h-11 shrink-0 rounded-lg border border-line bg-card px-4 text-label font-medium aria-selected:border-accent aria-selected:bg-accent aria-selected:text-on-accent"
+              >
+                {t.tabs[key]}
+              </button>
+            ))}
+          </div>
+          <div role="tabpanel" className="mt-4">
+            {tab === "partner" && (
+              <Card className="p-5 sm:p-6">
+                <h2 className="text-h3 font-medium">{t.partner}</h2>
+                <p className="mt-1 mb-4 max-w-2xl text-muted">{t.partnerBody}</p>
+                {site.data ? (
+                  <LinkForm current={site.data.deriv_signup_url} messages={messages} />
+                ) : site.error ? (
+                  <Alert tone="error">{errorMessage(messages, site.error)}</Alert>
+                ) : (
+                  <p className="text-muted">{messages.trading.loading}</p>
+                )}
+              </Card>
             )}
-          </Card>
+            {tab === "messages" && <MessagesPanel messages={messages} />}
+            {tab === "legal" && <LegalPanel locale={locale} messages={messages} />}
+            {tab === "emails" && <EmailsPanel locale={locale} messages={messages} />}
+            {tab === "keys" && <KeysPanel locale={locale} messages={messages} />}
+          </div>
         </>
       )}
     </>
