@@ -668,12 +668,15 @@
       "awaiting": "Pending"
     },
     "closeReasons": {
-      "deriv": "Closed by Deriv",
-      "ratchet": "Gain protection",
-      "client": "Manual close",
+      "deriv": "Automatic: closed at Deriv",
+      "ratchet": "Automatic: gain secured",
+      "client": "Manual",
       "emergency": "Emergency stop",
-      "no_stop": "Stop loss missing",
-      "exit": "Engine exit"
+      "no_stop": "Automatic: stop loss missing",
+      "exit": "Automatic: bot exit",
+      "stop_loss": "Automatic: stop loss hit",
+      "floor": "Automatic: protection floor hit",
+      "stop_out": "Automatic: stake fully lost"
     },
     "risk": {
       "title": "Risk",

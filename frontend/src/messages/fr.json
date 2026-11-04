@@ -668,12 +668,15 @@
       "awaiting": "En attente"
     },
     "closeReasons": {
-      "deriv": "Clôturée par Deriv",
-      "ratchet": "Protection du gain",
-      "client": "Clôture manuelle",
+      "deriv": "Automatique : clôturée chez Deriv",
+      "ratchet": "Automatique : gain sécurisé",
+      "client": "Manuelle",
       "emergency": "Arrêt d'urgence",
-      "no_stop": "Stop loss absent",
-      "exit": "Sortie du moteur"
+      "no_stop": "Automatique : stop loss absent",
+      "exit": "Automatique : sortie du bot",
+      "stop_loss": "Automatique : stop loss atteint",
+      "floor": "Automatique : plancher de protection atteint",
+      "stop_out": "Automatique : mise entièrement perdue"
     },
     "risk": {
       "title": "Risque",

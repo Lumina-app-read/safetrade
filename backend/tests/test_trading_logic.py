@@ -172,13 +172,19 @@ def test_loss_is_left_to_the_stop_at_deriv() -> None:
     assert exits.decide(BASE, EXIT).kind == "hold"
 
 
-def test_gain_tightens_the_stop_to_the_floor() -> None:
-    action = exits.decide(replace(BASE, profit=D("0.05")), EXIT)
+def test_small_gain_leaves_the_client_stop_untouched() -> None:
+    # Constat du 4 novembre 2026 : un plancher au premier centime fermait les positions en secondes.
+    assert exits.decide(replace(BASE, profit=D("0.05"), peak_profit=D("0.05")), EXIT).kind == "hold"
+    assert exits.decide(replace(BASE, profit=D("0.49"), peak_profit=D("0.49")), EXIT).kind == "hold"
+
+
+def test_gain_at_activation_tightens_the_stop_to_the_floor() -> None:
+    action = exits.decide(replace(BASE, profit=D("0.5")), EXIT)
     assert (action.kind, action.stop_loss) == ("tighten", D("0.11"))
 
 
 def test_stop_is_never_widened() -> None:
-    view = replace(BASE, profit=D("0.05"), current_stop=D("0.11"))
+    view = replace(BASE, profit=D("0.6"), current_stop=D("0.11"))
     assert exits.decide(view, EXIT).kind == "hold"
     view = replace(BASE, profit=D("0.05"), current_stop=D("0.05"))
     assert exits.decide(view, EXIT).kind == "hold"

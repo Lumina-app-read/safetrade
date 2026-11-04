@@ -346,6 +346,12 @@ class BotRunner:
                 position.id,
             )
             return
+
+        def remember(db: DbSession) -> None:
+            # Écrit tout de suite : une clôture juste après doit savoir que c'était le plancher.
+            db.get_one(TradingPosition, position.id).current_stop = stop_loss
+
+        await self._journal.run(remember)
         await self._journal.note(
             self.session_id,
             "floor_set",

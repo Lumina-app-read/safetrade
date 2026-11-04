@@ -87,11 +87,18 @@ def test_ratchet_sells_at_the_next_tick() -> None:
     assert (trade.reason, trade.peak, trade.net) == ("ratchet", 0.78, 0.28)
 
 
-def test_floor_set_in_gain_limits_a_later_loss() -> None:
-    # En gain : plancher à 0,10 (minimum Deriv de ce scénario). Le retournement sort à -0,10.
-    trade = with_path([0.001, -0.0009, -0.004])
+def test_floor_set_after_activation_limits_a_later_loss() -> None:
+    # Gain au-delà de 1 R : plancher à 0,10 (minimum Deriv de ce scénario), sortie à -0,11.
+    trade = with_path([0.007, -0.0009, -0.004])
     assert trade.reason == "floor"
     assert trade.net == pytest.approx(-0.11)
+
+
+def test_small_gain_keeps_the_client_stop() -> None:
+    # Un gain sous le seuil ne pose aucun plancher : le stop loss du client reste entier.
+    trade = with_path([0.001, -0.0009, -0.006])
+    assert trade.reason != "floor"
+    assert trade.net < -0.4
 
 
 def test_position_open_at_the_end_of_data_is_not_invented() -> None:

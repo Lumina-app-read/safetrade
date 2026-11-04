@@ -427,7 +427,7 @@ def test_position_closed_while_away_is_recorded_on_restart(world: World) -> None
     position = world.positions()[0]
     assert position.status == PositionStatus.CLOSED
     assert position.net_result == Decimal("-0.28")
-    assert position.close_reason == "deriv"
+    assert position.close_reason == "stop_loss"
 
 
 def test_foreign_contract_is_traced_and_never_touched(world: World) -> None:
@@ -483,7 +483,7 @@ def test_floor_uses_the_minimum_stated_by_deriv(world: World) -> None:
     runner, contract_id = open_one(world)
     world.broker.update_error = "LimitOrderAmountTooLow"
     world.broker.update_message = "Enter an amount equal to or higher than 0.31."
-    world.broker.contracts[contract_id]["profit"] = 0.2
+    world.broker.contracts[contract_id]["profit"] = 0.6
     steps(world, 1, runner)
     world.broker.update_error = None
     runner._tracked[contract_id].updated_at = 0
@@ -495,7 +495,7 @@ def test_floor_steps_up_when_the_stated_minimum_is_rounded(world: World) -> None
     runner, contract_id = open_one(world)
     world.broker.update_error = "LimitOrderAmountTooLow"
     world.broker.update_message = "Enter an amount equal to or higher than 0.04."
-    world.broker.contracts[contract_id]["profit"] = 0.2
+    world.broker.contracts[contract_id]["profit"] = 0.6
     steps(world, 1, runner)
     world.broker.update_error = None
     runner._tracked[contract_id].updated_at = 0
@@ -506,7 +506,7 @@ def test_floor_steps_up_when_the_stated_minimum_is_rounded(world: World) -> None
 def test_refused_floor_keeps_the_initial_stop(world: World) -> None:
     runner, contract_id = open_one(world)
     world.broker.update_error = "LimitOrderAmountTooLow"
-    world.broker.contracts[contract_id]["profit"] = 0.2
+    world.broker.contracts[contract_id]["profit"] = 0.6
     steps(world, 3, runner)
     assert world.codes("floor_refused") == ["LimitOrderAmountTooLow"]
     assert world.positions()[0].current_stop == Decimal("0.50")
@@ -533,7 +533,27 @@ def test_stop_hit_at_deriv_is_recorded(world: World) -> None:
     steps(world, 1, runner)
     position = world.positions()[0]
     assert position.net_result == Decimal("-0.53")
-    assert position.close_reason == "deriv"
+    assert position.close_reason == "stop_loss"
+
+
+def test_small_gain_keeps_the_client_stop(world: World) -> None:
+    runner, contract_id = open_one(world)
+    world.broker.contracts[contract_id]["profit"] = 0.2  # sous le seuil d'activation de 0,50
+    steps(world, 3, runner)
+    assert world.broker.updates == []
+    assert world.positions()[0].current_stop == Decimal("0.50")
+
+
+def test_floor_hit_at_deriv_is_named(world: World) -> None:
+    runner, contract_id = open_one(world)
+    world.broker.contracts[contract_id]["profit"] = 0.6
+    steps(world, 1, runner)
+    world.broker.contracts[contract_id]["profit"] = (
+        0.55  # au-dessus du gain sécurisé : pas de vente
+    )
+    world.broker.close(contract_id, 0.96)
+    steps(world, 2, runner)
+    assert world.positions()[0].close_reason == "floor"
 
 
 def test_sell_on_contract_just_closed_is_not_an_error(world: World) -> None:

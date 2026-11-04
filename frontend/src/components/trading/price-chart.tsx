@@ -113,6 +113,8 @@ export function PriceChart({ symbol, granularity, decimals, market, positions, l
     if (!ready) return;
     let stopped = false;
     let first = true;
+    // Autre actif ou autre unité de temps : la bougie en direct précédente ne vaut plus rien.
+    last.current = null;
     let retries = 0;
     let retry: ReturnType<typeof setTimeout> | undefined;
 
@@ -123,7 +125,21 @@ export function PriceChart({ symbol, granularity, decimals, market, positions, l
         if (first) setState("empty");
         return;
       }
-      const bars = result.data.candles.map((c) => ({ ...c, time: c.epoch as UTCTimestamp }));
+      const bars: Bar[] = result.data.candles.map((c) => ({ ...c, time: c.epoch as UTCTimestamp }));
+      // Le serveur relit ses bougies toutes les 30 s à 5 min : sa dernière bougie peut être en
+      // retard sur celle que les prix en direct construisent ici. On garde la plus avancée.
+      const live = last.current;
+      const final = bars.at(-1);
+      if (live && final && live.time === final.time) {
+        bars[bars.length - 1] = {
+          ...final,
+          high: Math.max(final.high, live.high),
+          low: Math.min(final.low, live.low),
+          close: live.close,
+        };
+      } else if (live && final && live.time > final.time) {
+        bars.push(live);
+      }
       series.current.setData(bars);
       last.current = bars.at(-1) ?? null;
       if (first && bars.length) {
