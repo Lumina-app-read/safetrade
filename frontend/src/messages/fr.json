@@ -206,7 +206,18 @@
     "affiliate_not_found": "Affilié introuvable.",
     "affiliate_nothing_to_pay": "Rien à verser pour le moment.",
     "trading_no_multipliers": "Deriv ne propose pas de multiplicateurs sur cet actif : le bot ne peut pas le trader.",
-    "admin_invalid_url": "Indiquez une adresse complète commençant par https://."
+    "admin_invalid_url": "Indiquez une adresse complète commençant par https://.",
+    "admin_reauth_required": "Reconnectez-vous à l'administration.",
+    "admin_reauth_failed": "Mot de passe ou code incorrect.",
+    "admin_locked": "Trop d'échecs : la session a été fermée. Reconnectez-vous.",
+    "admin_user_not_found": "Ce compte n'existe pas.",
+    "admin_self_grant": "Vous ne pouvez pas vous accorder un accès à vous-même.",
+    "admin_invalid_plan": "Choisissez une formule payante disponible.",
+    "admin_invalid_days": "Indiquez un nombre de jours entre 1 et 366.",
+    "admin_subscription_not_found": "Cette période d'accès n'existe pas.",
+    "admin_subscription_not_manual": "Un accès payé ne se retire pas ici.",
+    "admin_subscription_revoked": "Cet accès a déjà été retiré.",
+    "admin_subscription_followed": "Retirez d'abord la période la plus récente."
   },
   "fields": {
     "required": "Ce champ est obligatoire.",
@@ -458,7 +469,8 @@
     "security": "Sécurité",
     "admin": "Administration",
     "clientSpace": "Espace client",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "leaveAdmin": "Quitter l'administration"
   },
   "soon": {
     "title": "Cette section arrive bientôt",
@@ -496,7 +508,8 @@
     "deniedAction": "Retour à mon espace",
     "mfaTitle": "Double authentification requise",
     "mfaBody": "Activez la double authentification sur votre compte pour accéder à l'administration.",
-    "mfaAction": "Activer la double authentification"
+    "mfaAction": "Activer la double authentification",
+    "accessUntil": "Accès jusqu'à {time}"
   },
   "trading": {
     "instruments": "Instruments",
@@ -1021,5 +1034,68 @@
     "save": "Enregistrer",
     "saving": "Enregistrement",
     "saved": "Lien enregistré. Il s'applique au prochain chargement des pages."
+  },
+  "adminEntry": {
+    "eyebrow": "Administration",
+    "panelTitle": "Une seconde connexion protège l'administration.",
+    "panelNote": "Chaque entrée, chaque échec et chaque blocage est inscrit au journal d'audit.",
+    "step1": "Compte administrateur et double authentification vérifiés par le serveur",
+    "step2": "Mot de passe demandé à nouveau",
+    "step3": "Code de l'application d'authentification, jamais un code de secours",
+    "step4": "Accès limité à 15 minutes sans activité et à une heure au plus",
+    "step5": "Trois échecs ferment la session, et un e-mail vous prévient",
+    "title": "Connexion à l'administration",
+    "subtitle": "Confirmez votre identité pour ouvrir l'espace de l'équipe SafeTrade.",
+    "password": "Mot de passe",
+    "code": "Code de l'application",
+    "codeHint": "Le code à six chiffres affiché par votre application d'authentification.",
+    "submit": "Ouvrir l'administration",
+    "submitting": "Vérification",
+    "back": "Retour à mon espace"
+  },
+  "adminUsers": {
+    "subtitle": "Comptes, accès et abonnements accordés à la main.",
+    "search": "Rechercher",
+    "searchPlaceholder": "Adresse e-mail ou prénom",
+    "empty": "Aucun compte ne correspond.",
+    "statuses": {
+      "trial": "Essai",
+      "active": "Actif",
+      "expired": "Expiré",
+      "suspended": "Suspendu",
+      "none": "Sans accès"
+    },
+    "sources": {
+      "trial": "Essai",
+      "manual": "Accordé à la main",
+      "payment": "Payé"
+    },
+    "until": "Accès jusqu'au {date}",
+    "noAccess": "Aucun accès en cours",
+    "readOnly": "Seul un super administrateur peut accorder ou retirer un accès.",
+    "history": "Historique des accès",
+    "noHistory": "Aucune période d'accès pour le moment.",
+    "period": "Du {start} au {end}",
+    "grantedBy": "Accordé par {email}",
+    "revoked": "Retiré",
+    "grantTitle": "Accorder un accès",
+    "grantBody": "Par exemple en attendant un paiement. Aucune commission n'est versée et le motif reste au journal d'audit. L'accès s'ajoute à la suite de l'accès en cours.",
+    "plan": "Formule",
+    "days": "{days} jours",
+    "length": "Durée en jours",
+    "lengthPlaceholder": "{days} par défaut",
+    "lengthHint": "Laisser vide pour la durée de la formule, 366 jours au plus.",
+    "daysInvalid": "Indiquez un nombre de jours entre 1 et 366.",
+    "note": "Motif",
+    "notePlaceholder": "Par exemple : paiement Chariow en attente",
+    "noteHint": "Obligatoire, cinq caractères au moins.",
+    "noteInvalid": "Indiquez un motif d'au moins cinq caractères.",
+    "grant": "Accorder l'accès",
+    "granting": "Enregistrement",
+    "granted": "Accès accordé.",
+    "revoke": "Retirer cet accès",
+    "revokeNote": "Motif du retrait",
+    "confirmRevoke": "Confirmer le retrait",
+    "revoking": "Retrait en cours"
   }
 }

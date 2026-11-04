@@ -25,6 +25,12 @@ export function UserMenu({ locale, messages, area }: { locale: Locale; messages:
   const close = useCallback(() => setOpen(false), []);
   useDismiss(root, open, close);
 
+  async function leaveAdmin() {
+    setLeaving(true);
+    await api("/auth/admin/leave", { method: "POST" });
+    router.replace(`/${locale}/dashboard`);
+  }
+
   async function logout() {
     setLeaving(true);
     await api("/auth/logout", { method: "POST" });
@@ -32,8 +38,7 @@ export function UserMenu({ locale, messages, area }: { locale: Locale; messages:
   }
 
   const links: Array<[string, string, LucideIcon]> = [[`/${locale}/account/security`, t.security, ShieldCheck]];
-  if (area === "admin") links.unshift([`/${locale}/dashboard`, t.clientSpace, LayoutDashboard]);
-  else if (isAdminRole(user.role)) links.push([`/${locale}/admin`, t.admin, UserCog]);
+  if (area === "app" && isAdminRole(user.role)) links.push([`/${locale}/admin`, t.admin, UserCog]);
 
   return (
     <div ref={root} className="relative">
@@ -64,6 +69,12 @@ export function UserMenu({ locale, messages, area }: { locale: Locale; messages:
               {label}
             </Link>
           ))}
+          {area === "admin" && (
+            <button type="button" role="menuitem" onClick={leaveAdmin} disabled={leaving} className={itemClass}>
+              <LayoutDashboard size={18} strokeWidth={1.5} aria-hidden className="text-muted" />
+              {t.leaveAdmin}
+            </button>
+          )}
           <button type="button" role="menuitem" onClick={logout} disabled={leaving} className={itemClass}>
             <LogOut size={18} strokeWidth={1.5} aria-hidden className="text-muted" />
             {t.logout}

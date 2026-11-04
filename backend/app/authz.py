@@ -13,7 +13,8 @@ from typing import Annotated
 from fastapi import Cookie, Depends, Request
 
 from app import audit
-from app.auth import service
+from app.auth import admin_access, service
+from app.auth.admin_access import ADMIN_ROLES
 from app.db.models import Session, User, UserRole
 from app.deps import AppSettings, Db, client_ip
 from app.errors import ApiError
@@ -33,9 +34,8 @@ class Permission(enum.StrEnum):
     AFFILIATES_READ = "affiliates.read"
     AFFILIATES_WRITE = "affiliates.write"
     PAYOUTS_WRITE = "payouts.write"
+    SUBSCRIPTIONS_WRITE = "subscriptions.write"
 
-
-ADMIN_ROLES = frozenset({UserRole.SUPER_ADMIN, UserRole.SUPPORT, UserRole.FINANCE})
 
 ROLE_PERMISSIONS: dict[UserRole, frozenset[Permission]] = {
     UserRole.SUPER_ADMIN: frozenset(Permission),
@@ -85,13 +85,19 @@ def _deny(db: Db, request: Request, user: User, reason: str, code: str) -> ApiEr
     return ApiError(403, code)
 
 
-def require_admin(request: Request, db: Db, session: CurrentSession) -> User:
-    """Compte administrateur avec double authentification activée."""
+def require_admin(request: Request, db: Db, settings: AppSettings, session: CurrentSession) -> User:
+    """
+    Compte administrateur avec double authentification activée, entré dans l'administration
+    par une seconde connexion sur cette session (POST /auth/admin/enter).
+    """
     user = session.user
     if user.role not in ADMIN_ROLES:
         raise _deny(db, request, user, "not_admin", "authz.forbidden")
     if user.totp_enabled_at is None:
         raise _deny(db, request, user, "admin_without_mfa", "authz.mfa_required")
+    admin_access.require_open(
+        db, settings, session, client_ip(request), request.headers.get("user-agent")
+    )
     return user
 
 

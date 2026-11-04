@@ -81,6 +81,10 @@ class Settings(BaseSettings):
     login_max_failures_per_email: int = 5
     login_max_failures_per_ip: int = 20
     login_failure_window_seconds: int = 15 * 60
+    # Administration : seconde connexion obligatoire, courte et vite verrouillée.
+    admin_idle_minutes: int = 15
+    admin_absolute_minutes: int = 60
+    admin_max_failures: int = 3
 
 
 @lru_cache

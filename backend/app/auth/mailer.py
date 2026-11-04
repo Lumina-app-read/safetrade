@@ -193,6 +193,40 @@ TEMPLATES: dict[str, dict[str, Template]] = {
             "Renew",
         ),
     },
+    "admin_access": {
+        "fr": Template(
+            "Accès à l'administration SafeTrade",
+            "Vous êtes entré dans l'administration",
+            ("Une seconde connexion vient d'ouvrir l'administration sur votre compte.",),
+            "Si ce n'était pas vous, changez votre mot de passe et prévenez le support.",
+        ),
+        "en": Template(
+            "SafeTrade administration access",
+            "You entered the administration",
+            ("A second sign-in just opened the administration on your account.",),
+            "If this was not you, change your password and contact support.",
+        ),
+    },
+    "admin_locked": {
+        "fr": Template(
+            "Administration SafeTrade bloquée",
+            "Accès à l'administration bloqué",
+            (
+                "Plusieurs essais d'entrée dans l'administration ont échoué.",
+                "La session a été fermée et l'administration reste bloquée 15 minutes.",
+            ),
+            "Si ce n'était pas vous, changez votre mot de passe dès maintenant.",
+        ),
+        "en": Template(
+            "SafeTrade administration locked",
+            "Administration access locked",
+            (
+                "Several attempts to enter the administration failed.",
+                "The session was closed and the administration stays locked for 15 minutes.",
+            ),
+            "If this was not you, change your password now.",
+        ),
+    },
     "password_changed": {
         "fr": Template(
             "Votre mot de passe SafeTrade a été modifié",

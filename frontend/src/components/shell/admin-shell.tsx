@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Clock,
   Coins,
   CreditCard,
   Gauge,
@@ -21,14 +22,17 @@ import { Logo } from "@/components/brand/logo";
 import { LanguageSelect } from "@/components/language-select";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { Locale } from "@/i18n/config";
-import type { Messages } from "@/i18n/messages";
-import { api } from "@/lib/api";
+import { formatters } from "@/i18n/format";
+import { interpolate, type Messages } from "@/i18n/messages";
+import { ADMIN_REAUTH, api } from "@/lib/api";
 import { cn } from "@/lib/cn";
 
+import { AdminEntry } from "./admin-entry";
 import { SessionGate } from "./session";
 import { UserMenu } from "./user-menu";
 
 export type AdminProfile = {
+  admin_until: string;
   user: { id: string; email: string; first_name: string; role: string };
   permissions: string[];
 };
@@ -49,7 +53,7 @@ type ModuleKey = keyof Pick<
 // Modules de la section 10, construits en phase 5. `path` : module déjà disponible.
 const MODULES: Array<{ key: ModuleKey; icon: LucideIcon; permission?: string; path?: string }> = [
   { key: "overview", icon: LayoutDashboard, path: "" },
-  { key: "users", icon: Users, permission: "users.read" },
+  { key: "users", icon: Users, permission: "users.read", path: "/users" },
   { key: "subscriptions", icon: CreditCard, permission: "settings.write" },
   { key: "payments", icon: Coins, permission: "payments.read" },
   { key: "affiliates", icon: UserCog, permission: "affiliates.read", path: "/affiliates" },
@@ -79,18 +83,35 @@ function AdminGate({ locale, messages, children }: { locale: Locale; messages: M
   const [refusal, setRefusal] = useState<string | null>(null);
   const pathname = usePathname();
 
+  const [version, setVersion] = useState(0);
+
   useEffect(() => {
     let active = true;
     api<AdminProfile>("/admin/me").then((result) => {
       if (!active) return;
-      if (result.ok) setAdmin(result.data);
-      else setRefusal(result.code);
+      if (result.ok) {
+        setAdmin(result.data);
+        setRefusal(null);
+      } else setRefusal(result.code);
     });
     return () => {
       active = false;
     };
+  }, [version]);
+
+  // Fin d'accès constatée par n'importe quel appel : on repasse par la seconde connexion.
+  useEffect(() => {
+    const expired = () => {
+      setAdmin(null);
+      setRefusal(ADMIN_REAUTH);
+    };
+    window.addEventListener(ADMIN_REAUTH, expired);
+    return () => window.removeEventListener(ADMIN_REAUTH, expired);
   }, []);
 
+  if (refusal === ADMIN_REAUTH) {
+    return <AdminEntry locale={locale} messages={messages} onEntered={() => setVersion((value) => value + 1)} />;
+  }
   if (refusal) {
     const mfa = refusal === "authz.mfa_required";
     return (
@@ -166,6 +187,10 @@ function AdminGate({ locale, messages, children }: { locale: Locale; messages: M
                 <span className="truncate text-label font-medium text-muted max-sm:hidden">{t.brand}</span>
               </span>
               <div className="ml-auto flex items-center gap-2">
+                <span className="hidden items-center gap-1.5 text-small text-muted md:flex">
+                  <Clock size={16} strokeWidth={1.5} aria-hidden />
+                  {interpolate(t.accessUntil, { time: formatters(locale).time(admin.admin_until) })}
+                </span>
                 <ThemeToggle labels={messages.theme} />
                 <LanguageSelect current={locale} labels={messages.language} />
                 <UserMenu locale={locale} messages={messages} area="admin" />

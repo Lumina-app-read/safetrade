@@ -104,10 +104,22 @@ def signed_up(client: TestClient, engine: Engine, role: UserRole = UserRole.CLIE
     return email
 
 
-def enable_mfa(client: TestClient) -> None:
-    secret = client.post("/auth/mfa/setup").json()["secret"]
-    code = totp.code_at(secret, totp.current_step())
+def enter_admin(client: TestClient, secret: str, step: int) -> None:
+    """Seconde connexion de l'administration, avec un code jamais utilisé."""
+    code = totp.code_at(secret, step)
+    response = client.post("/auth/admin/enter", json={"password": PASSWORD, "code": code})
+    assert response.status_code == 200, response.text
+
+
+def enable_mfa(client: TestClient) -> str:
+    """Active la double authentification ; un administrateur entre aussi dans l'administration."""
+    secret: str = client.post("/auth/mfa/setup").json()["secret"]
+    step = totp.current_step()
+    code = totp.code_at(secret, step)
     assert client.post("/auth/mfa/enable", json={"code": code}).status_code == 200
+    if client.get("/auth/me").json()["user"]["role"] != UserRole.CLIENT:
+        enter_admin(client, secret, step + 1)
+    return secret
 
 
 def test_every_private_route_requires_a_session(make_client: Callable[[], TestClient]) -> None:

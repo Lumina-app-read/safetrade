@@ -36,9 +36,9 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
   const v = messages.auth.validation;
   const { field, validate } = useFormErrors({ email: emailRule(v), password: currentPasswordRule(v) });
 
-  function done(role: string | undefined) {
+  function done() {
     // L'état reste « en attente » jusqu'à l'affichage de la page d'arrivée.
-    router.replace(homePath(locale, role));
+    router.replace(homePath(locale));
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -61,7 +61,7 @@ export function LoginForm({ locale, messages }: { locale: Locale; messages: Mess
       setChallenge(result.data.challenge);
       return;
     }
-    if (result.ok) return done(result.data.user?.role);
+    if (result.ok) return done();
     setPending(false);
     setError(result);
     if (result.code === "auth.email_not_verified") setUnverified(email);
@@ -144,7 +144,7 @@ function MfaStep({
 }: {
   messages: Messages;
   challenge: string;
-  onSuccess: (role: string | undefined) => void;
+  onSuccess: () => void;
   onRestart: () => void;
 }) {
   const t = messages.auth.mfa;
@@ -162,7 +162,7 @@ function MfaStep({
     setPending(true);
     setError(null);
     const result = await api<LoginResult>("/auth/login/mfa", { body: { challenge, code } });
-    if (result.ok) return onSuccess(result.data.user?.role);
+    if (result.ok) return onSuccess();
     setPending(false);
     setError(result);
     // Code refusé : les cases se vident pour une nouvelle saisie.

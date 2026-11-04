@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Cookie, Depends, Request, Response, status
 from pydantic import BaseModel, EmailStr, Field
 
-from app.auth import mfa, security, service
+from app.auth import admin_access, mfa, security, service
 from app.auth.mailer import Mailer
 from app.auth.rate_limit import FailureCounter
 from app.authz import SESSION_COOKIE, CurrentSession
@@ -58,6 +58,11 @@ class MfaLoginIn(BaseModel):
 
 class CodeIn(BaseModel):
     code: str = Field(min_length=6, max_length=20)
+
+
+class AdminEnterIn(BaseModel):
+    password: str = Field(max_length=256)
+    code: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
 
 
 class MfaDisableIn(BaseModel):
@@ -244,6 +249,39 @@ def mfa_disable(
     body: MfaDisableIn, request: Request, db: Db, settings: AppSettings, session: CurrentSession
 ) -> None:
     mfa.disable(db, settings, session.user, body.password, body.code, client_ip(request))
+
+
+@router.post("/admin/enter")
+def admin_enter(
+    body: AdminEnterIn,
+    request: Request,
+    db: Db,
+    settings: AppSettings,
+    session: CurrentSession,
+    mailer: Annotated[Mailer, Depends(get_mailer)],
+    failures: Annotated[FailureCounter, Depends(get_failures)],
+) -> dict[str, object]:
+    """
+    Seconde connexion pour l'administration, sur la session client déjà ouverte. Après trop
+    d'échecs, la session est fermée en base : le cookie restant ne vaut plus rien.
+    """
+    until = admin_access.enter(
+        db,
+        failures,
+        mailer,
+        settings,
+        session,
+        password=body.password,
+        code=body.code,
+        ip=client_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
+    return {"admin_until": until}
+
+
+@router.post("/admin/leave", status_code=status.HTTP_204_NO_CONTENT)
+def admin_leave(request: Request, db: Db, session: CurrentSession) -> None:
+    admin_access.leave(db, session, client_ip(request))
 
 
 @router.get("/sessions")

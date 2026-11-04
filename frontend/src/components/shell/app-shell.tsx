@@ -1,6 +1,6 @@
 "use client";
 
-import { ChartLine, CreditCard, Gift, History, LayoutDashboard, type LucideIcon } from "lucide-react";
+import { ChartLine, ShieldCheck, CreditCard, Gift, History, LayoutDashboard, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -10,8 +10,9 @@ import { LanguageSelect } from "@/components/language-select";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { Locale } from "@/i18n/config";
 import type { Messages } from "@/i18n/messages";
+import { isAdminRole } from "@/lib/roles";
 
-import { SessionGate } from "./session";
+import { SessionGate, useSession } from "./session";
 import { UserMenu } from "./user-menu";
 
 type NavItem = { path: string; label: keyof Messages["nav"]; short?: keyof Messages["nav"]; icon: LucideIcon };
@@ -23,6 +24,28 @@ const NAV: NavItem[] = [
   { path: "/subscription", label: "subscription", short: "plan", icon: CreditCard },
   { path: "/affiliate", label: "affiliate", icon: Gift },
 ];
+
+/**
+ * Entrée de l'administration, affichée aux seuls administrateurs ; le serveur décide de l'accès.
+ * Ordinateur et tablette : dans la barre. Téléphone : en tête de page, la barre n'a plus de place.
+ */
+function AdminButton({ locale, label, phone = false }: { locale: Locale; label: string; phone?: boolean }) {
+  const { user } = useSession();
+  if (!isAdminRole(user.role)) return null;
+  return (
+    <Link
+      href={`/${locale}/admin`}
+      className={
+        phone
+          ? "mb-4 flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-label font-medium text-on-primary hover:opacity-90 sm:hidden"
+          : "flex h-10 items-center gap-2 rounded-lg bg-primary px-3 text-label font-medium text-on-primary hover:opacity-90 max-sm:hidden"
+      }
+    >
+      <ShieldCheck size={18} strokeWidth={1.5} aria-hidden />
+      {label}
+    </Link>
+  );
+}
 
 /**
  * Coquille de l'espace client. Téléphone : barre compacte en haut et onglets en bas,
@@ -56,6 +79,7 @@ export function AppShell({ locale, messages, children }: { locale: Locale; messa
               ))}
             </nav>
             <div className="ml-auto flex items-center gap-2 lg:ml-0">
+              <AdminButton locale={locale} label={messages.shell.admin} />
               <ThemeToggle labels={messages.theme} />
               <LanguageSelect current={locale} labels={messages.language} />
               <UserMenu locale={locale} messages={messages} area="app" />
@@ -68,6 +92,7 @@ export function AppShell({ locale, messages, children }: { locale: Locale; messa
           key={pathname}
           className={`mx-auto ${width} animate-rise px-4 pt-5 pb-[calc(88px+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 lg:pb-16`}
         >
+          {isCurrent("/dashboard") && <AdminButton locale={locale} label={messages.shell.admin} phone />}
           {children}
         </main>
 

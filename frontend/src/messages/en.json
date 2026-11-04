@@ -206,7 +206,18 @@
     "affiliate_not_found": "Affiliate not found.",
     "affiliate_nothing_to_pay": "Nothing to pay at the moment.",
     "trading_no_multipliers": "Deriv does not offer multipliers on this asset: the bot cannot trade it.",
-    "admin_invalid_url": "Enter a full address starting with https://."
+    "admin_invalid_url": "Enter a full address starting with https://.",
+    "admin_reauth_required": "Sign in to the administration again.",
+    "admin_reauth_failed": "Wrong password or code.",
+    "admin_locked": "Too many failures: the session was closed. Sign in again.",
+    "admin_user_not_found": "This account does not exist.",
+    "admin_self_grant": "You cannot grant access to yourself.",
+    "admin_invalid_plan": "Choose an available paid plan.",
+    "admin_invalid_days": "Enter a number of days between 1 and 366.",
+    "admin_subscription_not_found": "This access period does not exist.",
+    "admin_subscription_not_manual": "Paid access cannot be removed here.",
+    "admin_subscription_revoked": "This access was already removed.",
+    "admin_subscription_followed": "Remove the most recent period first."
   },
   "fields": {
     "required": "This field is required.",
@@ -458,7 +469,8 @@
     "security": "Security",
     "admin": "Admin",
     "clientSpace": "Client area",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "leaveAdmin": "Leave administration"
   },
   "soon": {
     "title": "This section is coming soon",
@@ -496,7 +508,8 @@
     "deniedAction": "Back to my area",
     "mfaTitle": "Two-factor authentication required",
     "mfaBody": "Enable two-factor authentication on your account to access administration.",
-    "mfaAction": "Enable two-factor authentication"
+    "mfaAction": "Enable two-factor authentication",
+    "accessUntil": "Access until {time}"
   },
   "trading": {
     "instruments": "Instruments",
@@ -1021,5 +1034,68 @@
     "save": "Save",
     "saving": "Saving",
     "saved": "Link saved. It applies the next time pages load."
+  },
+  "adminEntry": {
+    "eyebrow": "Administration",
+    "panelTitle": "A second sign-in protects the administration.",
+    "panelNote": "Every entry, failure and lock is written to the audit log.",
+    "step1": "Administrator account and two-factor authentication checked by the server",
+    "step2": "Password asked again",
+    "step3": "Authenticator app code, never a recovery code",
+    "step4": "Access limited to 15 minutes of inactivity and one hour at most",
+    "step5": "Three failures close the session, and an email warns you",
+    "title": "Administration sign-in",
+    "subtitle": "Confirm your identity to open the SafeTrade team area.",
+    "password": "Password",
+    "code": "App code",
+    "codeHint": "The six-digit code shown by your authenticator app.",
+    "submit": "Open the administration",
+    "submitting": "Checking",
+    "back": "Back to my space"
+  },
+  "adminUsers": {
+    "subtitle": "Accounts, access and manually granted subscriptions.",
+    "search": "Search",
+    "searchPlaceholder": "Email address or first name",
+    "empty": "No account matches.",
+    "statuses": {
+      "trial": "Trial",
+      "active": "Active",
+      "expired": "Expired",
+      "suspended": "Suspended",
+      "none": "No access"
+    },
+    "sources": {
+      "trial": "Trial",
+      "manual": "Granted manually",
+      "payment": "Paid"
+    },
+    "until": "Access until {date}",
+    "noAccess": "No current access",
+    "readOnly": "Only a super administrator can grant or remove access.",
+    "history": "Access history",
+    "noHistory": "No access period yet.",
+    "period": "From {start} to {end}",
+    "grantedBy": "Granted by {email}",
+    "revoked": "Removed",
+    "grantTitle": "Grant access",
+    "grantBody": "For example while a payment is pending. No commission is paid and the reason stays in the audit log. The access starts after the current one.",
+    "plan": "Plan",
+    "days": "{days} days",
+    "length": "Length in days",
+    "lengthPlaceholder": "{days} by default",
+    "lengthHint": "Leave empty for the plan length, 366 days at most.",
+    "daysInvalid": "Enter a number of days between 1 and 366.",
+    "note": "Reason",
+    "notePlaceholder": "For example: Chariow payment pending",
+    "noteHint": "Required, at least five characters.",
+    "noteInvalid": "Enter a reason of at least five characters.",
+    "grant": "Grant access",
+    "granting": "Saving",
+    "granted": "Access granted.",
+    "revoke": "Remove this access",
+    "revokeNote": "Reason for removal",
+    "confirmRevoke": "Confirm removal",
+    "revoking": "Removing"
   }
 }

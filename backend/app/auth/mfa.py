@@ -46,6 +46,11 @@ def _accept_totp(settings: Settings, user: User, code: str) -> bool:
     return True
 
 
+def accept_totp(settings: Settings, user: User, code: str) -> bool:
+    """Code de l'application d'authentification seulement, jamais un code de secours."""
+    return _accept_totp(settings, user, code)
+
+
 def _accept_recovery(db: DbSession, user: User, code: str) -> bool:
     record = db.scalars(
         select(RecoveryCode).where(
