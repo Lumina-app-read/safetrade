@@ -63,7 +63,9 @@ La commission est proportionnelle à la position. Taux mesurés sur un devis du 
 | Volatility 100 | 0,051 % |
 | Step Index 100 | 0,0016 % |
 
-**Or, argent et forex : fermés au moment de la mesure.** Taux supposé : 0,005 %, à remplacer par un devis à la réouverture. Pour ne pas dépendre de cette hypothèse, le rapport donne pour chaque stratégie le **coût maximal supportable**, en taux de commission.
+**Or, argent et forex : fermés au moment de la mesure.** Taux supposé : 0,005 %, à remplacer par un devis à la réouverture.
+
+**Mesure du 4 novembre 2026, avant tout résultat :** devis du compte démo, mise de 50 USD, plus petit multiplicateur proposé. Or 0,012 %, argent 0,060 %, EUR/USD 0,024 %, GBP/USD 0,020 %, USD/JPY 0,029 %, AUD/USD 0,040 %, USD/CAD 0,021 %, EUR/JPY 0,025 % ; bitcoin, ether et les témoins confirment les taux ci-dessus. Le taux supposé était donc de 2 à 12 fois trop bas : les taux mesurés le remplacent, comme prévu (`protocol.RATES`). Pour ne pas dépendre de cette hypothèse, le rapport donne pour chaque stratégie le **coût maximal supportable**, en taux de commission.
 
 ## Sélection, sur entraînement et validation seulement
 
