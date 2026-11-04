@@ -38,7 +38,7 @@ Module « Utilisateurs » de l'administration. Il sert notamment à ouvrir l'acc
 - **Formules payantes actives seulement** ; jamais l'essai. Durée de la formule par défaut, 1 à 366 jours.
 - **L'accès s'ajoute à la suite** de l'accès en cours, comme un paiement.
 - **Aucune commande et aucune commission d'affiliation :** rien n'a été encaissé.
-- **Personne ne s'accorde un accès à soi-même.**
+- **Le super administrateur peut s'accorder un accès** (décision du propriétaire du 4 novembre 2026) ; le journal le montre.
 - **Retrait :** seulement pour un accès accordé à la main, avec motif. La ligne reste dans l'historique, marquée « Retiré », et ne compte plus. Un accès payé ne se retire pas ici : il se rembourse, dans un futur module. Quand plusieurs périodes s'enchaînent, la plus récente se retire en premier.
 
 ## Vérifications

@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, or_, select
 
 from app import audit, site
+from app.admin.common import access_view, target_user
 from app.authz import (
     AdminUser,
     CurrentSession,
@@ -22,7 +23,7 @@ from app.authz import (
     require_permission,
 )
 from app.billing import service as billing
-from app.db.models import AuditLog, Plan, SiteSetting, User
+from app.db.models import AuditLog, Plan, SiteSetting, User, UserRole, UserStatus
 from app.deps import AppSettings, Db, check_origin, client_ip
 from app.errors import ApiError
 from app.market.router import asset_views
@@ -48,18 +49,6 @@ class GrantIn(BaseModel):
 
 class RevokeIn(BaseModel):
     note: str = Field(min_length=5, max_length=300)
-
-
-def access_view(db: Db, user: User) -> dict[str, object]:
-    access = billing.access_of(db, user)
-    return {"status": access.status, "plan": access.plan, "ends_at": access.ends_at}
-
-
-def target_user(db: Db, user_id: uuid.UUID) -> User:
-    user = db.get(User, user_id)
-    if user is None:
-        raise ApiError(404, "admin.user_not_found")
-    return user
 
 
 def clean_url(raw: str | None) -> str | None:
@@ -92,9 +81,15 @@ def list_users(
     db: Db,
     _: Annotated[User, Depends(require_permission(Permission.USERS_READ))],
     q: Annotated[str | None, Query(max_length=100)] = None,
+    status: Annotated[UserStatus | None, Query()] = None,
+    role: Annotated[UserRole | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
 ) -> dict[str, object]:
     stmt = select(User).order_by(User.created_at.desc()).limit(limit)
+    if status:
+        stmt = stmt.where(User.status == status)
+    if role:
+        stmt = stmt.where(User.role == role)
     if q:
         # Les jokers SQL saisis (%, _) sont recherchés littéralement.
         term = q.strip().lower().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
@@ -187,16 +182,33 @@ def read_audit(
     db: Db,
     user: Annotated[User, Depends(require_permission(Permission.AUDIT_READ))],
     action: Annotated[str | None, Query(max_length=100)] = None,
+    actor: Annotated[str | None, Query(max_length=320)] = None,
+    before: Annotated[int | None, Query(ge=1)] = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 100,
 ) -> dict[str, object]:
-    stmt = select(AuditLog).order_by(AuditLog.id.desc()).limit(limit)
+    stmt = (
+        select(AuditLog, User.email)
+        .outerjoin(User, User.id == AuditLog.actor_user_id)
+        .order_by(AuditLog.id.desc())
+        .limit(limit)
+    )
     if action:
-        stmt = stmt.where(AuditLog.action == action)
+        # Préfixe accepté : « admin. » montre toutes les actions d'administration.
+        stmt = stmt.where(
+            AuditLog.action.startswith(action, autoescape=True)
+            if action.endswith(".")
+            else AuditLog.action == action
+        )
+    if actor:
+        stmt = stmt.where(func.lower(User.email) == actor.strip().lower())
+    if before:
+        stmt = stmt.where(AuditLog.id < before)
     entries = [
         {
             "id": e.id,
             "occurred_at": e.occurred_at,
             "actor_user_id": e.actor_user_id,
+            "actor_email": email,
             "action": e.action,
             "target_type": e.target_type,
             "target_id": e.target_id,
@@ -204,7 +216,7 @@ def read_audit(
             "ip_address": e.ip_address,
             "details": e.details,
         }
-        for e in db.scalars(stmt)
+        for e, email in db.execute(stmt).all()
     ]
     # La consultation du journal est elle-même une action tracée.
     audit.record(
@@ -269,3 +281,10 @@ async def market_monitoring(
         "assets": await asset_views(store),
         "alerts": alerts[:50],
     }
+
+
+# Modules complets de la section 10, protégés par les dépendances de ce routeur.
+from app.admin import accounts, operations  # noqa: E402
+
+router.include_router(accounts.router)
+router.include_router(operations.router)

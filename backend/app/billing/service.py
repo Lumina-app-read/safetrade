@@ -117,10 +117,9 @@ def grant(
 ) -> Subscription:
     """
     Accès accordé à la main, par exemple en attendant un paiement. Jamais de commission
-    d'affiliation : aucune somme n'a été encaissée. Un administrateur ne s'accorde rien.
+    d'affiliation : aucune somme n'a été encaissée. Réservé au super administrateur, qui peut
+    s'en accorder un (décision du propriétaire) ; le journal d'audit le montre.
     """
-    if admin.id == user.id:
-        raise ApiError(403, "admin.self_grant")
     plan = db.get(Plan, plan_code)
     if plan is None or plan.code == TRIAL or not plan.active:
         raise ApiError(422, "admin.invalid_plan")

@@ -311,9 +311,11 @@ def test_grant_rules(make_client: Callable[[], TestClient], migrated_engine: Eng
     assert admin.post(url, json={**GRANT, "note": "ok"}).status_code == 422
     assert admin.post(url, json={**GRANT, "days": 400}).status_code == 422
 
+    # Décision du propriétaire : le super administrateur peut s'accorder un accès.
     me = admin.get("/admin/me").json()["user"]["id"]
     own = admin.post(f"/admin/users/{me}/subscriptions", json=GRANT)
-    assert own.json()["error"] == "admin.self_grant"
+    assert own.status_code == 201
+    assert admin.get("/auth/me").json()["user"]["access"] is True
 
 
 def test_paid_access_is_not_revoked_here(
