@@ -97,6 +97,10 @@ def render(result: dict[str, Any]) -> str:
         lines += [
             "",
             "Le test réservé n'est donc pas ouvert, et aucune piste n'est proposée pour le compte démo.",
+            "",
+            "Dans le tableau de référence, le sens tiré au sort fait aussi bien que chaque signal : les signaux ne portent pas d'information sur le sens du mouvement suivant, et la perte par position correspond pour l'essentiel aux frais. Le forex est le plus pénalisé : la commission y vaut 18 à 28 % du mouvement d'une heure.",
+            "",
+            "**Phase démo :** non lancée, faute de candidate. Si une hypothèse passait un jour toutes les étapes puis le test réservé, elle tournerait sur le compte démo avec le moteur existant, sans rien changer au module de risque, et le journal des décisions servirait à comparer historique, simulation et démo : délai entre signal et exécution, prix reçu face au prix théorique, commission facturée, positions refusées et coupures de connexion.",
         ]
     else:
         lines.append(
@@ -179,6 +183,46 @@ def render(result: dict[str, Any]) -> str:
                 f"| {symbol} | {m['n']} | {_pct(m['win_rate'])} | {_f(m['avg_win'])} pb | {_f(m['avg_loss'])} pb | {_f(m['mean'])} pb | "
                 f"{_n(m['profit_factor'])} | {_n(m['max_drawdown'], 0)} pb | {_f(m['total'], 0)} pb |"
             )
+    reference = result.get("landscape") or {}
+    if reference:
+        lines += [
+            "",
+            "## Référence : les signaux en stratégie complète, sans condition",
+            "",
+            "Descriptif, sans aucune sélection : chaque signal simulé avec le stop obligatoire de 2 ATR, la sortie au temps de l'horizon, une position à la fois et les multiplicateurs de Deriv, sur les dix marchés. Entraînement : avant le 1er février 2026. Hors échantillon : du 1er février au 1er août 2026. Résultats nets de frais, en R (1 R = la perte prévue par le stop).",
+            "",
+            "| Signal | Entraînement : positions, espérance | Hors échantillon : positions | Réussite | Gain moyen | Perte moyenne | Espérance [IC 95 %] | Profit factor | Drawdown | Total | Sens au hasard | p | Coûts doublés | Frais qui annulent | Plis positifs |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        ]
+        for key, item in reference.items():
+            name, minutes, horizon = key.split("|")
+            t, o = item["train"], item["oos"]
+            lines.append(
+                f"| {SIGNALS[name]}, {minutes} min, {horizon} bougies | {t['n']}, {_f(t['mean'], 3)} R | {o['n']} | {_pct(o['win_rate'])} | "
+                f"{_f(o['avg_win'], 2)} R | {_f(o['avg_loss'], 2)} R | {_f(o['mean'], 3)} R [{_f(o['ci_low'], 3)} ; {_f(o['ci_high'], 3)}] | "
+                f"{_n(o['profit_factor'])} | {_n(o['max_drawdown'], 1)} R | {_f(o['total'], 1)} R | {_f(item['random_mean'], 3)} R | "
+                f"{_n(item['random_p'], 2)} | {_f(item['cost_x2']['mean'], 3)} R | {_n(item['break_even'])} fois | {item['folds_positive']} sur 3 |"
+            )
+        markets = list(next(iter(reference.values()))["markets"])
+        lines += [
+            "",
+            "Espérance hors échantillon par marché, en R :",
+            "",
+            "| Signal | " + " | ".join(markets) + " |",
+            "| --- | " + " | ".join("---" for _ in markets) + " |",
+        ]
+        for key, item in reference.items():
+            name, minutes, horizon = key.split("|")
+            lines.append(
+                f"| {SIGNALS[name]}, {minutes} min, {horizon} | "
+                + " | ".join(_f(item["markets"][m], 2) for m in markets)
+                + " |"
+            )
+        positive = [k for k, item in reference.items() if item["oos"]["ci_low"] > 0]
+        lines += [
+            "",
+            f"Signaux dont l'espérance hors échantillon est sûrement positive (intervalle à 95 % au-dessus de zéro) : {len(positive)} sur {len(reference)}.",
+        ]
     if simulations:
         lines += [
             "",
@@ -198,6 +242,7 @@ def render(result: dict[str, Any]) -> str:
         "",
         f"- {result['cells']} cellules testées sur chaque pli : sous l'hypothèse d'aucun avantage, quelques-unes passent l'entraînement par hasard. Les étapes hors échantillon, le tirage au sort et les plis successifs servent à les écarter.",
         "- Juin et juillet 2026 avaient déjà servi de validation à la première campagne, et cette approche a été choisie après en avoir vu les résultats. Seule la période réservée est entièrement vierge.",
+        "- Le tableau de référence a été ajouté après la première exécution, pour donner les indicateurs complets demandés ; il est descriptif et ne sert à aucune sélection.",
         "- Une seule année d'historique, six mois hors échantillon : un avantage faible, inférieur à quelques points de base, ne peut pas être distingué du hasard.",
         "- Coûts : commissions mesurées sur devis démo le 4 novembre 2026 ; elles peuvent changer. Glissement non compté dans l'étude d'événements (sortie au temps), compté à 5 % de R au stop dans la simulation.",
         "",

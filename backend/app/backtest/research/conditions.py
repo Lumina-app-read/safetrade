@@ -371,7 +371,9 @@ def study(directory: Path, workers: int) -> dict[str, Any]:
             fold.pop("_valid", None)
 
     simulations = {key: simulate_cell(key, directory) for key in candidates}
+    reference = landscape(directory, workers)
     return {
+        "landscape": reference,
         "written_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "study_end": STUDY_END,
         "folds": FOLDS,
@@ -421,6 +423,80 @@ def simulate_cell(key: str, directory: Path) -> dict[str, Any]:
         "passed": stat.n > 0 and stat.ci_low > 0,
         "markets": {s: view(v) for s, v in by_market.items()},
     }
+
+
+# Référence descriptive : chaque signal en stratégie complète, sans condition. Ne sert à aucune
+# sélection ; montre ce que donnent les signaux avec stop, frais et comparaison au hasard.
+
+LANDSCAPE_DRAWS = 20
+
+
+def _landscape_market(job: tuple[str, str, list[int]]) -> tuple[str, dict[str, Any]]:
+    symbol, directory, multipliers = job
+    bars = candles.load(candles.path_of(Path(directory), symbol), until=STUDY_END)
+    rate = protocol.rate_of(symbol)
+    first = FOLDS[0][0]
+    result: dict[str, Any] = {}
+    for minutes in TIMEFRAMES:
+        frame = indicators.resample(bars, minutes)
+        width = indicators.atr(frame, 14)
+        signals = _signals(frame)
+        for name in SIGNALS:
+            for horizon in HORIZONS:
+                config = Config("conditions", minutes, (), Exit(STOP_ATR, hold=horizon))
+                trades = run(bars, frame, width, signals[name], config, multipliers)
+                train = [t for t in trades if t.opened_at < first]
+                oos = [t for t in trades if t.opened_at >= first]
+                draws = []
+                for seed in range(LANDSCAPE_DRAWS):
+                    drawn = run(
+                        bars, frame, width, signals[name], config, multipliers,
+                        since=first, draw=random.Random(seed),  # noqa: S311
+                    )  # fmt: skip
+                    draws.append([t.net_r(rate) for t in drawn])
+                result[f"{name}|{minutes}|{horizon}"] = {
+                    "train": [t.net_r(rate) for t in train],
+                    "oos": [(t.opened_at, t.net_r(rate), t.gross_r, t.fee_r * rate) for t in oos],
+                    "draws": draws,
+                }
+    return symbol, result
+
+
+def landscape(directory: Path, workers: int) -> dict[str, Any]:
+    multipliers = json.loads((directory / "multipliers.json").read_text())
+    jobs = [(s, str(directory), multipliers[s]) for s in STUDIED]
+    with ProcessPoolExecutor(max_workers=workers) as pool:
+        found = dict(pool.map(_landscape_market, jobs))
+    table = {}
+    for key in found[STUDIED[0]]:
+        oos = [row for s in STUDIED for row in found[s][key]["oos"]]
+        values = [v for _, v, _, _ in oos]
+        draws = [
+            statistics.fmean(v)
+            if (v := [x for s in STUDIED for x in found[s][key]["draws"][i]])
+            else 0.0
+            for i in range(LANDSCAPE_DRAWS)
+        ]
+        stat = protocol.stats_of(values)
+        by_fold = [sum(v for e, v, _, _ in oos if a <= e < b) for a, b in FOLDS]
+        gross = statistics.fmean(g for _, _, g, _ in oos) if oos else 0.0
+        fee = statistics.fmean(c for _, _, _, c in oos) if oos else 0.0
+        table[key] = {
+            "train": view([v for s in STUDIED for v in found[s][key]["train"]]),
+            "oos": view(values),
+            "cost_x2": view([v - c for _, v, _, c in oos]),
+            "break_even": gross / fee if fee > 0 else None,
+            "random_mean": statistics.fmean(draws),
+            "random_p": (sum(d >= stat.mean for d in draws) + 1) / (len(draws) + 1),
+            "folds_positive": sum(total > 0 for total in by_fold),
+            "markets": {
+                s: round(statistics.fmean(v for _, v, _, _ in found[s][key]["oos"]), 3)
+                if found[s][key]["oos"]
+                else None
+                for s in STUDIED
+            },
+        }
+    return table
 
 
 # Carte des coûts : la commission face au mouvement disponible.
