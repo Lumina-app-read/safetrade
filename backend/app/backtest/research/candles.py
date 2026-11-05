@@ -83,9 +83,12 @@ async def _page(connection: DerivConnection, symbol: str, start: int, end: int) 
                     "end": end,
                 },
             )
+            # Au-delà de son historique, Deriv renvoie les dernières bougies au lieu d'une page
+            # vide (constat du 5 novembre 2026) : seule la fenêtre demandée est gardée.
             return [
                 f"{c['epoch']},{c['open']},{c['high']},{c['low']},{c['close']}"
                 for c in response.get("candles", [])
+                if start <= int(c["epoch"]) <= end
             ]
         except BrokerError as exc:
             logger.warning("page reportée : %s, essai %s", type(exc).__name__, attempt + 1)
@@ -107,12 +110,34 @@ async def fetch_symbol(
         empty = 0 if rows else empty + 1
         cursor = start - MINUTE
         await asyncio.sleep(PAUSE_SECONDS)
-    # Écriture en une fois, du plus ancien au plus récent : pas de fichier partiel après un arrêt.
-    rows = [row for page in reversed(pages) for row in page]
-    temporary = path_of(directory, symbol).with_suffix(".tmp")
-    temporary.write_text("".join(f"{row}\n" for row in rows), encoding="ascii", newline="\n")
-    temporary.replace(path_of(directory, symbol))
-    return len(rows)
+    return write_rows(path_of(directory, symbol), [row for page in pages for row in page], end)
+
+
+def write_rows(path: Path, rows: list[str], end: int) -> int:
+    """
+    Écriture en une fois, triée, sans doublon et sans bougie postérieure à `end` : pas de
+    fichier partiel après un arrêt, et jamais une bougie mal placée qui masquerait l'année.
+    """
+    by_epoch: dict[int, str] = {}
+    for row in rows:
+        epoch = int(row.split(",", 1)[0])
+        if epoch <= end:
+            by_epoch[epoch] = row
+    ordered = [by_epoch[epoch] for epoch in sorted(by_epoch)]
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text("".join(f"{row}\n" for row in ordered), encoding="ascii", newline="\n")
+    temporary.replace(path)
+    return len(ordered)
+
+
+def repair(directory: Path, end: int) -> dict[str, int]:
+    """Remet en ordre les fichiers déjà téléchargés, sans rien redemander à Deriv."""
+    found = {}
+    for path in sorted(directory.glob("*.csv")):
+        text = path.read_text(encoding="ascii")
+        rows = [line for line in text.splitlines() if line.count(",") == 4]
+        found[path.stem] = write_rows(path, rows, end)
+    return found
 
 
 async def run(symbols: list[str], end: int, days: float, directory: Path) -> None:
@@ -141,10 +166,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(prog="python -m app.backtest.research.candles")
     parser.add_argument("--end", required=True, help="date de fin, AAAA-MM-JJ, en UTC")
     parser.add_argument("--days", type=float, default=365)
-    parser.add_argument("--symbols", nargs="+", required=True)
+    parser.add_argument("--symbols", nargs="+", default=[])
     parser.add_argument("--directory", type=Path, default=DATA_DIR)
+    parser.add_argument("--repair", action="store_true", help="remettre en ordre les fichiers")
     args = parser.parse_args()
     end = int(datetime.strptime(args.end, "%Y-%m-%d").replace(tzinfo=UTC).timestamp())
+    if args.repair:
+        for symbol, count in repair(args.directory, end).items():
+            print(f"{symbol} : {count} bougies", flush=True)
+        return
     asyncio.run(run(args.symbols, end, args.days, args.directory))
 
 

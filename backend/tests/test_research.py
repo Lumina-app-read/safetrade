@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
+from app.backtest.research import candles, protocol
 from app.backtest.research import indicators as ind
-from app.backtest.research import protocol
 from app.backtest.research import run as research_run
 from app.backtest.research.candles import Bars
 from app.backtest.research.families import (
@@ -293,3 +293,13 @@ def test_random_baseline_and_maximum_cost() -> None:
 
 def test_test_stage_refuses_an_uncommitted_selection(tmp_path: Path) -> None:
     assert not research_run._committed(research_run.ROOT / "backend" / "nonexistent.json")
+
+
+def test_downloaded_rows_are_sorted_deduplicated_and_clipped(tmp_path: Path) -> None:
+    # Deriv renvoie ses dernières bougies pour une page hors historique : elles arrivaient en tête.
+    path = tmp_path / "X.csv"
+    rows = ["300,1,1,1,1", "100,1,1,1,1", "200,1,1,1,1", "100,2,2,2,2", "900,9,9,9,9"]
+    assert candles.write_rows(path, rows, end=500) == 3
+    bars = candles.load(path)
+    assert list(bars.epoch) == [100, 200, 300]
+    assert bars.open[0] == 2.0  # la dernière version d'une bougie l'emporte
