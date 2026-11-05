@@ -459,6 +459,8 @@ def test_stream_route_and_limit(signed_in: Callable[[MarketStore | None], TestCl
     response = client.get("/market/stream", params={"symbols": ["A"]})
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/event-stream")
+    # Sans « no-transform », le serveur Next.js compressait le flux et retenait les prix.
+    assert "no-transform" in response.headers["cache-control"]
     assert response.text.startswith("event: snapshot\n")
     assert client.get("/market/stream", params={"symbols": ["ZZ"]}).status_code == 404
     app: Any = client.app
