@@ -135,6 +135,7 @@ Directive du propriétaire du 31 octobre 2026, qui remplace les précédentes :
 - Les multiplicateurs permis changent par actif : toujours passer par `risk.multiplier_for`, jamais le réglage brut.
 - Le mot d'ordre `stop_loss: null` est interdit : `DerivTrading.update_stop` le refuse.
 - Banc d'essai : `app/backtest/`, rejeu tick par tick du code du moteur. Toute stratégie y passe avant d'être évaluée. Mesures de novembre 2026, indices synthétiques et marchés réels : aucun avantage sur le tirage au sort. Détails : `docs/decisions/banc-essai.md`.
+- Recherche de stratégies (`app/backtest/research/`) : protocole figé avant résultat, entraînement, validation et test séparés, sélection validée dans Git avant le test (`run --stage explore`, puis `--stage test`). Mesure du 5 novembre 2026 : 312 réglages, six familles, dix marchés réels, coûts mesurés en démo ; aucun avantage, période de test encore vierge. Détails : `docs/decisions/recherche-strategies.md`.
 
 ## Abonnements et paiements
 

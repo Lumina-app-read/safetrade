@@ -52,6 +52,17 @@ def _label(key: str | None) -> str:
     return ", ".join(parts).replace(".", ",")
 
 
+def _reversal(rows: list[dict[str, Any]]) -> str:
+    """Combien de réglages gagnants à l'entraînement perdent en validation : signe de hasard."""
+    chosen = [r for r in rows if r.get("train") and r.get("valid")]
+    flipped = [r for r in chosen if r["valid"]["mean"] <= 0]
+    return (
+        f"Sur {len(chosen)} réglages retenus à l'entraînement, {len(flipped)} deviennent négatifs en validation, "
+        "quand on les applique à des mois qu'ils n'ont pas vus. C'est la marque d'un avantage apparent "
+        "produit par le hasard de l'échantillon, pas d'un avantage réel."
+    )
+
+
 def render(selection: dict[str, Any], tested: list[dict[str, Any]]) -> str:
     split = selection["split_epochs"]
     rows = selection["rows"]
@@ -75,6 +86,8 @@ def render(selection: dict[str, Any], tested: list[dict[str, Any]]) -> str:
             "aucun n'a présenté sur la validation une espérance positive après frais assez solide "
             "(statistique t d'au moins 1,65, au moins 50 positions, au moins 60 % des marchés positifs). "
             "Aucune stratégie de ce document ne peut être présentée comme ayant un avantage statistique.",
+            "",
+            _reversal(rows),
         ]
     elif not passed:
         lines += [
