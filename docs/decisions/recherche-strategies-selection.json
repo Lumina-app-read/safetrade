@@ -1,0 +1,1085 @@
+{
+ "written_at": "2026-11-05T09:33:36+00:00",
+ "split": {
+  "common_start": "2025-11-04T12:22:40+00:00",
+  "train_end": "2026-05-03T16:38:50+00:00",
+  "valid_end": "2026-08-01T18:46:55+00:00",
+  "end": "2026-10-30T20:55:00+00:00"
+ },
+ "split_epochs": {
+  "common_start": 1762258960,
+  "train_end": 1777826330,
+  "valid_end": 1785610015,
+  "end": 1793393700
+ },
+ "spans": {
+  "cryBTCUSD": [
+   1762253525,
+   1793491200
+  ],
+  "cryETHUSD": [
+   1762254681,
+   1793491200
+  ],
+  "frxXAUUSD": [
+   1762254598,
+   1793393700
+  ],
+  "frxXAGUSD": [
+   1762258960,
+   1793393700
+  ],
+  "frxEURUSD": [
+   1762255739,
+   1793393700
+  ],
+  "frxGBPUSD": [
+   1762256799,
+   1793393700
+  ],
+  "frxUSDJPY": [
+   1762257889,
+   1793393700
+  ],
+  "frxAUDUSD": [
+   1762255632,
+   1793393700
+  ],
+  "frxUSDCAD": [
+   1762256741,
+   1793393700
+  ],
+  "frxEURJPY": [
+   1762257870,
+   1793393700
+  ],
+  "1HZ100V": [
+   1762335014,
+   1793491200
+  ],
+  "stpRNG": [
+   1762259034,
+   1793491200
+  ]
+ },
+ "multipliers": {
+  "cryBTCUSD": [
+   100,
+   200,
+   300,
+   500,
+   800
+  ],
+  "cryETHUSD": [
+   100,
+   200,
+   300,
+   500,
+   800
+  ],
+  "frxXAUUSD": [
+   100,
+   200,
+   300,
+   500,
+   800
+  ],
+  "frxXAGUSD": [
+   100,
+   200,
+   300,
+   500,
+   800
+  ],
+  "frxEURUSD": [
+   100,
+   200,
+   300,
+   500,
+   800
+  ],
+  "frxGBPUSD": [
+   100,
+   200,
+   300,
+   500,
+   800
+  ],
+  "frxUSDJPY": [
+   100,
+   200,
+   300,
+   500,
+   800
+  ],
+  "frxAUDUSD": [
+   100,
+   200,
+   300,
+   500,
+   800
+  ],
+  "frxUSDCAD": [
+   100,
+   200,
+   300,
+   500,
+   800
+  ],
+  "frxEURJPY": [
+   100,
+   200,
+   300,
+   500,
+   800
+  ],
+  "1HZ100V": [
+   40,
+   100,
+   200,
+   300,
+   400
+  ],
+  "stpRNG": [
+   750,
+   2000,
+   3500,
+   5500,
+   7500
+  ]
+ },
+ "configs_tried": 312,
+ "candidates": [],
+ "rows": [
+  {
+   "family": "cassure",
+   "class": "crypto",
+   "configs": 48,
+   "chosen": "cassure|15|canal=20,expansion=1.3|s2.0|tNone|hNone|r3.0",
+   "train": {
+    "n": 105,
+    "mean": 0.1997,
+    "t": 1.0905,
+    "p": 0.1378,
+    "ci_low": -0.1593,
+    "ci_high": 0.5587,
+    "win_rate": 0.3714,
+    "avg_win": 2.1243,
+    "avg_loss": -0.9375,
+    "profit_factor": 1.3389,
+    "total": 20.9702,
+    "max_drawdown": 12.4563
+   },
+   "valid": {
+    "n": 93,
+    "mean": -0.2206,
+    "t": -1.4885,
+    "p": 0.9317,
+    "ci_low": -0.511,
+    "ci_high": 0.0699,
+    "win_rate": 0.2581,
+    "avg_win": 1.7778,
+    "avg_loss": -0.9156,
+    "profit_factor": 0.6753,
+    "total": -20.5125,
+    "max_drawdown": 21.601
+   },
+   "valid_markets_positive": 0.0,
+   "candidate": false,
+   "train_best_any": {
+    "n": 5,
+    "mean": 1.1954,
+    "t": 1.4937,
+    "p": 0.0676,
+    "ci_low": -0.3732,
+    "ci_high": 2.764,
+    "win_rate": 0.8,
+    "avg_win": 1.7673,
+    "avg_loss": -1.0919,
+    "profit_factor": 6.4742,
+    "total": 5.9772,
+    "max_drawdown": 1.0919
+   }
+  },
+  {
+   "family": "cassure",
+   "class": "metaux",
+   "configs": 48,
+   "chosen": "cassure|15|canal=55,expansion=1.0|s2.0|tNone|hNone|r3.0",
+   "train": {
+    "n": 164,
+    "mean": 0.1503,
+    "t": 1.0,
+    "p": 0.1587,
+    "ci_low": -0.1443,
+    "ci_high": 0.4449,
+    "win_rate": 0.3232,
+    "avg_win": 2.3042,
+    "avg_loss": -0.8781,
+    "profit_factor": 1.2529,
+    "total": 24.6479,
+    "max_drawdown": 11.7393
+   },
+   "valid": {
+    "n": 110,
+    "mean": -0.161,
+    "t": -1.3023,
+    "p": 0.9036,
+    "ci_low": -0.4033,
+    "ci_high": 0.0813,
+    "win_rate": 0.3273,
+    "avg_win": 1.3539,
+    "avg_loss": -0.898,
+    "profit_factor": 0.7335,
+    "total": -17.7102,
+    "max_drawdown": 23.1116
+   },
+   "valid_markets_positive": 0.0,
+   "candidate": false,
+   "train_best_any": {
+    "n": 90,
+    "mean": 0.2119,
+    "t": 1.4788,
+    "p": 0.0696,
+    "ci_low": -0.0689,
+    "ci_high": 0.4926,
+    "win_rate": 0.3889,
+    "avg_win": 1.5779,
+    "avg_loss": -0.6574,
+    "profit_factor": 1.5273,
+    "total": 19.0673,
+    "max_drawdown": 5.8721
+   }
+  },
+  {
+   "family": "cassure",
+   "class": "forex",
+   "configs": 48,
+   "chosen": "cassure|60|canal=55,expansion=1.3|s1.5|t3.0|h24|rNone",
+   "train": {
+    "n": 105,
+    "mean": 0.0133,
+    "t": 0.105,
+    "p": 0.4582,
+    "ci_low": -0.2353,
+    "ci_high": 0.2619,
+    "win_rate": 0.4286,
+    "avg_win": 1.379,
+    "avg_loss": -1.011,
+    "profit_factor": 1.023,
+    "total": 1.398,
+    "max_drawdown": 9.8923
+   },
+   "valid": {
+    "n": 76,
+    "mean": -0.1836,
+    "t": -1.2978,
+    "p": 0.9028,
+    "ci_low": -0.4608,
+    "ci_high": 0.0937,
+    "win_rate": 0.3816,
+    "avg_win": 1.237,
+    "avg_loss": -1.0601,
+    "profit_factor": 0.72,
+    "total": -13.9527,
+    "max_drawdown": 21.2636
+   },
+   "valid_markets_positive": 0.33,
+   "candidate": false,
+   "train_best_any": {
+    "n": 95,
+    "mean": 0.1111,
+    "t": 0.486,
+    "p": 0.3135,
+    "ci_low": -0.337,
+    "ci_high": 0.5592,
+    "win_rate": 0.2947,
+    "avg_win": 2.8122,
+    "avg_loss": -1.0177,
+    "profit_factor": 1.1548,
+    "total": 10.5549,
+    "max_drawdown": 18.608
+   }
+  },
+  {
+   "family": "cassure",
+   "class": "ensemble",
+   "configs": 48,
+   "chosen": "cassure|60|canal=55,expansion=1.3|s1.5|t3.0|h24|rNone",
+   "train": {
+    "n": 117,
+    "mean": 0.0123,
+    "t": 0.1002,
+    "p": 0.4601,
+    "ci_low": -0.229,
+    "ci_high": 0.2536,
+    "win_rate": 0.4274,
+    "avg_win": 1.4087,
+    "avg_loss": -1.0298,
+    "profit_factor": 1.0209,
+    "total": 1.443,
+    "max_drawdown": 9.8923
+   },
+   "valid": {
+    "n": 78,
+    "mean": -0.1854,
+    "t": -1.3379,
+    "p": 0.9095,
+    "ci_low": -0.4571,
+    "ci_high": 0.0862,
+    "win_rate": 0.3846,
+    "avg_win": 1.2142,
+    "avg_loss": -1.0602,
+    "profit_factor": 0.7158,
+    "total": -14.4635,
+    "max_drawdown": 21.2636
+   },
+   "valid_markets_positive": 0.29,
+   "candidate": false,
+   "train_best_any": {
+    "n": 97,
+    "mean": 0.103,
+    "t": 0.4597,
+    "p": 0.3229,
+    "ci_low": -0.3362,
+    "ci_high": 0.5423,
+    "win_rate": 0.299,
+    "avg_win": 2.7241,
+    "avg_loss": -1.0148,
+    "profit_factor": 1.1448,
+    "total": 9.9936,
+    "max_drawdown": 18.608
+   }
+  },
+  {
+   "family": "combinee",
+   "class": "crypto",
+   "configs": 64,
+   "chosen": "combinee|15|repli=35,efficacite=0.2|s1.5|t3.0|h24|rNone",
+   "train": {
+    "n": 125,
+    "mean": 0.0558,
+    "t": 0.4579,
+    "p": 0.3235,
+    "ci_low": -0.1831,
+    "ci_high": 0.2947,
+    "win_rate": 0.44,
+    "avg_win": 1.5041,
+    "avg_loss": -1.0821,
+    "profit_factor": 1.0921,
+    "total": 6.9768,
+    "max_drawdown": 9.5151
+   },
+   "valid": {
+    "n": 76,
+    "mean": -0.0117,
+    "t": -0.0731,
+    "p": 0.5291,
+    "ci_low": -0.3267,
+    "ci_high": 0.3032,
+    "win_rate": 0.4342,
+    "avg_win": 1.4819,
+    "avg_loss": -1.158,
+    "profit_factor": 0.9821,
+    "total": -0.893,
+    "max_drawdown": 15.9083
+   },
+   "valid_markets_positive": 0.5,
+   "candidate": false,
+   "train_best_any": {
+    "n": 48,
+    "mean": 0.3972,
+    "t": 2.0029,
+    "p": 0.0226,
+    "ci_low": 0.0085,
+    "ci_high": 0.7859,
+    "win_rate": 0.5625,
+    "avg_win": 1.5193,
+    "avg_loss": -1.0454,
+    "profit_factor": 1.8684,
+    "total": 19.0662,
+    "max_drawdown": 3.949
+   }
+  },
+  {
+   "family": "combinee",
+   "class": "metaux",
+   "configs": 64,
+   "chosen": "combinee|15|repli=45,efficacite=0.2|s1.5|t3.0|h24|rNone",
+   "train": {
+    "n": 143,
+    "mean": 0.0704,
+    "t": 0.6043,
+    "p": 0.2728,
+    "ci_low": -0.158,
+    "ci_high": 0.2988,
+    "win_rate": 0.4336,
+    "avg_win": 1.5803,
+    "avg_loss": -1.0853,
+    "profit_factor": 1.1145,
+    "total": 10.0691,
+    "max_drawdown": 12.6885
+   },
+   "valid": {
+    "n": 80,
+    "mean": -0.1207,
+    "t": -0.7516,
+    "p": 0.7739,
+    "ci_low": -0.4353,
+    "ci_high": 0.194,
+    "win_rate": 0.3875,
+    "avg_win": 1.5706,
+    "avg_loss": -1.1906,
+    "profit_factor": 0.8345,
+    "total": -9.6536,
+    "max_drawdown": 12.3556
+   },
+   "valid_markets_positive": 0.0,
+   "candidate": false,
+   "train_best_any": {
+    "n": 2,
+    "mean": 0.5844,
+    "t": 440.507,
+    "p": 0.0,
+    "ci_low": 0.5818,
+    "ci_high": 0.587,
+    "win_rate": 1.0,
+    "avg_win": 0.5844,
+    "avg_loss": 0.0,
+    "profit_factor": null,
+    "total": 1.1688,
+    "max_drawdown": 0.0
+   }
+  },
+  {
+   "family": "combinee",
+   "class": "forex",
+   "configs": 64,
+   "chosen": null,
+   "train_best_any": {
+    "n": 16,
+    "mean": 0.1424,
+    "t": 1.1762,
+    "p": 0.1197,
+    "ci_low": -0.0949,
+    "ci_high": 0.3797,
+    "win_rate": 0.5625,
+    "avg_win": 0.4931,
+    "avg_loss": -0.3084,
+    "profit_factor": 2.0556,
+    "total": 2.2788,
+    "max_drawdown": 1.1726
+   }
+  },
+  {
+   "family": "combinee",
+   "class": "ensemble",
+   "configs": 64,
+   "chosen": "combinee|15|repli=35,efficacite=0.35|s2.5|t3.0|h24|rNone",
+   "train": {
+    "n": 189,
+    "mean": 0.0402,
+    "t": 0.5731,
+    "p": 0.2833,
+    "ci_low": -0.0973,
+    "ci_high": 0.1778,
+    "win_rate": 0.5291,
+    "avg_win": 0.8705,
+    "avg_loss": -0.8927,
+    "profit_factor": 1.0957,
+    "total": 7.6008,
+    "max_drawdown": 14.776
+   },
+   "valid": {
+    "n": 130,
+    "mean": -0.3783,
+    "t": -4.2909,
+    "p": 1.0,
+    "ci_low": -0.5511,
+    "ci_high": -0.2055,
+    "win_rate": 0.4,
+    "avg_win": 0.7743,
+    "avg_loss": -1.1467,
+    "profit_factor": 0.4502,
+    "total": -49.1774,
+    "max_drawdown": 51.6496
+   },
+   "valid_markets_positive": 0.0,
+   "candidate": false,
+   "train_best_any": {
+    "n": 16,
+    "mean": 0.1424,
+    "t": 1.1762,
+    "p": 0.1197,
+    "ci_low": -0.0949,
+    "ci_high": 0.3797,
+    "win_rate": 0.5625,
+    "avg_win": 0.4931,
+    "avg_loss": -0.3084,
+    "profit_factor": 2.0556,
+    "total": 2.2788,
+    "max_drawdown": 1.1726
+   }
+  },
+  {
+   "family": "momentum",
+   "class": "crypto",
+   "configs": 96,
+   "chosen": null,
+   "train_best_any": {
+    "n": 4,
+    "mean": 0.1668,
+    "t": 1.5129,
+    "p": 0.0652,
+    "ci_low": -0.0493,
+    "ci_high": 0.3828,
+    "win_rate": 1.0,
+    "avg_win": 0.1668,
+    "avg_loss": 0.0,
+    "profit_factor": null,
+    "total": 0.6671,
+    "max_drawdown": 0.0
+   }
+  },
+  {
+   "family": "momentum",
+   "class": "metaux",
+   "configs": 96,
+   "chosen": null,
+   "train_best_any": {
+    "n": 8,
+    "mean": 0.4805,
+    "t": 1.3183,
+    "p": 0.0937,
+    "ci_low": -0.2339,
+    "ci_high": 1.1948,
+    "win_rate": 0.75,
+    "avg_win": 0.9961,
+    "avg_loss": -1.0664,
+    "profit_factor": 2.8022,
+    "total": 3.8437,
+    "max_drawdown": 1.069
+   }
+  },
+  {
+   "family": "momentum",
+   "class": "forex",
+   "configs": 96,
+   "chosen": "momentum|60|periode=4,seuil=1.5|s2.5|t3.0|h24|rNone",
+   "train": {
+    "n": 160,
+    "mean": 0.0759,
+    "t": 1.0328,
+    "p": 0.1508,
+    "ci_low": -0.0682,
+    "ci_high": 0.22,
+    "win_rate": 0.5312,
+    "avg_win": 0.8646,
+    "avg_loss": -0.8179,
+    "profit_factor": 1.1981,
+    "total": 12.1496,
+    "max_drawdown": 11.5358
+   },
+   "valid": {
+    "n": 97,
+    "mean": -0.126,
+    "t": -1.2908,
+    "p": 0.9016,
+    "ci_low": -0.3173,
+    "ci_high": 0.0653,
+    "win_rate": 0.4124,
+    "avg_win": 0.9193,
+    "avg_loss": -0.8596,
+    "profit_factor": 0.7505,
+    "total": -12.2225,
+    "max_drawdown": 13.809
+   },
+   "valid_markets_positive": 0.33,
+   "candidate": false,
+   "train_best_any": {
+    "n": 4,
+    "mean": 0.8486,
+    "t": 11.7068,
+    "p": 0.0,
+    "ci_low": 0.7065,
+    "ci_high": 0.9907,
+    "win_rate": 1.0,
+    "avg_win": 0.8486,
+    "avg_loss": 0.0,
+    "profit_factor": null,
+    "total": 3.3945,
+    "max_drawdown": 0.0
+   }
+  },
+  {
+   "family": "momentum",
+   "class": "ensemble",
+   "configs": 96,
+   "chosen": "momentum|60|periode=4,seuil=1.5|s2.5|t3.0|h24|rNone",
+   "train": {
+    "n": 169,
+    "mean": 0.0767,
+    "t": 1.063,
+    "p": 0.1439,
+    "ci_low": -0.0647,
+    "ci_high": 0.218,
+    "win_rate": 0.5325,
+    "avg_win": 0.8729,
+    "avg_loss": -0.8305,
+    "profit_factor": 1.1975,
+    "total": 12.9556,
+    "max_drawdown": 11.5358
+   },
+   "valid": {
+    "n": 99,
+    "mean": -0.1225,
+    "t": -1.262,
+    "p": 0.8965,
+    "ci_low": -0.3127,
+    "ci_high": 0.0677,
+    "win_rate": 0.4141,
+    "avg_win": 0.9258,
+    "avg_loss": -0.8635,
+    "profit_factor": 0.7579,
+    "total": -12.1254,
+    "max_drawdown": 13.809
+   },
+   "valid_markets_positive": 0.38,
+   "candidate": false,
+   "train_best_any": {
+    "n": 4,
+    "mean": 0.8486,
+    "t": 11.7068,
+    "p": 0.0,
+    "ci_low": 0.7065,
+    "ci_high": 0.9907,
+    "win_rate": 1.0,
+    "avg_win": 0.8486,
+    "avg_loss": 0.0,
+    "profit_factor": null,
+    "total": 3.3945,
+    "max_drawdown": 0.0
+   }
+  },
+  {
+   "family": "retournement",
+   "class": "crypto",
+   "configs": 48,
+   "chosen": "retournement|15|ecart=2.0|s2.5|t1.0|h8|rNone",
+   "train": {
+    "n": 192,
+    "mean": 0.0027,
+    "t": 0.0667,
+    "p": 0.4734,
+    "ci_low": -0.0759,
+    "ci_high": 0.0813,
+    "win_rate": 0.75,
+    "avg_win": 0.298,
+    "avg_loss": -0.8832,
+    "profit_factor": 1.0121,
+    "total": 0.5136,
+    "max_drawdown": 7.1632
+   },
+   "valid": {
+    "n": 150,
+    "mean": -0.114,
+    "t": -2.3924,
+    "p": 0.9916,
+    "ci_low": -0.2073,
+    "ci_high": -0.0206,
+    "win_rate": 0.6133,
+    "avg_win": 0.2942,
+    "avg_loss": -0.7613,
+    "profit_factor": 0.6129,
+    "total": -17.0932,
+    "max_drawdown": 18.1293
+   },
+   "valid_markets_positive": 0.0,
+   "candidate": false,
+   "train_best_any": {
+    "n": 2,
+    "mean": 0.7225,
+    "t": 21.0273,
+    "p": 0.0,
+    "ci_low": 0.6552,
+    "ci_high": 0.7899,
+    "win_rate": 1.0,
+    "avg_win": 0.7225,
+    "avg_loss": 0.0,
+    "profit_factor": null,
+    "total": 1.4451,
+    "max_drawdown": 0.0
+   }
+  },
+  {
+   "family": "retournement",
+   "class": "metaux",
+   "configs": 48,
+   "chosen": "retournement|15|ecart=3.0|s1.5|t2.0|h8|rNone",
+   "train": {
+    "n": 125,
+    "mean": 0.224,
+    "t": 2.3405,
+    "p": 0.0096,
+    "ci_low": 0.0364,
+    "ci_high": 0.4116,
+    "win_rate": 0.608,
+    "avg_win": 1.0351,
+    "avg_loss": -1.0339,
+    "profit_factor": 1.5527,
+    "total": 28.0027,
+    "max_drawdown": 8.3643
+   },
+   "valid": {
+    "n": 80,
+    "mean": -0.0759,
+    "t": -0.6678,
+    "p": 0.7479,
+    "ci_low": -0.2988,
+    "ci_high": 0.1469,
+    "win_rate": 0.4875,
+    "avg_win": 0.8867,
+    "avg_loss": -0.9916,
+    "profit_factor": 0.8506,
+    "total": -6.0748,
+    "max_drawdown": 12.8344
+   },
+   "valid_markets_positive": 0.5,
+   "candidate": false,
+   "train_best_any": {
+    "n": 125,
+    "mean": 0.224,
+    "t": 2.3405,
+    "p": 0.0096,
+    "ci_low": 0.0364,
+    "ci_high": 0.4116,
+    "win_rate": 0.608,
+    "avg_win": 1.0351,
+    "avg_loss": -1.0339,
+    "profit_factor": 1.5527,
+    "total": 28.0027,
+    "max_drawdown": 8.3643
+   }
+  },
+  {
+   "family": "retournement",
+   "class": "forex",
+   "configs": 48,
+   "chosen": null,
+   "train_best_any": {
+    "n": 91,
+    "mean": -0.0901,
+    "t": -1.4781,
+    "p": 0.9303,
+    "ci_low": -0.2096,
+    "ci_high": 0.0294,
+    "win_rate": 0.6154,
+    "avg_win": 0.32,
+    "avg_loss": -0.7463,
+    "profit_factor": 0.6861,
+    "total": -8.2,
+    "max_drawdown": 11.4443
+   }
+  },
+  {
+   "family": "retournement",
+   "class": "ensemble",
+   "configs": 48,
+   "chosen": null,
+   "train_best_any": {
+    "n": 95,
+    "mean": -0.0823,
+    "t": -1.3891,
+    "p": 0.9176,
+    "ci_low": -0.1983,
+    "ci_high": 0.0338,
+    "win_rate": 0.6211,
+    "avg_win": 0.3212,
+    "avg_loss": -0.7435,
+    "profit_factor": 0.708,
+    "total": -7.8146,
+    "max_drawdown": 11.4443
+   }
+  },
+  {
+   "family": "tendance",
+   "class": "crypto",
+   "configs": 24,
+   "chosen": "tendance|15|rapide=10,lente=30|s3.0|tNone|hNone|r5.0",
+   "train": {
+    "n": 181,
+    "mean": 0.0909,
+    "t": 0.6694,
+    "p": 0.2516,
+    "ci_low": -0.1753,
+    "ci_high": 0.3571,
+    "win_rate": 0.3425,
+    "avg_win": 2.1132,
+    "avg_loss": -0.9627,
+    "profit_factor": 1.1437,
+    "total": 16.4572,
+    "max_drawdown": 17.1559
+   },
+   "valid": {
+    "n": 120,
+    "mean": -0.0588,
+    "t": -0.3998,
+    "p": 0.6554,
+    "ci_low": -0.347,
+    "ci_high": 0.2294,
+    "win_rate": 0.325,
+    "avg_win": 1.8163,
+    "avg_loss": -0.9616,
+    "profit_factor": 0.9094,
+    "total": -7.0552,
+    "max_drawdown": 17.2818
+   },
+   "valid_markets_positive": 0.0,
+   "candidate": false,
+   "train_best_any": {
+    "n": 24,
+    "mean": 1.1042,
+    "t": 2.382,
+    "p": 0.0086,
+    "ci_low": 0.1956,
+    "ci_high": 2.0128,
+    "win_rate": 0.5417,
+    "avg_win": 2.6698,
+    "avg_loss": -0.746,
+    "profit_factor": 4.2295,
+    "total": 26.5015,
+    "max_drawdown": 2.1328
+   }
+  },
+  {
+   "family": "tendance",
+   "class": "metaux",
+   "configs": 24,
+   "chosen": "tendance|15|rapide=10,lente=30|s2.0|tNone|hNone|r5.0",
+   "train": {
+    "n": 213,
+    "mean": 0.4573,
+    "t": 2.2494,
+    "p": 0.0122,
+    "ci_low": 0.0588,
+    "ci_high": 0.8558,
+    "win_rate": 0.3099,
+    "avg_win": 3.7334,
+    "avg_loss": -1.0136,
+    "profit_factor": 1.6538,
+    "total": 97.408,
+    "max_drawdown": 17.1204
+   },
+   "valid": {
+    "n": 126,
+    "mean": -0.1246,
+    "t": -0.6181,
+    "p": 0.7317,
+    "ci_low": -0.5196,
+    "ci_high": 0.2705,
+    "win_rate": 0.2143,
+    "avg_win": 3.472,
+    "avg_loss": -1.1055,
+    "profit_factor": 0.8566,
+    "total": -15.6969,
+    "max_drawdown": 23.128
+   },
+   "valid_markets_positive": 0.0,
+   "candidate": false,
+   "train_best_any": {
+    "n": 5,
+    "mean": 2.5492,
+    "t": 6.8947,
+    "p": 0.0,
+    "ci_low": 1.8245,
+    "ci_high": 3.2739,
+    "win_rate": 1.0,
+    "avg_win": 2.5492,
+    "avg_loss": 0.0,
+    "profit_factor": null,
+    "total": 12.746,
+    "max_drawdown": 0.0
+   }
+  },
+  {
+   "family": "tendance",
+   "class": "forex",
+   "configs": 24,
+   "chosen": null,
+   "train_best_any": {
+    "n": 47,
+    "mean": 0.1164,
+    "t": 0.3433,
+    "p": 0.3657,
+    "ci_low": -0.5481,
+    "ci_high": 0.7808,
+    "win_rate": 0.3404,
+    "avg_win": 2.2417,
+    "avg_loss": -0.9806,
+    "profit_factor": 1.1799,
+    "total": 5.4696,
+    "max_drawdown": 8.6931
+   }
+  },
+  {
+   "family": "tendance",
+   "class": "ensemble",
+   "configs": 24,
+   "chosen": "tendance|60|rapide=10,lente=30|s2.0|tNone|hNone|r3.0",
+   "train": {
+    "n": 312,
+    "mean": 0.1183,
+    "t": 1.1192,
+    "p": 0.1315,
+    "ci_low": -0.0889,
+    "ci_high": 0.3256,
+    "win_rate": 0.3686,
+    "avg_win": 1.9803,
+    "avg_loss": -0.9686,
+    "profit_factor": 1.1935,
+    "total": 36.925,
+    "max_drawdown": 26.6969
+   },
+   "valid": {
+    "n": 195,
+    "mean": -0.314,
+    "t": -4.057,
+    "p": 1.0,
+    "ci_low": -0.4657,
+    "ci_high": -0.1623,
+    "win_rate": 0.3026,
+    "avg_win": 1.005,
+    "avg_loss": -0.8862,
+    "profit_factor": 0.492,
+    "total": -61.2243,
+    "max_drawdown": 64.6777
+   },
+   "valid_markets_positive": 0.22,
+   "candidate": false,
+   "train_best_any": {
+    "n": 312,
+    "mean": 0.1183,
+    "t": 1.1192,
+    "p": 0.1315,
+    "ci_low": -0.0889,
+    "ci_high": 0.3256,
+    "win_rate": 0.3686,
+    "avg_win": 1.9803,
+    "avg_loss": -0.9686,
+    "profit_factor": 1.1935,
+    "total": 36.925,
+    "max_drawdown": 26.6969
+   }
+  },
+  {
+   "family": "volatilite",
+   "class": "crypto",
+   "configs": 32,
+   "chosen": null,
+   "train_best_any": {
+    "n": 48,
+    "mean": 0.2411,
+    "t": 1.0817,
+    "p": 0.1397,
+    "ci_low": -0.1957,
+    "ci_high": 0.6779,
+    "win_rate": 0.4583,
+    "avg_win": 1.9009,
+    "avg_loss": -1.1634,
+    "profit_factor": 1.3825,
+    "total": 11.5711,
+    "max_drawdown": 8.4157
+   }
+  },
+  {
+   "family": "volatilite",
+   "class": "metaux",
+   "configs": 32,
+   "chosen": "volatilite|15|quantile=0.2|s1.5|t3.0|h8|rNone",
+   "train": {
+    "n": 435,
+    "mean": 0.0949,
+    "t": 1.4831,
+    "p": 0.069,
+    "ci_low": -0.0305,
+    "ci_high": 0.2203,
+    "win_rate": 0.4483,
+    "avg_win": 1.3737,
+    "avg_loss": -0.9441,
+    "profit_factor": 1.1822,
+    "total": 41.2875,
+    "max_drawdown": 16.1193
+   },
+   "valid": {
+    "n": 294,
+    "mean": -0.089,
+    "t": -1.2261,
+    "p": 0.8899,
+    "ci_low": -0.2312,
+    "ci_high": 0.0533,
+    "win_rate": 0.4048,
+    "avg_win": 1.2912,
+    "avg_loss": -1.0275,
+    "profit_factor": 0.8545,
+    "total": -26.1628,
+    "max_drawdown": 37.7102
+   },
+   "valid_markets_positive": 0.5,
+   "candidate": false,
+   "train_best_any": {
+    "n": 18,
+    "mean": 0.3279,
+    "t": 2.4499,
+    "p": 0.0071,
+    "ci_low": 0.0656,
+    "ci_high": 0.5901,
+    "win_rate": 0.8333,
+    "avg_win": 0.5661,
+    "avg_loss": -0.8635,
+    "profit_factor": 3.2782,
+    "total": 5.9013,
+    "max_drawdown": 1.0656
+   }
+  },
+  {
+   "family": "volatilite",
+   "class": "forex",
+   "configs": 32,
+   "chosen": null,
+   "train_best_any": {
+    "n": 251,
+    "mean": -0.0321,
+    "t": -0.5193,
+    "p": 0.6982,
+    "ci_low": -0.1532,
+    "ci_high": 0.089,
+    "win_rate": 0.5139,
+    "avg_win": 0.8522,
+    "avg_loss": -0.9671,
+    "profit_factor": 0.9318,
+    "total": -8.0522,
+    "max_drawdown": 21.2184
+   }
+  },
+  {
+   "family": "volatilite",
+   "class": "ensemble",
+   "configs": 32,
+   "chosen": null,
+   "train_best_any": {
+    "n": 289,
+    "mean": -0.045,
+    "t": -0.7701,
+    "p": 0.7794,
+    "ci_low": -0.1594,
+    "ci_high": 0.0695,
+    "win_rate": 0.5052,
+    "avg_win": 0.8737,
+    "avg_loss": -0.9829,
+    "profit_factor": 0.9076,
+    "total": -12.9936,
+    "max_drawdown": 26.2359
+   }
+  }
+ ]
+}
