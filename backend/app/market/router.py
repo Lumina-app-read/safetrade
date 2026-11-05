@@ -23,7 +23,10 @@ MAX_STREAMS_PER_USER = 5
 MAX_WATCHED_SYMBOLS = 60
 HEARTBEAT_SECONDS = 15.0
 # La session est revalidée à chaque reconnexion du navigateur (EventSource la fait seul).
-STREAM_HEADERS = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+# `no-transform` : sans lui, le serveur Next.js compresse le flux pour un navigateur et le garde
+# en mémoire jusqu'à remplir son tampon ; les prix arrivaient par paquets, environ chaque minute
+# (constat du 5 novembre 2026). `X-Accel-Buffering` fait de même pour un proxy Nginx.
+STREAM_HEADERS = {"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"}
 
 
 def get_market(request: Request) -> MarketStore:
